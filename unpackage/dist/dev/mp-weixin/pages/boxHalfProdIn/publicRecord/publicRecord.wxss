@@ -1,0 +1,17 @@
+
+.grid-title.data-v-d5a720d8 {
+	margin-top: 0px !important;
+}
+.xunhoubtm.data-v-d5a720d8 {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-justify-content:space-around;
+	        justify-content:space-around;
+	position: fixed;
+	background-color: #FFFFFF;
+	bottom: 0px;
+	width: 100%;
+	z-index: 2;
+}
+

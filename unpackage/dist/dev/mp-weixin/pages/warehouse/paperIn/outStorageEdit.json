@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "出仓界面",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "search-form": "/components/searchForm/searchDataList.vue",
+    "request": "/utils/request",
+    "cu-custom": "/ui/colorui/components/cu-custom",
+    "z-table": "/components/z-table/z-table",
+    "uni-icon": "/components/uni-icon/uni-icon"
+  }
+}

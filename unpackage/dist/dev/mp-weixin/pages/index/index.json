@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "首页",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "tab-bar": "/components/tab-bar/tab-bar",
+    "erp-menu": "/components/menu/menu",
+    "cu-custom": "/ui/colorui/components/cu-custom",
+    "master-board": "/pages/masterBoard/masterBoard"
+  }
+}

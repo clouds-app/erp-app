@@ -1,0 +1,142 @@
+<template>
+	<view class="grid-warp">
+		<view class="grid-title">{{ menu.resName }}</view>
+		<view class="grid-body">
+			<view class="cu-list grid col-3 no-border">
+				<!-- 	<block v-for="(subItem,index) in item.children" :key="index"> -->
+				<block v-for="(subItem, subIndex) in menu.children" :key="subIndex">
+					<view class="cu-item" @tap="turnToPage(subItem.resLink, subIndex)">
+						<image class="image" :src="getImgUrl(subItem.resIcon)" mode="aspectFill" />
+						<view v-if="!!subItem.resNotice && subItem.resNotice.length > 0" class="cu-tag badge" style="padding-top: 2px;">
+							<block v-show="false">{{ getNoticeProvider(subItem.id, subItem.resNotice) }}</block>
+							<block>{{ !!!noticeItem[subItem.id] ? 0 : noticeItem[subItem.id] }}</block>
+						</view>
+						<text class="text">{{ subItem.resName }}</text>
+					</view>
+				</block>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+import request from '../../utils/request.js';
+import config from '../../config/config.js';
+import { emptyValidator } from '../../utils/validator.js';
+export default {
+	name: 'menu-card',
+	data() {
+		return {
+			noticeItem: {},
+			serverUrl: config.serverUrl
+		};
+	},
+	props: {
+		menu: Object
+	},
+	methods: {
+		getNoticeProvider(id, _url) {
+			if (_url.length < 10 || this.noticeItem[id]) {
+				return;
+			}
+			request.get(_url).then(totalCount => {
+				this.$set(this.noticeItem, id, totalCount);
+				//console.log('totalCount_id_url:'+totalCount,id,_url)
+			});
+		},
+		turnToPage(url, index) {
+			this.router.navigate(url)
+		},
+		getImgUrl(imgUrl) {
+			if (emptyValidator(imgUrl)) {
+				return '../../static/funtion-checked.png';
+			}
+			let clientToken = this.cache.get(this.appConst.CLIENT_TOKEN_NAME)
+			return `${this.serverUrl}${imgUrl}?token=${clientToken}`;
+		}
+	}
+};
+</script>
+
+<style>
+.grid-warp {
+	width: 90%;
+	margin-left: 5%;
+}
+.grid {
+	padding: 0 30upx 30upx;
+}
+
+.grid-title {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 28upx;
+	padding: 15upx;
+	padding-left: 25upx;
+	margin-top: 20upx;
+	position: relative;
+	background-color: #fdfdfd;
+	border-radius: 10upx 10upx 0 0;
+}
+
+.grid-title:after {
+	content: '';
+	position: absolute;
+	left: 0;
+	margin: auto;
+	top: 0;
+	bottom: 0;
+	width: 10upx;
+	height: 40upx;
+	border-top-right-radius: 10upx;
+	border-bottom-right-radius: 10upx;
+	background-color: #4aecdb;
+}
+
+.grid .grid-title {
+	margin: 40upx 0;
+}
+
+.grid-body {
+	border-top: 1px #f5f5f5 solid;
+	background: #fff;
+	border-radius: 0 0 5px 5px;
+}
+
+.grid-info {
+	padding: 30upx;
+	color: #3b4144;
+	background: #fff;
+}
+
+.image {
+	width: 50upx;
+	height: 50upx;
+}
+
+.text {
+	font-size: 26upx;
+	margin-top: 10upx;
+	color: #000000 !important;
+}
+
+.cu-item {
+	display: flex;
+	align-items: center;
+	/* padding-bottom: 20px; */
+}
+
+.no-border {
+	padding: 0;
+}
+
+.grid-flex {
+	display: flex;
+	justify-content: space-between;
+}
+
+.padding-10 {
+	padding: 10rpx 20rpx;
+}
+</style>

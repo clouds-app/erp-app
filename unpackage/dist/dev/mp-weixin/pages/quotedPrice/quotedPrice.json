@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "search": "/components/search/search",
+    "cu-custom": "/ui/colorui/components/cu-custom",
+    "z-table": "/components/z-table/z-table"
+  }
+}

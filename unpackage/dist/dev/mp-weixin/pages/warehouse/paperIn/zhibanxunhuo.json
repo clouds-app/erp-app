@@ -1,0 +1,10 @@
+{
+  "usingComponents": {
+    "search-form": "/components/searchForm/searchDataList.vue",
+    "z-table": "/components/z-table/z-table",
+    "cu-custom": "/ui/colorui/components/cu-custom",
+    "approval": "/components/approval/approval",
+    "search": "/components/search/search",
+    "customer-select": "/components/selectDropdown/selectDropdown"
+  }
+}

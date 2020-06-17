@@ -1,0 +1,11 @@
+{
+  "usingComponents": {
+    "v-table": "/components/table",
+    "cu-custom": "/ui/colorui/components/cu-custom",
+    "request": "/utils/request",
+    "uni-drawer": "/components/uni-drawer/uni-drawer",
+    "uni-list": "/components/uni-list/uni-list",
+    "uni-list-item": "/components/uni-list-item/uni-list-item",
+    "uni-search-bar": "/components/uni-search-bar/uni-search-bar"
+  }
+}

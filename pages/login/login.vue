@@ -1,0 +1,138 @@
+<template>
+	<view class="content">
+		<view class="login-bg">
+			<view class="logo-box"><image src="../../static/clsoftLogo.png" style="width: 100px;height: 100px;"></image></view>
+			<view class="login-card">
+				<view class="login-head">请输入您的账户</view>
+				<view class="login-input login-margin-b"><input type="text" v-model="loginForm.phoneNo" placeholder="请输入手机号码" focus maxlength="11"/></view>
+				<view class="login-input"><input type="password" v-model="loginForm.password" :password="true" placeholder="请输入密码" /></view>
+			</view>
+		</view>
+		<view class="login-btn"><button class="primary-btn" @tap="login" type="primary">登陆</button></view>
+		<view style="padding: 60rpx 0;text-align: center;color: #007AFF;">
+			<text @click="openRegisterPage">用户注册</text>
+		</view>
+	</view>
+</template>
+
+<script>
+import md5 from 'js-md5';
+import request from '../../utils/request.js';
+import {emptyValidator} from '../../utils/validator.js'
+export default {
+	data() {
+		return {
+			loginForm: {
+				phoneNo: '',
+				password: ''
+			}
+		};
+	},
+	methods: {
+		getValidatorToken() {
+			return request.get('/cls-api/user/validatorToken', {userId:this.loginForm.phoneNo});
+		},
+		login() {
+			if(emptyValidator(this.loginForm.phoneNo)){
+				this.toast.message('用户名不能为空')
+				return
+			}
+			if(emptyValidator(this.loginForm.password)){
+				this.toast.message('密码不能为空')
+				return
+			}
+			this.getValidatorToken().then(validatorToken => {
+				/* let md5Pwd = md5(md5(this.loginForm.password + validatorToken) +validatorToken)
+				let user = {
+					phoneNo: this.loginForm.phoneNo,
+					password: md5Pwd
+				} */
+				request.post('/cls-api/user/login',this.loginForm).then(res => {
+					this.cache.put(this.appConst.CLIENT_TOKEN_NAME,res.token)
+					this.cache.put(this.appConst.CLIENT_USER_CACHE_NAME,res.user)
+					this.router.tab('/pages/index/index')
+				}).catch(err => {
+					if(typeof err === 'string'){
+						this.toast.message(err)
+					}else{
+						this.toast.message('服务器繁忙')
+					}
+				})
+			});
+		},
+		openRegisterPage(){
+			this.router.navigate('/pages/register/register')
+		}
+	},created() {
+		let token = this.cache.get(this.appConst.CLIENT_TOKEN_NAME)
+		let user = this.cache.get(this.appConst.CLIENT_USER_CACHE_NAME)
+		if(!emptyValidator(token) && !emptyValidator(user)){
+			this.router.tab('/pages/index/index')
+		}
+	}
+};
+</script>
+
+<style>
+
+.login-btn {
+	padding: 10rpx 20rpx;
+	margin-top: 350rpx;
+}
+.login-function {
+	overflow: auto;
+	padding: 20rpx 20rpx 30rpx 20rpx;
+}
+.login-forget {
+	float: left;
+	font-size: 26rpx;
+	color: #999;
+}
+.login-register {
+	color: #666;
+	float: right;
+	font-size: 26rpx;
+}
+.login-input input {
+	background: #f2f5f6;
+	font-size: 28rpx;
+	padding: 10rpx 25rpx;
+	height: 80rpx;
+	line-height: 80rpx;
+	border-radius: 8rpx;
+}
+.login-margin-b {
+	margin-bottom: 25rpx;
+}
+.login-input {
+	padding: 10rpx 20rpx;
+}
+.login-head {
+	font-size: 34rpx;
+	text-align: center;
+	padding: 25rpx 10rpx 55rpx 10rpx;
+}
+.login-card {
+	background: #fff;
+	border-radius: 12rpx;
+	padding: 10rpx 25rpx 40rpx;
+	box-shadow: 0 6rpx 18rpx rgba(0, 0, 0, 0.12);
+	position: relative;
+	margin-top: 380rpx;
+}
+.login-bg {
+	height: 500rpx;
+	padding: 25rpx;
+	background: linear-gradient(#0081ff, #1cbbb4);
+	border-radius: 0 0 10% 10%;
+}
+
+.logo-box {
+	width: 100px;
+	position: fixed;
+	left: 50%;
+	margin-left: -50px;
+	top: 50px;
+	height: 100px;
+}
+</style>

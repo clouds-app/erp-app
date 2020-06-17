@@ -1,0 +1,22 @@
+
+.card {
+	width: 90%;
+	margin-left: 5%;
+	border-radius: 10rpx;
+	padding: 30rpx;
+}
+.status {
+}
+.grid-title {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-pack: justify;
+	-webkit-justify-content: space-between;
+	        justify-content: space-between;
+}
+.text-price {
+	color: #4aecdb;
+	font-size: 50rpx;
+}
+

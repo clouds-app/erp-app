@@ -1,0 +1,31 @@
+
+.margin-left-custom {
+	margin-left: 8px;
+}
+.window-bottom{
+	height: 100rpx;
+}
+.marginBottom10{
+	margin-bottom: 10rpx;
+}
+.price-mini-panel{
+	margin-bottom: 30rpx;
+}
+.grid-title{
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-pack: justify;
+	-webkit-justify-content: space-between;
+	        justify-content: space-between;
+}
+.text-price{
+	color:#0081ff;
+	font-size: 40rpx;
+}
+.text-area{
+	color:#0081ff;
+	font-size: 40rpx;
+}
+
+

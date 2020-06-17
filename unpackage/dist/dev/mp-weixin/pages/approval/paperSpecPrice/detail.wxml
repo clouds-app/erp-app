@@ -1,0 +1,1 @@
+<view><approval-detail generic:scoped-slots-content="detail-approval-detail-content" class="vue-ref" vue-id="79cbb29b-1" approvalId="{{initData.ID1}}" modelName="paperSpecPrice" data-ref="approvalDetailComp" bind:__l="__l" vue-slots="{{['content','page-title']}}"><view slot="page-title">纸板特价审批详情</view></approval-detail></view>

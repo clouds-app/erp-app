@@ -1,0 +1,8 @@
+
+.search.data-v-742c3170{
+	/* display: flex; */
+	position: fixed;
+	width: 60%;
+	z-index: 2000000;
+}
+

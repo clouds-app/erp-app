@@ -1,0 +1,1 @@
+<view><cu-custom vue-id="20b02018-1" bgColor="bg-gradual-blue" isBack="{{false}}" bind:__l="__l" vue-slots="{{['content']}}"><view slot="content">功能</view></cu-custom><erp-menu vue-id="20b02018-2" menuList="{{appMenu.function}}" bind:__l="__l"></erp-menu></view>

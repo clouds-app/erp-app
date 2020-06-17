@@ -1,0 +1,8 @@
+
+.form-container{
+	padding: 40rpx;
+}
+uni-textarea{
+	width: auto !important;
+}
+

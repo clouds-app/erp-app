@@ -1,0 +1,86 @@
+<template>
+	<view>
+		<approval-detail ref="approvalDetailComp" :approvalId="initData.ID1" modelName="paperSpecPrice">
+			<view slot="page-title">
+				纸板特价审批详情
+			</view>
+			<view slot="content" slot-scope="{data}">
+				<view class="grid-warp">
+					<view class="grid-title">
+						纸板详情
+					</view>
+					<view class="grid-body">
+						<view class="grid-flex padding-10">
+							<view>
+								<text>客户名称:{{ initData.co_CustName }}</text>
+							</view>
+						</view>
+						<view class="grid-flex padding-10">
+							<view>
+								<text>单号:{{ initData.co_CustPo }}</text>
+							</view>
+							<view>
+								<text>日期:{{ initData.co_Date }}</text>
+							</view>
+						</view>
+						<view class="grid-flex padding-10">
+							<view>
+								<text>纸质:{{ initData.co_ArtId }}</text>
+							</view>
+							<view>
+								<text>愣别:{{ initData.co_ArtLB }}</text>
+							</view>
+						</view>
+						
+						<view class="grid-flex padding-10">
+							<view>
+								<text>纸长:{{ initData.co_CSize_l }}</text>
+							</view>
+							<view>
+								<text>纸宽:{{ initData.co_CSize_w }}</text>
+							</view>
+						</view>
+						<view class="grid-flex padding-10">
+							<view>
+								<text>数量:{{ initData.co_Qty }}</text>
+							</view>
+						</view>
+						<view class="grid-flex padding-10">
+							<view><text>&nbsp;</text></view>
+							<view>
+								<text></text>
+								<text class="text-price">{{ initData.co_Money }}</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</approval-detail>
+	</view>
+</template>
+
+<script>
+	import approvalDetail from '@/components/approval/approvalDetail.vue'
+	export default {
+		components:{ approvalDetail },
+		data() {
+			return {
+				initData:{}
+			}
+		},
+		methods: {
+			
+		},
+		onLoad(option){
+			debugger
+			this.initData = this.cache.get(option.id)
+		}
+	}
+</script>
+
+<style>
+.text-price {
+	color: #4aecdb;
+	font-size: 50rpx;
+}
+</style>

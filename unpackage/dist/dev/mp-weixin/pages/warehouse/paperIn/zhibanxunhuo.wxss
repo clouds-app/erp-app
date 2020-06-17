@@ -1,0 +1,48 @@
+
+.xunhoutop.data-v-212dd9e5{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.margin-text-center.data-v-212dd9e5 {
+	text-align: center;
+	margin: 20rpx;
+}
+.border-top.data-v-212dd9e5 {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title.data-v-212dd9e5 {
+	min-width: calc(4em + 15px);
+}
+.xunhuoclass.data-v-212dd9e5 {
+	margin-top: 10px;
+}
+.xunhoubtm.data-v-212dd9e5 {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-pack:justify;
+	-webkit-justify-content:space-between;
+	        justify-content:space-between;
+	position: fixed;
+	background-color: #FFFFFF;
+	bottom: 0px;
+	width: 100%;
+}
+.xunhoubtm >view.data-v-212dd9e5:first-child{
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	color: red;
+	-webkit-box-align:center;
+	-webkit-align-items:center;
+	        align-items:center;
+	margin: 5px;
+}
+.xunhoubtm >view.data-v-212dd9e5:last-child{
+	margin: 5px;
+}
+.flex-sub.data-v-212dd9e5 {
+	background-color: #FFFFFF;
+}
+

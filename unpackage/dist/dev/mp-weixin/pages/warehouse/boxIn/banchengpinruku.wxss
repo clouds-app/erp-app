@@ -1,0 +1,12 @@
+
+.margin-text-center {
+	text-align: center;
+	margin: 20rpx;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+

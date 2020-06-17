@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "erp-menu": "/components/menu/menu",
+    "cu-custom": "/ui/colorui/components/cu-custom"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "boxSpecPrice-approval-content": "/pages/approval/boxSpecPrice/boxSpecPrice-approval-content",
+    "approval": "/components/approval/approval"
+  }
+}

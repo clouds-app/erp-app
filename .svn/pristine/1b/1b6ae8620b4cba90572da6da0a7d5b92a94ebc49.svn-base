@@ -1,0 +1,394 @@
+<template>
+	<view>
+		<cu-custom class="titlefrom" bgColor="bg-gradual-blue" :isBack="true"><block slot="content">收款查询</block></cu-custom>
+		<form class="xunhoutop">
+			<view class="bodyContentHeight">
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='otherHeight'
+							title="类ㅤ型"
+							url="appGetCustomerType"
+							ref="customertype"
+							v-model="paperStoreItem.typeId"
+							placeholdertext="请选择类型"
+							:params='tyoeparams'
+							@closeMain='getcustomerparams'
+						></selectDropdown>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='otherHeight'
+							title="客ㅤ户"
+							url="appGetCustomerSelect"
+							ref="customerDrawer" 
+							v-model="paperStoreItem.customersId"
+							placeholdertext="请选择客户"
+							:Reload='true'
+							:params='customerparams'
+						></selectDropdown>
+						<!-- :multipleChoice='true' 是否多选 -->
+						<!-- @getcheckboxval='getcheckboxval' 回调事件 -->
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='otherHeight'
+							title="业务员"
+							url="appFindUser"
+							ref="findPaperLimit" 
+							v-model="paperStoreItem.salesmanId"
+							placeholdertext="请选择业务员"
+							:params='findPaperLimitparams'
+						></selectDropdown>
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view class="title">合计金额</view>
+							<input disabled="true" v-model="paperStoreItem.totalAmount" name="input"></input>
+						</view>
+					</view>
+				</view>
+				
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<button :style="{color: formItem.type=='week'?'red':''}" class="cu-btn  line-blue" @click="searchDataBy('week')" >本周</button>
+							<button :style="{color: formItem.type=='month'?'red':''}" class="cu-btn  line-blue" @click="searchDataBy('month')" >本月</button>
+							<view >	<button @click="paprtIn"  type="primary" size="mini" class="bg-grey radius">搜索</button></view>
+					   </view>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view class="title">日期范围:</view>
+							<picker mode="date" :value="formItem.startDate" start="2015-09-01" :end="defaultEndDate" @change="startDateChange">
+								<view class="picker">
+									{{formItem.startDate}}
+								</view>
+							</picker>
+							<text class="margin-left">至</text>
+							<picker mode="date" :value="formItem.endDate" start="2015-09-01" :end="defaultEndDate" @change="endDateChange">
+								<view class="picker">
+									{{formItem.endDate}}
+								</view>
+							</picker>
+				       </view>
+					</view>
+				</view>
+			</view>
+		</form>
+		<!-- :style="[{top:otherHeight + 'px',width:searchWidth+'px' , left:0+'px'}]" -->
+		<view :style="[{height:xunhoutopheight + 'px' }]"></view>
+		<!-- 数据查询列表 -->
+		<view  class="grid-warp" v-for="(item,index) in fromdata" :key='index'>
+			<view class="grid-title">
+				<view>客户信息</view>
+				<view @click="viewDetails">查看详情</view>
+			</view>
+			<view class="grid-body">
+				<view class="grid-flex padding-10">
+					<view>
+						<text>客户编号：{{item.g_Cust}}</text>
+					</view>
+					<view>
+						<text>简称：{{item.ct_Desc}}</text>
+					</view>
+				</view>
+				<view class="grid-flex padding-10">
+					<view>
+						<text>收款金额：{{item.g_amt}}</text>
+					</view>
+					<view>
+						<text>入账金额：{{item.g_accAmt}}</text>
+					</view>
+				</view>
+			</view>
+		</view>
+		<!-- 查看详情数据列表 -->
+		<!-- <view style="height: 80px;"></view> -->
+		<!-- 底部按钮 -->
+		<!-- <view class="chucangbtm">
+			<view class="flex solid-bottom padding justify-around elBtn" ref="elBtn">
+				<view>	<button @click="resetFrom"  type="primary" size="mini" class="bg-grey radius">清除</button></view>
+				<view style="margin-top: 5px;"> <text>总条数:{{numbertext}}</text>	</view>
+				<view>	<button @click="paprtIn"  type="primary" size="mini" class="bg-grey radius">搜索</button></view>
+			</view>
+		</view> -->
+		<w-picker
+		    mode="date" 
+		    startYear="2016" 
+		    :endYear="endYear"
+		    :defaultVal="[0,0,0]" 
+		    :current="true"
+		    @confirm="onConfirmDate" 
+		    ref="DatePicker" 
+		    themeColor="#f00">
+		</w-picker>
+	</view>
+</template>
+
+<script>
+import wPicker from "@/components/w-picker/w-picker.vue";
+import dayjs from 'dayjs'
+import MxDatePicker from "@/components/mx-datepicker/mx-datepicker.vue";
+import selectDropdown from '@/components/selectDropdown/selectDropdown.vue'
+import zTable from '@/components/z-table/z-table.vue';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import request from '@/utils/request.js';
+import dateFormat from '@/utils/dateFormat.js';
+const defaultformItem = {
+							startDate: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+							endDate: dayjs().format('YYYY-MM-DD'),
+							}
+export default {
+	name: 'collectionQuery', ///收款查询
+	components: { zTable, cuCustom, selectDropdown, MxDatePicker, wPicker },
+	data() {
+		return {
+			formItem:Object.assign({},defaultformItem),
+			defaultEndDate:dayjs().format('YYYY-MM-DD'),
+			
+			buttonHeight:'',//多选按钮高度
+			customerparams:{},//客户请求参数
+			tyoeparams:{modelCode:"collection_query"},//客户类型请求参数
+			findPaperLimitparams:{modelCode:"collection_query",fieldDesc:"业务员",workType:'0,18'},//业务员请求参数
+			xunhoutopheight:0,//列表高度
+			endYear:dayjs(Date.now()).format('YYYY'),//当前年份
+			startDate:dayjs(Date.now()).subtract(1, 'month').format('YYYY-MM-DD'),//开始时间
+			endDate:dayjs(Date.now()).format('YYYY-MM-DD'),//结束时间
+			dataType:'',
+			otherHeight:0,//title高度
+			numbertext:0,//总卷数
+			TabCur: 0,
+			scrollLeft: 0,
+			dataTableList: [],
+			tableHeight: 500, //表格高度
+			fromdata:[],//数据查询列表
+			paperStoreItem: {
+				customersId:'',//客户
+				salesmanId:'',//业务员
+				typeId:'',//类型·
+				totalAmount:'',//合计金额
+				rangetime:''//日期范围
+			},
+		};
+	},
+	// #ifdef H5
+	mounted() {
+		this.getxunhoutopHeight('xunhoutop')
+		this.getOtherContentHeight('titlefrom')
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+		this.getxunhoutopHeight('xunhoutop')
+		this.getOtherContentHeight('titlefrom')   
+	},
+	// #endif
+	methods: {
+		// 搜索数据 通过条件
+		searchDataBy(type){
+			this.formItem.type = ''
+			// // 重置 搜索模式
+			let d = new Date().getDate()-1;
+			let nowDayOfWeek = new Date().getDay()-1; //今天本周的第几天
+			switch (type){
+				// 本周dayjs()
+				case 'week':
+				   this.formItem.type = 'week'
+				   this.formItem.startDate = dayjs().subtract(nowDayOfWeek, 'day').format('YYYY-MM-DD')
+				   this.formItem.endDate = dayjs().format('YYYY-MM-DD')
+					break;
+				// 本月
+				case 'month':
+					this.formItem.type = 'month'
+					this.formItem.startDate = dayjs().subtract(d, 'day').format('YYYY-MM-DD')
+					this.formItem.endDate = dayjs().format('YYYY-MM-DD')
+					break;
+				default:
+				  // 按日期搜索+其它条件
+					break;
+			}
+		},
+		// 类型选择回调事件
+		restcustomers(){
+			this.paperStoreItem.customersId = ''
+			this.paperStoreItem.salesmanId = ''
+			// this.paperStoreItem.rangetime = ''
+			// this.startDate = dayjs(Date.now()).subtract(1, 'month').format('YYYY-MM-DD'),//开始时间
+			// this.endDate = dayjs(Date.now()).format('YYYY-MM-DD'),//结束时间
+			this.$refs.customerDrawer.$data.formItem.customers = ''
+			this.$refs.customerDrawer.$data.formItem.customersId = ''
+			this.$refs.findPaperLimit.$data.formItem.customers= ''
+			this.$refs.findPaperLimit.$data.formItem.customersId = ''
+		},
+		//计算多选按钮高度
+		setbuttonHeight(needOtherHeight=false){
+				  if(!needOtherHeight){
+					  // this.otherHeight = 0
+				  }
+				try {
+				    const res = uni.getSystemInfoSync();
+					this.buttonHeight =res.windowHeight -this.otherHeight
+					return this.buttonHeight
+				} catch (e) {
+				    // error
+				}
+		},
+		// 过去客户请求参数
+		getcustomerparams(val){
+			this.customerparams = {
+				fieldDesc:val.ct_Desc,
+				modelCode:"collection_query"
+			}
+			// if(val.type != this.paperStoreItem.typeId){
+				this.restcustomers()
+			// }
+			this.$refs.customerDrawer.getdataArray(this.customerparams)
+		},
+		//多选确认回调事件
+		getcheckboxval(value){
+			this.paperStoreItem.customersId = value//客户编号
+		},
+		//查看详情
+		viewDetails(){
+			let user = this.cache.get(this.appConst.CLIENT_USER_CACHE_NAME)
+			let params = {
+				cList:this.paperStoreItem.customersId, 	//--客户编号
+				"BDate":this.formItem.startDate, //	--开始日期
+				"EDate":this.formItem.endDate,	// --结束日期
+				"Mode":"0", 	//--查询方式（0明细数据、1汇总数据）
+				"UserID":user.erpUserCode,	//--当前用户编号
+				"vMam":this.paperStoreItem.salesmanId,	//--业务员
+				"vType":this.paperStoreItem.typeId	//--客户类型（0:全部，1:纸箱，2:纸板）
+			}
+			this.cache.put(String(this.paperStoreItem.customersId),params)
+			// 	this.cache.put(String(data.ID1),data)
+			// 	this.router.navigate(`/pages/approval/spaperpo/originalPaperDetail?id=${data.ID1}`)
+			uni.navigateTo({
+				// url: `./loadGoodsDownDetail?cardNo=${this.formItem.licensePlate}&carListNo=` + this.formItem.carGoodsNo 
+				url:`./custdetails?id=${this.paperStoreItem.customersId}`  //&ProdNo=`+this.fromdata[index].ProdNo
+			})
+		},
+		// 开始时间选择 回调
+		startDateChange(e) {
+			this.formItem.startDate = e.detail.value
+		},
+		// 结束时间选择 回调
+		endDateChange(e) {
+			this.formItem.endDate = e.detail.value
+		},
+		//获取指定内容占用高度,计算剩余高度 单位:PX
+		getOtherContentHeight(className='bodyContentHeight'){
+		  return new Promise((resolve, reject) => {
+			   let eleHeight=0
+			   let _self =this
+			   let info = uni.createSelectorQuery().in(_self).select("."+className);
+			  info.boundingClientRect(function(data) { //data - 各种参数
+				 // console.log('other Height:'+data.height)  // 获取元素宽度
+			 　　   _self.otherHeight = data.height
+					eleHeight = data.height
+					resolve(data.height)
+			   }).exec(function (res) {
+			   })
+			   // this.setbuttonHeight()
+		  })
+		},
+		getxunhoutopHeight(className){
+			let _self =this
+			let info = uni.createSelectorQuery().in(_self).select("."+className);
+			info.boundingClientRect(function(data) { //data - 各种参数
+							 // console.log('other Height:'+data.height)  // 获取元素宽度
+			　　   _self.xunhoutopheight = data.height
+			  }).exec(function (res) {
+			  })
+		},
+		// 清除
+		resetFrom(){
+			this.paperStoreItem.customersId = ''
+			this.paperStoreItem.typeId = ''
+			this.paperStoreItem.salesmanId = ''
+			// this.paperStoreItem.rangetime = ''
+			this.startDate = dayjs(Date.now()).subtract(1, 'month').format('YYYY-MM-DD'),//开始时间
+			this.endDate = dayjs(Date.now()).format('YYYY-MM-DD'),//结束时间
+			this.$refs.customerDrawer.$data.formItem.customers = ''
+			this.$refs.customerDrawer.$data.formItem.customersId = ''
+			this.$refs.findPaperLimit.$data.formItem.customers= ''
+			this.$refs.findPaperLimit.$data.formItem.customersId = ''
+			this.$refs.customertype.$data.formItem.customers= '',
+			this.$refs.customertype.$data.formItem.customersId = ''
+		},
+		// 验证数据
+		ValidateData(){
+			let flag = false
+			if(!!!this.paperStoreItem.customersId){
+				this.toast.message('请选择搜索客户')
+				flag = true
+			}
+			return flag
+		},
+		// 搜索
+		paprtIn(){
+			if(!!this.ValidateData()){
+				return
+			}
+			let user = this.cache.get(this.appConst.CLIENT_USER_CACHE_NAME)
+			let params = {
+				cList:this.paperStoreItem.customersId, 	//--客户编号
+				"BDate":this.formItem.startDate, //	--开始日期
+				"EDate":this.formItem.endDate,	// --结束日期
+				Mode:"1", 	//--查询方式（0明细数据、1汇总数据）
+				UserID:user.erpUserCode,	//--当前用户编号
+				vMam:this.paperStoreItem.salesmanId,	//--业务员
+				vType:this.paperStoreItem.typeId	//--客户类型（0:全部，1:纸箱，2:纸板）
+			}
+			this.toast.loading();
+			request.post('/warehouse/warehouse/execute/appAspSysAcceptMoneyAnalyzerly',params).then(res=>{
+				if(res.list.length != 0){
+					this.toast.hide();
+					this.fromdata = res.list
+					this.paperStoreItem.totalAmount = res.list[0].BAmt  //合计金额
+				}else{
+					this.toast.hide();
+					this.toast.message('该客户无数据')
+				}
+			}).catch(err=>{
+					this.toast.hide();
+					this.toast.message('数据加载失败')
+			})
+		},
+		
+
+	},	
+		
+};
+</script>
+
+<style scoped>
+.xunhoutop{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.chucangbtm{
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+}
+.margin-text-center {
+	text-align: center;
+	margin: 20rpx;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+</style>

@@ -1,0 +1,12 @@
+
+.margin-text-center.data-v-874b3952{
+		text-align: center;
+		margin: 20rpx;
+}
+.border-top.data-v-874b3952{
+		  border-top: 1px solid #eee;
+}
+.cu-form-group .title.data-v-874b3952 {
+		min-width: calc(4em + 15px);
+}
+

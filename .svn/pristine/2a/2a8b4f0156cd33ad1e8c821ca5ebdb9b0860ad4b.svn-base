@@ -1,0 +1,108 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="false"><block slot="content">我的</block></cu-custom>
+		
+		<view class="cu-list menu-avatar">
+			<view class="cu-item ">
+				<text  class="cuIcon-peoplefill  cu-avatar radius lg margin-top5 color-main-cl"></text>
+				<view class="content">
+					<view class="text-black text-sm">
+						<view class="text-cut">
+							{{user.customerName}}
+						</view>
+						<view class="text-cut" style="padding-left: 10rpx;">
+							( {{user.name}} )
+						</view>
+					</view>
+					<!-- <view class="text-gray text-sm flex"> <view class="text-cut">深圳市晨龙包装自动化有限公司</view></view> -->
+				</view>
+			</view>
+		</view>
+		<view class="cu-list menu sm-border margin-top ">
+			<view class="cu-item" @tap="changePassword">
+				<view class="content">
+					<text class="cuIcon-circlefill text-grey"></text>
+					<text class="text-grey">修改密码</text>
+				</view>
+			</view>
+			<view class="cu-item" @tap="switchAccount">
+				<view class="content">
+					<text class="cuIcon-circlefill text-grey"></text>
+					<text class="text-grey">账户切换</text>
+				</view>
+			</view>
+			<view class="cu-item" @tap="loginOut">
+				<view class="content">
+					<text class="cuIcon-circlefill text-grey"></text>
+					<text class="text-grey">退出登陆</text>
+				</view>
+			</view>
+		</view>
+		<view style="position: fixed;bottom: 100rpx;text-align: center;padding: 40rpx;width: 100%;line-height: 60rpx;">
+			<text style="text-align: center;">当前版本号：{{appVersion}}<br/></text>
+			<text style="text-align: center;">SZCLSOFT.COM AllRights Reserved 版权所有<br/></text>
+			<text style="text-align: center;">联系方式：0755-27091958 QQ：2355353626<br/></text>
+		</view> 
+	</view>
+</template>
+
+<script>
+	import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+	export default {
+		components:{ cuCustom },
+		data() {
+			return {
+				user:{},
+				appVersion:'1.0'
+			}
+		},
+		onReady() {
+		// debugger
+		// console.log(this.plus.runtime.version)
+		},
+		methods: {
+			changePassword(){
+				this.router.navigate('/pages/changePassword/changePassword')
+			},
+			loginOut(){
+				const _self = this
+				uni.showModal({
+				    title: '提示',
+				    content: '确定退出APP吗?',
+				    success: function (res) {
+				        if (res.confirm) {
+							const code = _self.cache.get(_self.appConst.CLIENT_CUSTOMER_CODE)
+							_self.cache.clear()
+							_self.cache.put(_self.appConst.CLIENT_CUSTOMER_CODE,code)
+							_self.router.reLaunch('/pages/login/login2')
+				        }
+				    }
+				})
+			},
+			getAppVersion(){
+				let _self = this
+				// #ifdef APP-PLUS
+				plus.runtime.getProperty( plus.runtime.appid, function ( wgtinfo ) {
+				  _self.appVersion = wgtinfo.version
+				} );
+				// #endif
+			},
+			switchAccount(){
+				this.router.navigate('/pages/uCenter/switchAccount')
+			}
+		},
+		created(){
+			this.getAppVersion()
+			this.user = this.cache.get(this.appConst.CLIENT_USER_CACHE_NAME) 
+		},
+		onLoad(){
+			/* uni.$once('account-switch-success',()=>{
+				this.user = this.cache.get(this.appConst.CLIENT_USER_CACHE_NAME)
+			}) */
+		}
+	}
+</script>
+
+<style>
+
+</style>

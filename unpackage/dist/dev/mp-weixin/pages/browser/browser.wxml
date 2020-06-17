@@ -1,0 +1,1 @@
+<view><cu-custom vue-id="72cb3ea4-1" bgColor="bg-gradual-blue" isBack="{{true}}" bind:__l="__l" vue-slots="{{['content']}}"><view slot="content">标题标题标题</view></cu-custom><web-view src="{{url}}" webview-styles="{{webviewStyles}}"></web-view></view>

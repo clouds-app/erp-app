@@ -1,0 +1,33 @@
+
+.margin-text-center.data-v-ccc4b206 {
+	text-align: center;
+	margin: 20rpx;
+}
+.border-top.data-v-ccc4b206 {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title.data-v-ccc4b206 {
+	min-width: calc(4em + 15px);
+}
+.chucangbtm.data-v-ccc4b206{
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+	z-index: 2;
+}
+.lastState.data-v-ccc4b206{
+	margin-top: 30px;
+	/* bottom: 0px; */
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-orient:vertical;
+	-webkit-box-direction:normal;
+	-webkit-flex-direction:column;
+	        flex-direction:column;
+	/* padding: 20px; */
+	/* justify-content:center; */
+	text-align: center;
+}
+

@@ -1,0 +1,391 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" class="titlefrom" :isBack="true"><block slot="content">纸板寻货</block></cu-custom>
+		<form class="xunhoutop">
+			<view class="bodyContentHeight">
+				<view ref="elForm"  class="cu-form-group border-top elForm">
+						<view style="margin-left: -15px;">
+							<!-- <customerSelect ref="customerDrawer" v-model="formItem.LicensePlate"></customerSelect> -->
+							<customerSelect
+								:otherHeight='otherHeight3' 
+								ref="customerDrawer" 
+								v-model="formItem.LicensePlate"
+								url="appGetCustomer"
+								title="客ㅤ户"
+								placeholdertext="ㅤ请选择客户"
+							></customerSelect>
+						</view>
+						<view>
+							<button  @click="findGoods()" type="primary" size="mini">查询</button>
+						</view>
+					</view>
+				</view>
+				<view class="bodyContentHeight">
+					<view class="cu-form-group border-top">
+						<view class="title">工单号:</view>
+						<input @blur="findGoods()" v-model="findGoodsItem.fOrderNo" placeholder="请输入工单号" />
+						<button @click="turnOnScanCode('search')" type="primary" size="mini">扫描</button>
+				</view>
+			</view>
+		</form>
+		
+			<view style="height: 80px;"></view>
+				<view  class="grid-warp" v-for="(item,index) in fromdata" :key='index'>
+					<view class="grid-title">
+						单号:{{item.CoNo}}
+					</view>
+					<view class="grid-body">
+						<view class="grid-flex padding-10">
+							<view>
+								<text>客户:{{item.PaperInfo}}</text>
+							</view>
+						</view>
+						<view class="grid-flex padding-10">
+							<view>
+								<text>仓位:{{item.StationName}}</text>
+							</view>
+							<view>
+								<text>入库:{{item.IQty}}</text>
+							</view>
+						</view>
+						<view class="grid-flex padding-10">
+							<view>
+								<text>库存:{{item.OQty}}</text>
+							</view>
+							<view>
+								<text>未送:{{item.NoDueQty}}</text>
+							</view>
+						</view>
+					</view>
+				</view>
+				<view style="height: 50px;"></view>
+			<view class="xunhoubtm elBtn">
+				<view>
+					<text>记录数：{{recordsNum}}</text>
+				</view>
+				<view>
+					<button class="bank-rest" @tap="resetFrom" type="primary" size="mini">清除</button>
+				</view>
+			</view>
+			<!--  侧边搜索列表 -->
+			<searchForm @getSelectDataInfo="getSelectDataInfo" :dataSource="dataSource" ref='searchForm'></searchForm>
+	</view>
+</template>
+
+<script>
+import customerSelect from '@/components/selectDropdown/selectDropdown.vue'
+import search from '@/components/search/search.vue';
+import approval from '@/components/approval/approval.vue'
+import searchForm from '@/components/searchForm/searchDataList.vue.vue'
+import zTable from '@/components/z-table/z-table.vue';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import request from '@/utils/request.js';
+// import customerSelect from '@/components/customer/customer.vue';
+// import baseMixin from '@/mixins/index.js'
+const defaultformItem={
+						LicensePlate:'',//客户
+						LicensePlateid:'',//客户id
+					}
+export default {
+	name: 'paperIn',
+	components: {zTable, cuCustom, searchForm, approval ,search,customerSelect},
+	// mixins:[baseMixin],
+	data() {
+		return {
+			searchModel:{
+				customer:''
+			},
+			recordsNum:0,
+			fromdata:[
+				
+			],
+			otherHeight3:0,//title表格高度
+			approvalClickIndex: -1,
+			TabCur: 0,
+			scrollLeft: 0,
+			dataTableList: [],
+			dataSource:[],//数据源
+			errorContent: '暂无数据', //数据加载中...
+			tableHeight: 0, //表格高度
+			// findGoodsTableDataItems: [],
+			paperOutTableDataItems: [],
+			formItem:Object.assign({},defaultformItem),
+			licensePlateList:[],// 客户 列表
+			paperInFormItems: {
+				instruct: '', //指令
+				station: '', //仓位
+				fOrderNo: '', //工单号
+				line: '', //线别
+				group: '', //班别
+				fQty: '', //数量
+				fDNum: '', //板号,
+				desc: '' //备注
+			},
+			paperInFormInit: {
+				instruct: '', //指令
+				station: '', //仓位
+				fOrderNo: '', //工单号
+				line: '', //线别
+				group: '', //班别
+				fQty: '', //数量
+				fDNum: '', //板号,
+				desc: '' //备注
+			},
+			findGoodsItem: {
+				fOrderNo: '' //工单号
+			},
+			paperOutItem: {
+				fOrderNo: '', //工单号
+				batch: ''
+			},
+
+		};
+	},
+	// #ifdef H5
+	mounted() {
+		this.loadLicensePlateList();
+		this.getTableHeight();
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+		this.loadLicensePlateList();
+		this.getTableHeight();
+	},
+	// #endif
+	methods: {
+		openSearch(){
+			this.$refs.customerDrawer.open()
+		},
+		close(){
+			this.$refs.searchPopup.close()
+		},
+		// //客户搜索框
+		// openSearch(){
+		// 	// debugger
+		// 	this.$refs.search.open();
+		// },
+		// search(data){
+		// 	// debugger
+		// 	this.formItem.LicensePlate = data.customer;
+		// },
+		//清除
+		resetFrom(){
+			this.formItem.LicensePlate = '',
+			this.formItem.LicensePlateid = '',
+			this.$refs.customerDrawer.$data.formItem.customers = '',
+			this.$refs.customerDrawer.$data.formItem.customersId = '',
+			this.recordsNum = 0;
+			this.findGoodsItem.fOrderNo = '';
+			this.fromdata = [];
+		},
+		//获取指定内容占用高度,计算剩余高度 单位:PX
+		getOtherContentHeight(className='bodyContentHeight'){
+		  return new Promise((resolve, reject) => {
+			   let eleHeight=0
+			   let _self =this
+			   let info = uni.createSelectorQuery().in(_self).select("."+className);
+			  info.boundingClientRect(function(data) { //data - 各种参数
+				 // console.log('other Height:'+data.height)  // 获取元素宽度
+			 　　   _self.otherHeight = data.height
+					eleHeight = data.height
+					resolve(data.height)
+			   }).exec(function (res) {
+			   })
+		  })
+		},
+		//计算设置表格高度
+		setTableHeight(needOtherHeight=false){
+				  if(!needOtherHeight){
+					  this.otherHeight = 0
+				  }
+				try {
+					//debugger
+				    const res = uni.getSystemInfoSync();
+				    // console.log('windowHeight:'+res.windowHeight);
+				     // console.log('CustomBar:'+this.CustomBar);
+				    // console.log('bodyContentHeight:'+this.otherHeight);
+					this.leftContentHeight =res.windowHeight -this.CustomBar - this.otherHeight -10
+					//console.log('tableHeight:'+this.leftContentHeight);
+					return this.leftContentHeight
+				} catch (e) {
+				    // error
+				}
+		},
+		// 动态获取设置滚动条高度,适配整屏
+		async getTableHeight(){
+		  let _self=this
+		  let tempHeight =  _self.setTableHeight()
+		  let otherHeight= await _self.getOtherContentHeight("elForm")
+		  let otherHeight2 = await _self.getOtherContentHeight("elBtn")
+		  let otherHeight3 = await _self.getOtherContentHeight("titlefrom")
+			this.otherHeight3 = otherHeight3
+		  // console.log(otherHeight3)
+		  if(otherHeight!=null && otherHeight2!=null){
+			_self.tableHeight =tempHeight-otherHeight-otherHeight2-20
+			// console.log(_self.tableHeight)
+		  }
+		},
+		// 加载客户列表
+		loadLicensePlateList(){
+			// debugger
+			this.licensePlateList =[]
+			let params ={
+				// null
+			}
+			request.post(`/warehouse/warehouse/execute/appGetCustomer`,params).then(res=>{
+					// debugger
+					// res.list=res.list.splice(0,10)
+					let resData=res.list.map(item=>{
+						let formatData = {
+							type:item.CustID,
+							ct_Desc:item.CustName
+						}
+						return formatData
+					})
+					this.licensePlateList = resData // 客户
+					// this.licensePlateList = [{type:1,ct_Desc:2},{type:2,ct_Desc:3}] // 客户
+			})
+		},
+		//右侧弹框
+		setSearchDataListSource(type){
+			// debugger
+			this.currentSelect = type
+			this.$refs['searchForm'].isMultipel=false
+			this.$refs['searchForm'].isShowSearchList=true
+		   if(type==='LicensePlate'){
+				// debugger
+				 this.dataSource = this.licensePlateList
+				 this.$refs['searchForm'].dataSourceList =this.licensePlateList
+		   }
+		},
+		// 选择  线别/班别/客户  数据回调事件
+		getSelectDataInfo(item){
+			//debugger
+			switch (this.currentSelect){
+				case 'LicensePlate':
+				this.formItem.LicensePlate=item.ct_Desc
+				this.formItem.LicensePlateid=item.type
+					break;
+				default:
+					break;
+			}
+		},
+		tabSelect(e) {
+			this.TabCur = e.currentTarget.dataset.id;
+			this.scrollLeft = (e.currentTarget.dataset.id - 1) * 60;
+		},
+		//打开扫描
+		turnOnScanCode(type) {
+			// debugger
+			let _self = this;
+			// 调起条码扫描
+			uni.scanCode({
+				scanType: 'barCode',
+				success: function(res) {
+					let a = res.result.indexOf(',')
+					let b = 0
+					console.log(a)
+					if(a<0){
+						b = res.result
+					}else{
+						b = res.result.substring(0,a)
+					}
+					// console.log('条码类型：' + res.scanType);
+					console.log('条码内容：' + res.result);
+					switch (type) {
+						case 'in': //入库
+							_self.paperInFormItems.instruct = b;
+							_self.getParamsFromScanCode();
+							break;
+						case 'out': //出仓
+							_self.paperOutItem.fOrderNo = b;
+							break;
+						case 'search': //寻货
+							_self.findGoodsItem.fOrderNo = b;
+							_self.findGoods()
+							break;
+
+						default:
+							break;
+					}
+				}
+			});
+		},
+		//查询数据
+		paperInRequest(data) {
+			return request.post('/warehouse/warehouse/execute/appSpScanOrder', data);
+		},
+		//====查询====
+		findGoods() {
+			//寻货
+			this.fromdata = []
+			this.toast.loading()
+			let data = {
+				CoNo: this.findGoodsItem.fOrderNo, //this.instruct,//????
+				CustID: this.formItem.LicensePlate,
+			};
+			request.post(`/warehouse/warehouse/execute/appSpGetPaperProductStore`,data)
+				.then(res => {
+					if (res.list && res.list.length > 0) {
+						// this.fromdata = res.list;
+						// this.fromdata.push(JSON.parse(JSON.stringify(res.list[0]))) 
+						this.fromdata = res.list
+						this.recordsNum = this.fromdata.length
+						// console.log(this.fromdata)
+						this.toast.hide()
+					}else{
+						this.toast.message('暂无数据');
+					}
+				})
+				.catch(err => {
+					this.toast.message('暂无数据');
+				});
+		},
+	}
+};
+</script>
+
+<style scoped>
+.xunhoutop{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.margin-text-center {
+	text-align: center;
+	margin: 20rpx;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+.xunhuoclass {
+	margin-top: 10px;
+}
+.xunhoubtm {
+	display: flex;
+	justify-content:space-between;
+	position: fixed;
+	background-color: #FFFFFF;
+	bottom: 0px;
+	width: 100%;
+	
+}
+.xunhoubtm >view:first-child{
+	display: flex;
+	color: red;
+	align-items:center;
+	margin: 5px;
+	
+}
+.xunhoubtm >view:last-child{
+	margin: 5px;
+}
+.flex-sub {
+	background-color: #FFFFFF;
+}
+</style>
+

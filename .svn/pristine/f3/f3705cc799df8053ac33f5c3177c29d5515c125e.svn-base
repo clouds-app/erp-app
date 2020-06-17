@@ -1,0 +1,529 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="false">
+				<block slot="content">全厂综合看版</block>
+		</cu-custom>
+		<!-- =====纸板===== -->
+		<view class="grid-warp grid-warpBold">
+			<view class="grid-title grid-title-color">
+				纸板
+			</view>
+			<view class="grid-body">
+				<view>
+					<uni-grid :column="3" :square="false" :highlight="false" :showBorder="false">
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text"></text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">当天</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">本月</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">订单金额(w)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						 <!--订单金额(w) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">10.53</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						   <!--订单金额(w) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">533.85</text>
+								</view>
+							</view>
+						</uni-grid-item>
+			
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">送货金额(w)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--送货金额(w) 天-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">12.58</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--送货金额(w) 月-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">118.72</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">车数</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--车数 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">18</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--车数 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">153</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">生产面积(w)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--生产面积(w) 天-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">12.58</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--生产面积(w) 月-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">118.72</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">折5层面积(w)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--折5层面积(w) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">18</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--折5层面积(w) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">153</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					
+					</uni-grid>
+				</view>
+			</view>
+		</view>
+		<!-- =====纸板===== -->
+		
+		<!-- =====原纸===== -->
+		<view class="grid-warp grid-warpBold">
+			<view class="grid-title grid-title-color">
+				原纸
+			</view>
+			<view class="grid-body">
+				<view>
+					<uni-grid :column="3" :square="false" :highlight="false" :showBorder="false">
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text"></text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">当天</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">本月</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">入库重量(T)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						 <!--入库重量(T) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">10.53</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						   <!--入库重量(T) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">533.85</text>
+								</view>
+							</view>
+						</uni-grid-item>
+			
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">入库金额(w)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--入库金额(w) 天-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">12.58</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--入库金额(w) 月-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">118.72</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					</uni-grid>
+				</view>
+			</view>
+		</view>
+		<!-- =====原纸===== -->
+		<!-- =====财务===== -->
+		<view class="grid-warp grid-warpBold">
+			<view class="grid-title grid-title-color">
+				财务
+			</view>
+			<view class="grid-body">
+				<view>
+					<uni-grid :column="3" :square="false" :highlight="false" :showBorder="false">
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text"></text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">当天</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">本月</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">收款金额(w)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						 <!--收款金额(w) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">10.53</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						   <!--收款金额(w) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">533.85</text>
+								</view>
+							</view>
+						</uni-grid-item>
+			
+						
+					</uni-grid>
+				</view>
+			</view>
+		</view>
+		<!-- =====财务===== -->
+		<!-- =====纸箱===== -->
+		<view class="grid-warp grid-warpBold">
+			<view class="grid-title grid-title-color">
+				纸箱
+			</view>
+			<view class="grid-body">
+				<view>
+					<uni-grid :column="3" :square="false" :highlight="false" :showBorder="false">
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text"></text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">当天</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">本月</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">订单金额(w)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						 <!--订单金额(w) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">10.53</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						   <!--订单金额(w) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">533.85</text>
+								</view>
+							</view>
+						</uni-grid-item>
+			
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">送货金额(w)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--送货金额(w) 天-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">12.58</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--送货金额(w) 月-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">118.72</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">车数</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--车数 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">18</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--车数 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">153</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">生产面积(w)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--生产面积(w) 天-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">12.58</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--生产面积(w) 月-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">118.72</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">折5层面积(w)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--折5层面积(w) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">18</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--折5层面积(w) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">153</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					
+					</uni-grid>
+				</view>
+			</view>
+		</view>
+		<!-- =====纸箱===== -->
+		<view class="window-bottom"></view>
+	</view>
+</template>
+
+<script>
+import baseMixin from '@/mixins';
+import cuCustom from '../../ui/colorui/components/cu-custom.vue' 
+export default {
+	components: {cuCustom },
+	mixins: [baseMixin],
+	data() {
+		return {};
+	},
+	methods: {}
+};
+</script>
+
+<style>
+	.window-bottom{
+		height: 100rpx;
+	}
+	.grid-title-color{
+		color: #007AFF;
+	}
+	.grid-warpBold{
+		font-weight: bold;
+	}
+	.price-mini-panel{
+		margin-bottom: 30rpx;
+	}
+	.monthDay-mini-panel{
+		margin-bottom: 10rpx;
+	}
+	.special-mini-panel{
+		margin-bottom: 5rpx;
+	}
+	.grid-title{
+		display: flex;
+		justify-content: space-between;
+	}
+	.text-price{
+		color:#0081ff;
+		font-size: 40rpx;
+	}
+	.text-area{
+		color:#0081ff;
+		font-size: 40rpx;
+	}
+</style>

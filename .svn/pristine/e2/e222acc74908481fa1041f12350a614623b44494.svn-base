@@ -1,0 +1,304 @@
+<template>
+	<view>
+		<view  class="cu-form-group border-top">
+			<view  class="title">{{title}}:</view>
+			<input @click="showModal" disabled v-model="formItem.customers"  :placeholder="placeholdertext" name="input"></input>
+			<text @click="showModal" class='cuIcon-rounddown text-green'></text>
+		</view>
+		<view v-if="modalName=='DrawerModalL'" >
+			<!-- 搜索框 -->
+			<view :style="[{top:otherHeight + 'px',width:searchWidth+'px' , left:0+'px'}]" class="cu-bar bg-white searchfrom" >
+				<view class="search-form round">
+					<text class="cuIcon-search"></text>
+					<input v-model="searchKeyword" type="text" placeholder="数据列表" confirm-type="search" @input="filterDataSource"></input>
+				</view>
+			</view>
+			<!-- 抽屉 -->
+			<view style="z-index:3" class="cu-modal drawer-modal justify-start" :class="modalName=='DrawerModalL'?'show':''" @tap="hideModal" >
+				<view class="cu-dialog basis-lg" @tap.stop=""  style="overflow: scroll;" @tap="hideModal" :style="[{top:searchHeight+otherHeight + 'px',height:leftContentHeight+'px' }]">
+					<view class="cu-list menu text-left">
+						<view class="cu-item arrow" v-for="(item,index) in modalArry" :key="index">
+							<view class="content">
+								<view @click="modalclicl(index)">{{item.ct_Desc}}</view>
+							</view>
+						</view>
+					</view>
+					<text style="color: rgb(163,163,163); text-align: center;">---我是有底线的---</text>
+					<view  class="cu-item">
+						<!-- 占位符 不可以删除 -->
+						<view class="cu-bar bg-white "><strong></strong>
+							<view class="search-form round">
+							</view>
+							<view class="action">
+							</view>
+						</view>
+						<!-- 占位符 不可以删除 -->
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+import request from '@/utils/request.js';
+	const defaultformItem={
+							customers:'',//产品
+							customersId:'',//产品id
+						}
+	export default {
+		data() {
+			return {
+				productList:[],
+				modalName:null,
+				searchWidth:0,
+				leftContentHeight:0,//数据库高度
+				searchHeight:0,//搜索框高度
+				searchKeyword:'',//抽屉搜索关键词
+				modalArry:[],//抽屉弹框数据
+				formItem:Object.assign({},defaultformItem),
+				
+			};
+		},
+		props:{
+			//title头部高度
+			otherHeight: {
+				type:Number,
+				default:50
+			},
+			//名称
+			title: {
+				type:String,
+				default:''
+			},
+			//清除路径
+			url:{
+				type:String,
+				defaulet:''
+			},
+			//输入框背景字体
+			placeholdertext:{
+				type:String,
+				defaulet:''
+			},
+			//数据查询传参
+			params:{
+				type:Object,
+				defaulet:''
+			},
+			//选择时是否重新过滤数据
+			Reload:{
+				type:Boolean,
+				defaulet:false
+			}
+			
+		},
+		mounted() {
+			this.loadproductList();
+			// this.getTableHeight()
+		},
+		
+		onReady() {
+			this.loadproductList();
+			// this.getTableHeight()
+		},
+		methods: {
+			// 加载列表
+			loadproductList(){
+				if(this.Reload){
+					return;
+				}
+				this.getdataArray();
+			},
+			// 判断是否只有一条数据
+			setonlydata(data){
+				if(data.length == 1){
+					this.formItem.customers=data[0].ct_Desc
+					this.formItem.customersId=data[0].type
+					this.$emit('input',data[0].type)
+					this.$emit('closeMain',data[0])
+					return
+				}
+				return
+			},
+			//获取数据列表
+			getdataArray(data){
+				let params
+				this.productList =[]
+				if(data !== undefined){
+					params = data
+				}else{
+					params = this.params
+				}
+				this.toast.loading();
+				request.post(`/warehouse/warehouse/execute/${this.url}`,params).then(res=>{
+					if(!res.list){
+						this.toast.hide()
+						this.toast.message('暂无数据')
+						return;
+					}
+					let resData=res.list.map(item=>{
+						let formatData = {
+							type:item.value,
+							ct_Desc:item.text,
+							wplAssNum:item.wplAssNum,//计件系数
+							// wplWorkPrice:item.wplWorkPrice,//工价
+							// wplWorkPriceUnit:item.wplWorkPriceUnit,//计件方式单位
+							// wplWorkPriceUnitName:item.wplWorkPriceUnitName//计价单位显示
+							wpl_WorkPrice:item.wpl_WorkPrice,//工价
+							wpl_WorkPriceUnit:item.wpl_WorkPriceUnit,//计件方式单位t
+							wpl_WorkPriceUnitName:item.wpl_WorkPriceUnitName//计价单位显示
+							// wpl_WorkPrice:item.wpl_WorkPrice,
+							// wpl_WorkPriceUnit:item.wpl_WorkPriceUnit
+						}
+						return formatData
+					})
+					this.productList = resData // 客户
+					this.setonlydata(this.productList)
+					this.toast.hide()
+					return resData
+				}).catch(err => {
+					this.toast.hide()
+					this.toast.message('数据加载失败');
+				});
+			},
+			modalclicl(index){
+				let e = this.modelVal
+				this.formItem.customers=this.modalArry[index].ct_Desc
+				this.formItem.customersId=this.modalArry[index].type
+				this.$emit('input',this.formItem.customersId)
+				this.$emit('closeMain',this.modalArry[index])
+				this.modalName = null
+			},
+			hideModal(e) {
+				this.modalName = null
+			},
+			//抽屉搜索事件
+			filterDataSource(value){
+				let data;
+				if(this.params == undefined){
+					data = {
+						name:value.detail.value.toUpperCase()
+					}
+				}else{
+					this.params.name = value.detail.value.toUpperCase()
+					data = this.params
+				}
+				// if(value.detail.value){
+				// 	 data = {
+				// 		name:value.detail.value.toUpperCase()
+				// 	}
+				// }else{
+					 
+				// }
+				// console.log(value)
+				this.toast.loading();
+				request.post(`/warehouse/warehouse/execute/${this.url}`,data).then(res=>{
+					// console.log(res)
+					let resData=res.list.map(item=>{
+						let formatData = {
+							type:item.value,
+							ct_Desc:item.text,
+							wplAssNum:item.wplAssNum,//计件系数
+							// wplWorkPrice:item.wplWorkPrice,//工价
+							// wplWorkPriceUnit:item.wplWorkPriceUnit,//计件方式单位t
+							// wplWorkPriceUnitName:item.wplWorkPriceUnitName,//计价单位显示
+							wpl_WorkPrice:item.wpl_WorkPrice,//工价
+							wpl_WorkPriceUnit:item.wpl_WorkPriceUnit,//计件方式单位t
+							wpl_WorkPriceUnitName:item.wpl_WorkPriceUnitName//计价单位显示
+						}
+						return formatData
+					})
+					this.modalArry = resData
+					this.toast.hide();
+				}).catch(err=>{
+					this.toast.hide();
+					this.toast.message('数据加载失败')
+				})
+			},
+			showModal(e) {
+				if(this.productList.length == 0){
+					this.toast.message('暂无数据')
+					return
+				}
+				this.modelVal = e
+				this.searchKeyword = ''
+				this.modalName = 'DrawerModalL'
+				this.modalArry = this.productList
+				this.$emit('judge')
+				if(this.modalName == 'DrawerModalL'){
+					setTimeout(()=>{
+						this.getTableHeight()
+					},500)
+				}
+			},
+			//计算设置表格高度
+			setTableHeight(needOtherHeight=false){
+					  if(!needOtherHeight){
+						  this.availHeight = 0
+					  }
+					try {
+						//debugger
+					    const res = uni.getSystemInfoSync();
+					    // console.log('windowHeight:'+res.windowHeight);
+					     // console.log('CustomBar:'+this.CustomBar);
+					    // console.log('bodyContentHeight:'+this.otherHeight);
+						this.leftContentHeight =res.windowHeight - this.searchHeight -10
+						//console.log('tableHeight:'+this.leftContentHeight);
+						return this.leftContentHeight
+					} catch (e) {
+					    // error
+					}
+			},
+			//获取指定内容占用高度,计算剩余高度 单位:PX
+			getOtherContentHeight(className='bodyContentHeight'){
+			  return new Promise((resolve, reject) => {
+				   let eleHeight=0
+				   let _self =this
+				   let info = uni.createSelectorQuery().in(_self).select("."+className);
+				  info.boundingClientRect(function(data) { //data - 各种参数
+				 　　   _self.searchHeight = data.height
+						eleHeight = data.height
+						resolve(data.height)
+				   }).exec(function (res) {
+				   })
+			  })
+			},
+			async getTableHeight(){
+			  let _self=this
+			  let searchHeight= await _self.getOtherContentHeight("searchfrom")+this.otherHeight
+			  // console.log(searchHeight)
+			  let tempHeight =  _self.setTableHeight()
+			  // console.log(tempHeight)
+			  this.searchWidth = 0
+			  this.searchWidth= await _self.getOtherContentwidth("arrow")
+			  console.log(searchHeight)
+			  // let serchHeight= await _self.getOtherContentHeight("searchfrom")
+			  // console.log(serchHeight)
+			},
+			//获取指定属性宽度
+			getOtherContentwidth(className='bodyContentWidth'){
+						  return new Promise((resolve, reject) => {
+							   let eleWidth=0
+							   let _self =this
+							   let info = uni.createSelectorQuery().in(_self).select("."+className);
+							  info.boundingClientRect(function(data) { //data - 各种参数
+							 　　   _self.searchWidth = data.width 
+									eleWidth = data.width 
+									resolve(data.width )
+							   }).exec(function (res) {
+							   })
+						  })
+						},
+		}
+	}
+</script>
+
+<style scoped>
+.searchfrom{
+	/* display: flex; */
+	position: fixed;
+	width: 60%;
+	z-index: 4;
+}
+</style>

@@ -1,0 +1,23 @@
+
+.xunhoutop.data-v-3ff43165{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.chucangbtm.data-v-3ff43165{
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+}
+.margin-text-center.data-v-3ff43165 {
+	text-align: center;
+	margin: 20rpx;
+}
+.border-top.data-v-3ff43165 {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title.data-v-3ff43165 {
+	min-width: calc(4em + 15px);
+}
+

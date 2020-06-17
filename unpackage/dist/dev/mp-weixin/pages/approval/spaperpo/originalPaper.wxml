@@ -1,0 +1,1 @@
+<view><approval generic:scoped-slots-content="originalPaper-approval-content" class="vue-ref" vue-id="4c80a4df-1" listLoadUrl="/approval/spaperpo/approvalList" data-ref="originalApproval" bind:__l="__l" vue-slots="{{['content','page-title']}}"><view slot="page-title">原纸审批</view></approval></view>

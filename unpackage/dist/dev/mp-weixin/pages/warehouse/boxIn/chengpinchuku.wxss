@@ -1,0 +1,34 @@
+
+.margin-text-center {
+	text-align: center;
+	margin: 20rpx;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+.updete {
+	width: 33%;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	/* margin: 10px 10px; */
+	-webkit-box-pack:end;
+	-webkit-justify-content:flex-end;
+	        justify-content:flex-end
+}
+.chucangbtm{
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+	z-index: 10;
+}
+.xunhoutop{
+	position: fixed;
+	width: 100%;
+	z-index: 100;
+}
+

@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "approval": "/components/approval/approval"
+  }
+}

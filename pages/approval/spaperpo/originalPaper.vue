@@ -1,0 +1,86 @@
+<template>
+	<view>
+		<approval listLoadUrl="/approval/spaperpo/approvalList" ref="originalApproval">
+			<view slot="page-title">
+				原纸审批
+			</view>
+			<template  slot="content" slot-scope="{data, index}">
+				<view class="grid-warp" @tap="openDetail(data,index)">
+					<view class="grid-title">
+						{{ data.poerName }}-{{ data.vendName }}
+						<view class="cu-tag bg-red radius">未审核</view>
+					</view>
+					<view class="grid-body">
+						<view class="grid-flex padding-10">
+							<view>
+								<text>单号:{{ data.sp_No }}</text>
+							</view>
+							<view>
+								<text>供应商:{{ data.vendName }}</text>
+							</view>
+						</view>
+						<view class="grid-flex padding-10">
+							<view>
+								<text>总卷数:{{ data.sp_SumCoil }}</text>
+							</view>
+							<view>
+								<text>日期:{{ data.sp_PODate }}</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</template>
+		</approval>
+	</view>
+</template>
+
+<script>
+import approval from '@/components/approval/approval.vue'
+export default {
+	components: { approval },
+	data() {
+		return {
+			approvalClickIndex: -1
+		};
+	},
+	methods: {
+		openDetail(data,index){
+			this.cache.put(String(data.ID1),data)
+			this.approvalClickIndex = index
+			this.router.navigate(`/pages/approval/spaperpo/originalPaperDetail?id=${data.ID1}`)
+		}
+	},
+	onReachBottom(res) {
+		this.$refs.originalApproval.approvalListProvider()
+	},
+	onLoad(){
+		uni.$off('spaperpoApprovalSuccess')
+		uni.$on('spaperpoApprovalSuccess',(data) => {
+		    if(this.approvalClickIndex === -1){
+				return
+			}
+			this.$refs.originalApproval.deleteApproval(this.approvalClickIndex)
+		})
+	}
+};
+</script>
+
+<style>
+
+.card {
+	width: 90%;
+	margin-left: 5%;
+	border-radius: 10rpx;
+	padding: 30rpx;
+}
+.status {
+}
+.grid-title {
+	display: flex;
+	justify-content: space-between;
+}
+.text-price {
+	color: #4aecdb;
+	font-size: 50rpx;
+}
+</style>

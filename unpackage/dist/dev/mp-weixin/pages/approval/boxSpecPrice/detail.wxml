@@ -1,0 +1,1 @@
+<view><approval-detail generic:scoped-slots-content="detail-approval-detail-content" class="vue-ref" vue-id="c11deb08-1" approvalId="{{initData.ID1}}" modelName="boxSpecPrice" data-ref="approvalDetailComp" bind:__l="__l" vue-slots="{{['content','page-title']}}"><view slot="page-title">纸箱特价审批详情</view></approval-detail></view>

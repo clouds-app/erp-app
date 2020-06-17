@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "浏览",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "cu-custom": "/ui/colorui/components/cu-custom"
+  }
+}

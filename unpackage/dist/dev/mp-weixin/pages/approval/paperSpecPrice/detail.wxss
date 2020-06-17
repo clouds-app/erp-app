@@ -1,0 +1,6 @@
+
+.text-price {
+	color: #4aecdb;
+	font-size: 50rpx;
+}
+

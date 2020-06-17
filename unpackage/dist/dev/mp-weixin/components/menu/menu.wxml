@@ -1,0 +1,1 @@
+<view><block wx:for="{{menuList}}" wx:for-item="menu" wx:for-index="index" wx:key="index"><block><menu-card vue-id="{{'3c5de3a2-1-'+index}}" menu="{{menu}}" bind:__l="__l"></menu-card></block></block></view>

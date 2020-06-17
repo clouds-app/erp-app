@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "uni-popup": "/components/uni-popup/uni-popup",
+    "uni-drawer": "/components/uni-drawer/uni-drawer",
+    "customer-select": "/components/customer/customer"
+  }
+}

@@ -1,0 +1,95 @@
+<template>
+	<view>
+		<approval listLoadUrl="/approval/paperSpecPrice/approvalList" ref="approval">
+			<view slot="page-title">
+				纸板特价审批
+			</view>
+			<template  slot="content" slot-scope="{data, index}">
+				<view class="grid-warp" @tap="openDetail(data,index)">
+					<view class="grid-title">
+						{{data.co_CustName==null? ' - ':data.co_CustName}}
+						<view  class="cu-tag bg-red radius">未审核</view>
+					</view>
+					<view class="grid-body">
+						<view class="grid-flex padding-10">
+							<view>
+								<text>单号:{{data.co_CustPo}}</text>
+							</view>
+							<view>
+								<text>日期:{{data.co_Date}}</text>
+							</view>
+						</view>
+						<view class="grid-flex padding-10">
+							<view>
+								<text>纸质:{{data.co_ArtId}}</text>
+							</view>
+							<view>
+								<text>愣别:{{data.co_ArtLB}}</text>
+							</view>
+						</view>
+						<view class="grid-flex padding-10">
+							<view>
+								<text>&nbsp;</text>
+							</view>
+							<view>
+								<text></text>
+								<text class="text-price">{{data.co_Money}}</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</template>
+		</approval>
+	</view>
+</template>
+
+<script>
+import approval from '@/components/approval/approval.vue'
+export default {
+	components: { approval },
+	data() {
+		return {
+			approvalClickIndex: -1
+		};
+	},
+	methods: {
+		openDetail(data,index){
+			this.cache.put(String(data.ID1),data)
+			this.approvalClickIndex = index
+			this.router.navigate(`/pages/approval/paperSpecPrice/detail?id=${data.ID1}`)
+		}
+	},
+	onReachBottom(res) {
+		this.$refs.approval.approvalListProvider()
+	},
+	onLoad(){
+		uni.$off('boxSpecPriceApprovalSuccess')
+		uni.$on('boxSpecPriceApprovalSuccess',(data) => {
+		    if(this.approvalClickIndex === -1){
+				return
+			}
+			this.$refs.approval.deleteApproval(this.approvalClickIndex)
+		})
+	}
+};
+</script>
+
+<style>
+
+.card {
+	width: 90%;
+	margin-left: 5%;
+	border-radius: 10rpx;
+	padding: 30rpx;
+}
+.status {
+}
+.grid-title {
+	display: flex;
+	justify-content: space-between;
+}
+.text-price {
+	color: #4aecdb;
+	font-size: 50rpx;
+}
+</style>

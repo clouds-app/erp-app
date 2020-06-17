@@ -1,0 +1,10 @@
+{
+  "usingComponents": {
+    "z-table": "/components/z-table/z-table",
+    "uni-popup": "/components/uni-popup/uni-popup",
+    "cu-custom": "/ui/colorui/components/cu-custom",
+    "search-form": "/components/searchForm/searchDataList.vue",
+    "customer-select": "/pages/warehouse/paperIn/customers",
+    "product-select": "/components/selectDropdown/selectDropdown"
+  }
+}

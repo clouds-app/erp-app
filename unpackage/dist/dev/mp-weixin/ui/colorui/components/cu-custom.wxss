@@ -1,0 +1,6 @@
+
+.rightSlot{
+	margin-right: 30rpx;
+	cursor: hand;
+}
+

@@ -1,0 +1,1 @@
+<view><approval generic:scoped-slots-content="paperSpecPrice-approval-content" class="vue-ref" vue-id="121a156a-1" listLoadUrl="/approval/paperSpecPrice/approvalList" data-ref="approval" bind:__l="__l" vue-slots="{{['content','page-title']}}"><view slot="page-title">纸板特价审批</view></approval></view>

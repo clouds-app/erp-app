@@ -1,0 +1,8 @@
+
+.searchfrom.data-v-5ffc6001{
+	/* display: flex; */
+	position: fixed;
+	width: 60%;
+	z-index: 4;
+}
+

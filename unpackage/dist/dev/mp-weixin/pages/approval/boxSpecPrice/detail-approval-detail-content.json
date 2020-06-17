@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "detail-approval-detail-content": "/pages/approval/boxSpecPrice/detail-approval-detail-content",
+    "approval-detail": "/components/approval/approvalDetail"
+  }
+}

@@ -1,0 +1,625 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="false">
+				<block slot="content">全厂综合看版</block>
+		</cu-custom>
+		<!-- =====纸板===== -->
+		<view class="grid-warp grid-warpBold">
+			<view class="grid-title grid-title-color">
+				纸板
+			</view>
+			<view class="grid-body">
+				<view>
+					<uni-grid :column="3" :square="false" :highlight="false" :showBorder="false">
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text"></text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">当天</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">本月</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">订单金额(万)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						 <!--订单金额(万) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.PaperCO_DAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						   <!--订单金额(万) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.PaperCO_MAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+			
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">送货金额(万)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--送货金额(万) 天-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">{{formItem.PaperDe_DAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--送货金额(万) 月-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">{{formItem.PaperDe_MAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">车数</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--车数 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.Dcar_number}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--车数 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.Mcar_number}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">生产面积(万)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--生产面积(万) 天-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">{{formItem.PaperIn_DArea|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--生产面积(万) 月-->
+						<uni-grid-item>
+							<view class="special-mini-panel">
+								<view>
+									<text class="text">{{formItem.PaperIn_MArea|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">折5层面积(万)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--折5层面积(万) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.PaperIn_DZArea|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--折5层面积(万) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.PaperIn_MZArea|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					
+					</uni-grid>
+				</view>
+			</view>
+		</view>
+		<!-- =====纸板===== -->
+		
+		<!-- =====原纸===== -->
+		<view class="grid-warp grid-warpBold">
+			<view class="grid-title grid-title-color">
+				原纸
+			</view>
+			<view class="grid-body">
+				<view>
+					<uni-grid :column="3" :square="false" :highlight="false" :showBorder="false">
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text"></text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">当天</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">本月</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">入库重量(吨)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						 <!--入库重量(吨) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.SPaperIn_DWt}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						   <!--入库重量(吨) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.SPaperIn_MWt}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+			
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">入库金额(万)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--入库金额(万) 不含税金额 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.SPaperIn_DNoTaxAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--入库金额(万) 不含税金额月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.SPaperIn_MNoTaxAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">出库重量(吨)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						 <!--出库重量(吨) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.SPaperOut_DWt}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						   <!--出库重量(吨) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.SPaperOut_MWt}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+									
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">出库金额(万)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--出库金额(万) 不含税金额 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.SPaperOut_DNoTaxAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--出库金额(万) 不含税金额 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.SPaperOut_MNoTaxAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					</uni-grid>
+				</view>
+			</view>
+		</view>
+		<!-- =====原纸===== -->
+		<!-- =====财务===== -->
+		<view class="grid-warp grid-warpBold">
+			<view class="grid-title grid-title-color">
+				财务
+			</view>
+			<view class="grid-body">
+				<view>
+					<uni-grid :column="3" :square="false" :highlight="false" :showBorder="false">
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text"></text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">当天</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">本月</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">收款金额(万)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						 <!--收款金额(万) 入账金额 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.Gather_DAccInAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						   <!--收款金额(万) 入账金额 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.Gather_MAccInAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+			
+						
+					</uni-grid>
+				</view>
+			</view>
+		</view>
+		<!-- =====财务===== -->
+		<!-- =====纸箱===== -->
+		<view class="grid-warp grid-warpBold">
+			<view class="grid-title grid-title-color">
+				纸箱
+			</view>
+			<view class="grid-body">
+				<view>
+					<uni-grid :column="3" :square="false" :highlight="false" :showBorder="false">
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text"></text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">当天</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="monthDay-mini-panel">
+								<view>
+									<text class="text">本月</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">订单金额(万)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						 <!--订单金额(万) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.BoxCO_DAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						   <!--订单金额(万) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.BoxCO_MAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+			
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">送货金额(万)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--送货金额(万) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.BoxDe_DAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--送货金额(万) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.BoxDe_MAmt|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">生产面积(万)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--生产面积(万) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.BoxIn_DArea|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--生产面积(万) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.BoxIn_MArea|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view class="flex flex-wrap">
+									<view class="basis-xl text-right">
+										<text class="text">折5层面积(万)</text>
+									</view>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--折5层面积(万) 天-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.BoxIn_DZArea|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+						  <!--折5层面积(万) 月-->
+						<uni-grid-item>
+							<view class="price-mini-panel">
+								<view>
+									<text class="text">{{formItem.BoxIn_MZArea|moneyFormatData}}</text>
+								</view>
+							</view>
+						</uni-grid-item>
+					
+					</uni-grid>
+				</view>
+			</view>
+		</view>
+		<!-- =====纸箱===== -->
+		<view class="window-bottom"></view>
+	</view>
+</template>
+
+<script>
+import baseMixin from '@/mixins';
+import cuCustom from '../../ui/colorui/components/cu-custom.vue' 
+const defaultformItem={
+	PaperCO_DAmt:null,//    --纸板订单 订单金额(当天)
+	PaperCO_MAmt:null,//    --纸板订单 订单金额(本月)
+	PaperDe_DAmt :null,//  --纸板订单 送货金额(当天)
+	PaperDe_MAmt:null,//   --纸板订单 送货金额(本月)
+	Dcar_number:null,//   --纸板订单 送货车数(当天)
+	Mcar_number:null,//   --纸板订单 送货车数(本月)
+	PaperIn_DArea:null,//  --纸板订单 生产面积(当天)
+	PaperIn_MArea:null,// --纸板订单 生产面积(本月)
+	PaperIn_DZArea:null,//  --纸板订单 折面积(当天)
+	PaperIn_MZArea:null,// --纸板订单 折面积(本月)
+	SPaperIn_DWt:null,//  --原纸入库 重量(当天)
+	SPaperIn_MWt:null,//  --原纸入库 重量(本月)
+	SPaperIn_DTaxAmt:null,// --原纸入库 含税金额(当天)
+	SPaperIn_MTaxAmt:null,// --原纸入库 含税金额(本月)
+	SPaperIn_DNoTaxAmt:null,// --原纸入库 不含税金额(当天)
+	SPaperIn_MNoTaxAmt:null,// --原纸入库 不含税金额(本月)
+	SPaperOut_DWt:null,//  --原纸出库 重量(当天)
+	SPaperOut_MWt:null,//  --原纸出库 重量(本月)
+	SPaperOut_DTaxAmt:null,// --原纸出库 含税金额(当天)
+	SPaperOut_MTaxAmt:null,// --原纸出库 含税金额(本月)
+	SPaperOut_DNoTaxAmt:null,// --原纸出库 不含税金额(当天)
+	SPaperOut_MNoTaxAmt:null,// --原纸出库 不含税金额(本月)
+	Gather_DInAmt:null,// --财务收款  本币金额(当天)
+	Gather_MInAmt:null,// --财务收款  本币金额(本月)
+	Gather_DAccInAmt:null,// --财务收款  入账金额(当天)
+	Gather_MAccInAmt:null,// --财务收款  入账金额(本月)
+	BoxCO_DAmt:null,//   --纸箱订单 金额(当天)
+	BoxCO_MAmt:null,//    --纸箱订单 金额(本月)
+	BoxDe_DAmt:null,//   --纸箱订单 送货金额(当天)
+	BoxDe_MAmt:null,//   --纸箱订单 送货金额(本月)
+	BoxIn_DArea:null,//  --纸箱订单 生产面积(当天)
+	BoxIn_MArea:null,// --纸箱订单 生产面积(本月)
+	BoxIn_DZArea:null,//  --纸箱订单 折面积(当天)
+	BoxIn_MZArea:null,// --纸箱订单 折面积(本月	    
+}
+export default {
+	components: {cuCustom },
+	mixins: [baseMixin],
+	data() {
+		return {
+			formItem:Object.assign({},defaultformItem),
+		};
+	},
+	// #ifdef H5
+	created() {
+	 this.loadBoardDataBy()
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+	 this.loadBoardDataBy()
+	},
+	// #endif
+    filters:{
+				moneyFormatData(item) {
+					if(!!item && Number(item)>0){
+						return Number((item).toFixed(2)).toLocaleString()
+					}else{
+						return '0.00'
+					}
+				}
+	        },
+	methods: {
+		// 加载控制面板数据
+	   loadBoardDataBy(){
+		  let url =`/warehouse/warehouse/execute/sfGetAllNumeric`
+		  let params ={}
+		  let _self = this
+		  this.getOrPostDataBy(url,params).then(res=>{
+			  if(res && res.list && res.list.length>0){
+				  _self.formItem = Object.assign({},_self.formItem,res.list[0])
+			  }
+		  })
+	   }
+	}
+};
+</script>
+
+<style>
+	.window-bottom{
+		height: 100rpx;
+	}
+	.grid-title-color{
+		color: #007AFF;
+	}
+	.grid-warpBold{
+		/* font-weight: bold; */
+	}
+	.price-mini-panel{
+		margin-bottom: 30rpx;
+	}
+	.monthDay-mini-panel{
+		margin-bottom: 10rpx;
+	}
+	.special-mini-panel{
+		margin-bottom: 5rpx;
+	}
+	.grid-title{
+		display: flex;
+		justify-content: space-between;
+	}
+	.text-price{
+		color:#0081ff;
+		font-size: 40rpx;
+	}
+	.text-area{
+		color:#0081ff;
+		font-size: 40rpx;
+	}
+</style>

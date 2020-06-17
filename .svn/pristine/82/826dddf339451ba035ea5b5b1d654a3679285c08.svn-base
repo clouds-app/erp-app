@@ -1,0 +1,564 @@
+<template>
+	<view>
+		<cu-custom class="titlefrom" bgColor="bg-gradual-blue" :isBack="true"><block slot="content">原纸出/退仓</block></cu-custom>
+			<view class="cu-form-group border-top">
+				<view class="title">指ㅤ令:</view>
+				<input v-model="paperOutFormItems.instruct" @blur="paperOutInstructBlur" placeholder="请输入或扫描指令:0+0+0+0+0" name="input" />
+				<button @click="turnOnScanCode('orderNo')" type="primary" size="mini">扫描</button>
+			</view>
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<selectDropdown
+						:otherHeight='otherHeight'
+						title="线ㅤ别"
+						url="appFindLineSeparation"
+						ref="lineFrom" 
+						v-model="paperOutFormItems.lineCode"
+						placeholdertext="请选择线别"
+					></selectDropdown>
+					<!-- <view class="cu-form-group">
+						<view class="title">线ㅤ别:</view>
+						<input @click="setSearchDataListSource('lineSeparation')" disabled v-model="paperOutFormItems.line" placeholder="请输入线别" name="input" />
+						<text @click="setSearchDataListSource('lineSeparation')" class="cuIcon-rounddown text-green"></text>
+					</view> -->
+				</view>
+				<view class="flex-sub">
+					<selectDropdown
+						:otherHeight='otherHeight'
+						title="班ㅤ别"
+						url="appFindClassBan"
+						ref="groupFrom" 
+						v-model="paperOutFormItems.groupCode"
+						placeholdertext="请输入班别"
+						:params='groupparams'
+					></selectDropdown>
+					<!-- <view class="cu-form-group">
+						<view class="title">班ㅤ别:</view>
+						<input @click="setSearchDataListSource('classBan')" disabled v-model="paperOutFormItems.group" placeholder="请输入班别" name="input" />
+						<text @click="setSearchDataListSource('classBan')" class="cuIcon-rounddown text-green"></text>
+					</view> -->
+				</view>
+			</view>
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<selectDropdown
+						:otherHeight='otherHeight'
+						title="发料人"
+						url="appFindUser"
+						ref="outUserFrom" 
+						v-model="paperOutFormItems.outUserCode"
+						placeholdertext="请输入发料人"
+						:params='outUserparams'
+					></selectDropdown>
+					<!-- <view class="cu-form-group">
+						<view class="title">发料人:</view>
+						<input @click="setSearchDataListSource('lssue')" disabled v-model="paperOutFormItems.outUser" placeholder="请输入发料" name="input" />
+						<text @click="setSearchDataListSource('lssue')" class="cuIcon-rounddown text-green"></text>
+					</view> -->
+				</view>
+				<view class="flex-sub">
+					<selectDropdown
+						:otherHeight='otherHeight'
+						title="领料人"
+						url="appFindUser"
+						ref="inUserFrom" 
+						v-model="paperOutFormItems.inUserCode"
+						placeholdertext="请输入领料人"
+						:params='outUserparams'
+					></selectDropdown>
+					<!-- <view class="cu-form-group">
+						<view class="title">领用人:</view>
+						<input @click="setSearchDataListSource('receive')" disabled v-model="paperOutFormItems.inUser" placeholder="请输入领料" name="input" />
+						<text @click="setSearchDataListSource('receive')" class="cuIcon-rounddown text-green"></text>
+					</view> -->
+				</view>
+			</view>
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">直ㅤ径:</view>
+						<input @blur="getwet" v-model="paperOutFormItems.outwarehouse" :disabled="(LastState == '出仓')" name="input" placeholder="请输入直径"/>
+					</view>
+				</view>
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">重ㅤ量:</view>
+						<input @blur="compareEwt"  :disabled="(LastState == '出仓')" v-model="paperOutFormItems.ewt" placeholder="请输入重量" name="input" />
+					</view>
+				</view>
+			</view>
+			<!-- 数据查询列表 -->
+			<view  class="grid-warp" v-for="(item,index) in fromdata" :key='index'>
+				<view class="grid-title">
+					<view>原纸信息</view>
+					<view v-if="LastState !='出仓'">
+						<text>最后出仓:{{item.Owt}}</text>
+					</view>
+				</view>
+				<view class="grid-body">
+					<view class="grid-flex padding-10">
+						<view>
+							<text>卷号:{{item.CoilNo}}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>供应商:{{item.VendorName}}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>类型:{{item.SPaperName}}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>门幅:{{item.Width}}</text>
+						</view>
+					</view>
+				<!-- 	<view class="grid-flex padding-10">
+						<view>
+							<text>状态:{{item.StationLink}}</text>
+						</view>
+					</view> -->
+				</view>
+			</view>
+			<!--  侧边搜索列表 -->
+			<searchForm @getSelectDataInfo="getSelectDataInfo" :dataSource="dataSource" ref='searchForm'></searchForm>
+			<!-- 退出仓状态 -->
+			<view class="lastState">
+				<view style="color: #007AFF; font-size: 20px;">{{LastState}}</view>
+				<view v-if="hideero == true" style="color: red;">异常提醒：无此卷号，操作不成功！</view>
+			</view>
+			<!-- 底部按钮 -->
+			<view class="chucangbtm">
+				<view class="flex solid-bottom padding justify-around elBtn" ref="elBtn">
+					<view>	<button @click="resetFrom"  type="primary" size="mini" class="bg-grey radius">清除</button></view>
+					<!-- <view style="margin-top: 5px;"> <text>总卷数:{{numbertext}}</text>	</view> -->
+					<view>	<button :disabled="disabledEnd" @click="paprtIn"  type="primary" size="mini" class="bg-grey radius">确认</button></view>
+				</view>
+			</view>
+			<!-- <view class="cu-form-group border-top"><textarea maxlength="-1" v-model="paperOutFormItems.desc" placeholder="请输入备注"></textarea></view> -->
+			<!-- v-if="paperOutBtnShow" -->
+			<!-- <view class="margin-text-center"><button @click="paperOut()"  type="primary" class="primary-btn">退ㅤ仓</button></view> -->
+	</view>
+</template>
+
+
+<script>
+import zTable from '@/components/z-table/z-table.vue';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import request from '@/utils/request.js';
+import dateFormat from '@/utils/dateFormat.js';
+import searchForm from '@/components/searchForm/searchDataList.vue.vue'
+export default {
+	name: 'paperOB', ///原纸出退仓
+	components: { zTable, cuCustom, searchForm },
+	data() {
+		return {
+			groupparams:{modelCode:"spaper_in_out",type:2},
+			outUserparams:{modelCode:"spaper_in_out",workType:"7,8,18"},
+			otherHeight:0,//title高度
+			disabledEnd:false,//确认按钮禁用
+			hideero:false,//异常提醒隐藏字段
+			LastState:"",//判断退出仓
+			LastStateEnglish:"",//判断退出仓
+			dataSource:[],//数据源
+			fromdata:[],//原纸信息
+			scanType: 'orderNo', //scanType:指令 rollNo:卷号
+			TabCur: 0,
+			scrollLeft: 0,
+			lineSeparationList: [],//线别
+			classBanList:[],//班别
+			lssueList:[],//发料
+			receiveList:[],//领用
+			errorContent: '暂无数据', //'数据加载中...',
+			tableHeight: 500, //表格高度
+			paperStoreTableData: [],
+			operStatus: '',
+			paperOutBtnShow: false,
+			paperBackBtnShow: false,
+			paperOutFormItems: {
+				//退仓
+				outwarehouse:0,//直径
+				instruct: '', //指令
+				line: '', //线别
+				lineCode:'',
+				group: '', //班别
+				groupCode:'',
+				outUser: '', //发料
+				outUserCode:'',
+				inUser: '', //领料,
+				inUserCode:'',
+				ewt: '0', //重量
+			},
+		};
+	},
+	computed: {
+		storeTableHeight() {
+			return this.screen.height / 2 + 25;
+		}
+	},
+	// #ifdef H5
+	mounted() {
+		this.getOtherContentHeight("titlefrom")
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+		this.getOtherContentHeight("titlefrom")
+	},
+	// #endif
+	methods: {
+		getOtherContentHeight(className='bodyContentHeight'){
+		  return new Promise((resolve, reject) => {
+			   let eleHeight=0
+			   let _self =this
+			   let info = uni.createSelectorQuery().in(_self).select("."+className);
+			  info.boundingClientRect(function(data) { //data - 各种参数
+				 // console.log('other Height:'+data.height)  // 获取元素宽度
+			 　　   _self.otherHeight = data.height
+					eleHeight = data.height
+					resolve(data.height)
+			   }).exec(function (res) {
+			   })
+		  })
+		},
+		// 确认提交
+		paprtIn(){
+			this.disabledEnd = true
+			if(this.paperOutFormItems.lineCode == ''){
+				this.toast.message('请扫描指令或选择线别')
+				this.disabledEnd = false
+				return;
+			}
+			if(this.paperOutFormItems.groupCode == ''){
+				this.toast.message('请扫描指令或选择班别')
+				this.disabledEnd = false
+				return;
+			}
+			if(this.paperOutFormItems.outUserCode == ''){
+				this.toast.message('请扫描指令或选择发料人')
+				this.disabledEnd = false
+				return;
+			}
+			if(this.paperOutFormItems.inUserCode == ''){
+				this.toast.message('请扫描指令或选择领料人')
+				this.disabledEnd = false
+				return;
+			}
+			if(this.fromdata.length == 0){
+				this.toast.message('请扫描卷号')
+				this.disabledEnd = false
+				return;
+			}
+			if(this.paperOutFormItems.ewt == 0){
+				this.toast.message('请输入重量')
+				this.disabledEnd = false
+				return;
+			}
+			this.toast.loading();
+			let user = this.cache.get(this.appConst.CLIENT_USER_CACHE_NAME)
+			let data = {
+				Line:this.paperOutFormItems.lineCode,//---线别
+				Group:this.paperOutFormItems.groupCode,//--班别
+				Oper:user.erpUserCode,//--操作人
+				Flag:this.LastStateEnglish,//--提交类型
+				// OperDate:new Date()
+				Coil:this.fromdata[0].CoilNo,//--卷号
+				OutUseID:this.paperOutFormItems.outUserCode,//--发料人
+				InUseID:this.paperOutFormItems.inUserCode,//--领料人
+				Wt:this.paperOutFormItems.ewt,//--重量
+				Time:0,
+			}
+			request.post('/warehouse/warehouse/execute/appAspExeuteSPaperSimpleAutoScan_InI',data)
+			.then(res=>{
+				if(res.list.length>0){
+					this.toast.hide();
+					this.toast.message('提交成功')
+					this.disabledEnd = false
+				}else{
+					this.toast.hide();
+					this.toast.message('提交失败')
+					this.disabledEnd = false
+				}
+			}).catch(err=>{
+				this.toast.hide();
+				this.toast.message('提交失败')
+				this.disabledEnd = false
+			})
+			this.resetFrom();
+		},
+		// 输入直径计算重量
+		getwet(){
+			if(this.paperOutFormItems.instruct == ''){
+				this.toast.message('请扫描卷号')
+				return;
+			}
+			let data = {
+				Coil:this.paperOutFormItems.instruct,
+				SPaperDia:this.paperOutFormItems.outwarehouse
+			}
+			request.post('/warehouse/warehouse/execute/appAspCalacSPaperBackTemp',data)
+			.then(res=>{
+				console.log(res)
+				this.paperOutFormItems.ewt =  res.list[0].Wt
+				this.compareEwt()
+			})
+		},
+		//重量不能大于最后出仓重量
+		compareEwt(){
+			if(this.fromdata.length == 0){
+				return
+			}
+			let ewt = Number(this.paperOutFormItems.ewt)
+			let Owt = Number(this.fromdata[0].Owt)
+			if(ewt>Owt){
+				this.toast.message('退仓重量不能大于最后出仓重量')
+				this.paperOutFormItems.ewt = this.fromdata[0].Owt
+			}
+		},
+		// 清除
+		resetFrom(){
+			this.fromdata = [],
+			this.paperOutFormItems.instruct = '';
+			this.paperOutFormItems.outwarehouse = 0;
+			this.paperOutFormItems.ewt = 0;
+			this.hideero = false;
+			this.LastState = "";
+		},
+		// 指令扫描拿到线别
+		getlineSeparation(data){
+			let list = this.$refs.lineFrom.$data.productList
+			for(let i = 0; i<list.length;i++){
+				if(list[i].type == data){
+					this.$refs.lineFrom.$data.modalArry = this.$refs.lineFrom.$data.productList.concat();
+					this.$refs.lineFrom.modalclicl(i)
+				}
+			}
+		},
+		// 指令扫描拿到班别
+		getclassBan(data){
+			let list = this.$refs.groupFrom.$data.productList
+			for(let i = 0; i<list.length;i++){
+				if(list[i].type == data){
+					this.$refs.groupFrom.$data.modalArry = this.$refs.groupFrom.$data.productList.concat();
+					this.$refs.groupFrom.modalclicl(i)
+				}
+			}
+		},
+		// 指令扫描拿到发料
+		getlssue(data){
+			let list = this.$refs.outUserFrom.$data.productList
+			for(let i = 0;i<list.length;i++){
+				if(list[i].type == data){
+					this.$refs.outUserFrom.$data.modalArry = this.$refs.outUserFrom.$data.productList.concat();
+					this.$refs.outUserFrom.modalclicl(i)
+				}
+			}
+		},
+		// 指令扫描拿到领用
+		getreceiveation(data){
+			let list = this.$refs.inUserFrom.$data.productList
+			for(let i = 0; i<list.length; i++){
+				if(list[i].type == data){
+					this.$refs.inUserFrom.$data.modalArry = this.$refs.inUserFrom.$data.productList.concat();
+					this.$refs.inUserFrom.modalclicl(i)
+				}
+			}
+		},
+		//===打开扫描===
+		turnOnScanCode(type) {
+			this.scanType = type;
+			let _self = this;
+			// 调起条码扫描
+			uni.scanCode({
+				scanType: 'barCode',
+				success: function(res) {
+					// console.log('条码类型：' + res.scanType);
+					console.log('条码内容：' + res.result);
+					_self.paperOutFormItems.instruct = res.result
+					let Symbol = res.result.indexOf("+")
+					// debugger
+					if(Symbol == 6){
+						_self.restcommand()
+						_self.setcommand()
+						if(_self.paperOutFormItems.line == ''){
+							_self.toast.message('指令线别错误')
+						}
+						if(_self.paperOutFormItems.group == ''){
+							_self.toast.message('指令班别错误')
+						}
+						if(_self.paperOutFormItems.outUser == ''){
+							_self.toast.message('指令发料人错误')
+						}
+						if(_self.paperOutFormItems.inUser == ''){
+							_self.toast.message('指令领用人错误')
+						}
+					}else{
+						// 卷号
+						_self.paperOutInstructBlur()
+					}
+
+				}
+			});
+		},
+		// 指令清空
+		restcommand(){
+			this.$refs.lineFrom.$data.formItem.customers = ''
+			this.$refs.lineFrom.$data.formItem.customersId  = ''
+			this.$refs.groupFrom.$data.formItem.customers = ''
+			this.$refs.groupFrom.$data.formItem.customersId = ''
+			this.$refs.outUserFrom.$data.formItem.customers = ''
+			this.$refs.outUserFrom.$data.formItem.customersId = ''
+			this.$refs.inUserFrom.$data.formItem.customers = ''
+			this.$refs.inUserFrom.$data.formItem.customersId = ''
+			this.paperOutFormItems.lineCode = ''
+			this.paperOutFormItems.groupCode = ''
+			this.paperOutFormItems.outUserCode = ''
+			this.paperOutFormItems.inUserCode = ''
+		},
+		// 判断是否为指令
+		setcommand(){
+			// debugger
+			this.hideero=false
+			let  myarray = this.paperOutFormItems.instruct.split("+");
+				if(myarray[0] == '111111'){
+					this.LastState = "出仓"
+				}else{
+					this.LastState = "退仓"
+				}
+				this.restcommand()
+				this.getlineSeparation(myarray[1])
+				if(this.paperOutFormItems.lineCode == ''){
+					this.toast.message('指令线别错误')
+				}
+				this.getclassBan(myarray[2])
+				if(this.paperOutFormItems.groupCode == ''){
+					this.toast.message('指令班别错误')
+				}
+				this.getlssue(myarray[3])
+				if(this.paperOutFormItems.outUserCode == ''){
+					this.toast.message('指令发料人错误')
+				}
+				this.getreceiveation(myarray[4])
+				if(this.paperOutFormItems.inUserCode == ''){
+					this.toast.message('指令领用人错误')
+				}
+				// this.paperOutFormItems.instruct = this.paperOutFormItems.instruct
+				this.paperOutFormItems.instruct = ''
+				if(this.fromdata.length === 0){
+					this.resetFrom()
+				}
+		},
+		//===指令INPU焦点离开===回调事件 ===出仓
+		paperOutInstructBlur() {
+			// debugger
+			if(this.paperOutFormItems.instruct == ''){
+				this.toast.message('请扫描卷号或指令')
+				return;
+			}
+			let Symbol = this.paperOutFormItems.instruct.indexOf("+")
+			if(Symbol == 6){
+				this.setcommand()
+				return;
+			}
+			// this.resetFrom()
+			this.LastState = ""
+			let Flag 
+			if(this.LastState == '出仓'){
+				 Flag = 111111
+			}else if(this.LastState == '退仓'){
+				 Flag = 222222
+			}else{
+				Flag = 2
+			}
+			let data = {
+				Coil:this.paperOutFormItems.instruct,
+				Flag
+			}
+			this.toast.loading()
+			request.post('/warehouse/warehouse/execute/appSpGetSPaperStoreForPDA',data)
+			.then(res=>{
+				// console.log(res.list)
+				if(res.list.length != 0){
+					this.fromdata = res.list
+					// this.LastState = res.list[0].LastState
+					this.LastStateEnglish = res.list[0].LastState
+					if(res.list[0].LastState == "out"){
+						this.LastState = '出仓'
+						this.paperOutFormItems.ewt = res.list[0].Ewt
+					}else{
+						this.LastState = '退仓'
+						this.paperOutFormItems.ewt = res.list[0].Ewt
+						// if(res.list[0].Owt == 0){
+							this.getappSpGetSPaperStoreSelect(res.list)
+						// }
+					}
+					this.hideero = false
+				}else{
+					this.toast.message('卷号错误')
+					this.resetFrom()
+					this.hideero = true
+				}
+				this.toast.hide();
+			}).catch(err=>{
+				this.toast.message('数据加载失败')
+				this.resetFrom()
+				this.toast.hide();
+			})
+		},
+		//===指令INPU焦点离开===回调事件 ===退仓,
+		getappSpGetSPaperStoreSelect(data){
+			let Coil = data[0].CoilNo
+			request.post('/warehouse/warehouse/execute/appSpGetSPaperStoreSelect',{Coil:Coil}).then(res=>{
+				// console.log(res)
+				this.$refs.lineFrom.$data.formItem.customers = res.list[0].LineName
+				this.$refs.lineFrom.$data.formItem.customersId = res.list[0].Line
+				this.$refs.groupFrom.$data.formItem.customers = res.list[0].ClassName
+				this.$refs.groupFrom.$data.formItem.customersId = res.list[0].Class
+				this.$refs.outUserFrom.$data.formItem.customers = res.list[0].FLRUName
+				this.$refs.outUserFrom.$data.formItem.customersId = res.list[0].FLRU
+				this.$refs.inUserFrom.$data.formItem.customers = res.list[0].LLRUName
+				this.$refs.inUserFrom.$data.formItem.customersId  = res.list[0].LLRU
+				this.paperOutFormItems.lineCode = res.list[0].Line
+				this.paperOutFormItems.groupCode = res.list[0].Class
+				this.paperOutFormItems.outUserCode = res.list[0].FLRU
+				this.paperOutFormItems.inUserCode = res.list[0].LLRU
+			})
+		}
+		
+		
+		
+	}
+};
+</script>
+
+<style scoped>
+.margin-text-center {
+	text-align: center;
+	margin: 20rpx;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+.chucangbtm{
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+	z-index: 2;
+}
+.lastState{
+	margin-top: 30px;
+	/* bottom: 0px; */
+	display: flex;
+	flex-direction:column;
+	/* padding: 20px; */
+	/* justify-content:center; */
+	text-align: center;
+}
+</style>

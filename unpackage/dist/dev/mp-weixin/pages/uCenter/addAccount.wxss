@@ -1,0 +1,7 @@
+
+.empty-text{
+	text-align: center;
+	padding: 30px 0;
+	color: #888;
+}
+

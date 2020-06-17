@@ -1,0 +1,4 @@
+export default {
+	// serverUrl: 'http://192.168.0.50:8080/app-api-0.0.1-SNAPSHOT' ,// 飞耀
+	serverUrl: 'http://shop.szclsoft.com'
+}

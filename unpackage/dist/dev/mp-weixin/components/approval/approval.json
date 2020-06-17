@@ -1,0 +1,9 @@
+{
+  "componentGenerics": {
+    "scoped-slots-content": true
+  },
+  "component": true,
+  "usingComponents": {
+    "cu-custom": "/ui/colorui/components/cu-custom"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "originalPaper-approval-content": "/pages/approval/spaperpo/originalPaper-approval-content",
+    "approval": "/components/approval/approval"
+  }
+}

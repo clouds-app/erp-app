@@ -1,0 +1,82 @@
+/**
+ * @name mixin
+ * @description 所有.vue 公共方法
+ * @action .vue 中 添加mixin:[name]
+ *
+ */
+import cache from '@/utils/cache.js'
+import config from '@/config'
+import request from '@/utils/request.js';
+export default {
+  name: 'mixin-base',
+  data () {
+    return {
+	  otherHeight:0,
+	  leftContentHeight:0,
+    }
+  },
+  computed: {
+
+  },
+  methods: {
+	  // selectDropdown 控件onChange事件回调,并存储到缓存中
+	  onChangeInToCache(itemObj,componentConfig){
+		  if(componentConfig && componentConfig.tokenKey){
+			   cache.put(String(componentConfig.tokenKey),itemObj)
+		  }
+	  },
+	  getOrPostDataBy(url,params){
+	  	this.toast.loading()
+		return new Promise((resolve, reject) => {
+			request.post(url,params).then(res =>{
+				this.toast.hide()
+				resolve(res)
+			}).catch(err => {
+				this.toast.hide()
+				reject(err)
+				if(typeof err  === 'string'){
+					this.toast.message(err)
+				}else{
+					this.toast.message('系统繁忙，请稍后再试!')
+				}
+			})	
+		})
+	  },
+	  //获取指定内容占用高度,计算剩余高度 单位:PX
+	  getOtherContentHeight(className='bodyContentHeight'){
+		  return new Promise((resolve, reject) => {
+			   let eleHeight=0
+			   let _self =this
+			   let info = uni.createSelectorQuery().select("."+className);
+			  info.boundingClientRect(function(data) { //data - 各种参数
+			  　　　  console.log('other Height:'+data.height)  // 获取元素宽度		
+			  　　   _self.otherHeight = data.height
+			  	  eleHeight = data.height
+				  resolve(data.height)
+			   }).exec(function (res) {
+			   })
+		  })
+	  },
+	  //计算设置表格高度
+	  setTableHeight(needOtherHeight=false){
+		 
+		  if(!needOtherHeight){
+			  this.otherHeight = 0
+		  }
+		try {
+			//debugger
+		    const res = uni.getSystemInfoSync();
+		    // console.log('windowHeight:'+res.windowHeight);
+		     console.log('CustomBar:'+this.CustomBar);
+		    // console.log('bodyContentHeight:'+this.otherHeight);
+			this.leftContentHeight =res.windowHeight -this.CustomBar - this.otherHeight -10
+			//console.log('tableHeight:'+this.leftContentHeight);
+			return this.leftContentHeight
+		} catch (e) {
+		    // error
+		}
+	  
+	  },
+  }
+
+}
