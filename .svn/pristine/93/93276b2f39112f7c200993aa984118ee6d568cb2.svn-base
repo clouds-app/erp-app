@@ -1,0 +1,260 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="true">
+				<block slot="content">原纸库存汇总</block>
+			    <block slot="right">
+					<button  type="primary"  @click="searchDataBy()"  size="mini">查询</button>
+				</block>
+		</cu-custom>
+		<view class="bodyContentHeight">
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">类 型:</view>
+						<input v-model="formItem.Type" placeholder="请输入类别" />
+					</view>
+				
+				</view>
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">克 重:</view>
+						<input v-model="formItem.Gram"  placeholder="请输入克重" />
+					</view>
+				
+				</view>
+			</view>
+		</view>	
+		<!--  :height="tableHeight"-->
+		<view class="vtable">
+			<v-table
+				:fixedMultipleLeft="true"
+				:row-class-name="rowClassNameFn"
+				:columns="dataColumns" 
+				:list="dataTableList" 
+				selection="single"
+				:td-width="avgWidth"
+				
+				>
+			</v-table>
+		</view>
+	</view>
+</template>
+
+<script>
+import uniLoadMore from "@/components/uni-load-more/uni-load-more.vue"
+import selectDropdown from '@/components/selectDropdown/selectDropdown.vue'
+import dayjs from 'dayjs'
+import vTable from "@/components/table.vue"
+import baseMixin from '@/mixins';
+import cuCustom from '../../ui/colorui/components/cu-custom.vue' 
+const moreStatus ={
+	more:'more',
+	loading:'loading',
+	noMore:'noMore'
+}
+const defaultformItem = {
+						    Type:'',// 原纸类型
+							Gram:'',//克重
+						}
+export default {
+	components: {cuCustom,vTable,selectDropdown,uniLoadMore},
+	mixins: [baseMixin],
+	data() {
+		return {
+			contentText:{
+				contentdown: '点击显示更多',
+				contentrefresh: '正在加载...',
+				contentnomore: '没有更多数据了'
+			},
+			isFilterDataByPage:false,// false:条件查询数据,true:翻页查询 
+			hiddenLoadMore:true, // 是否显示加载更多
+			more:moreStatus.more,// 是否还有更多的数据 
+			formItem:Object.assign({},defaultformItem),
+			avgWidth:160, // 表格提示信息宽度,取所有字段的平均值
+			tableHeight: 0, //表格高度
+			dataTableList:[],
+			dataColumns:[],
+		};
+	},
+	computed:{
+
+	},
+	// #ifdef H5
+	mounted() {
+	  this.calTableHeight()
+	 
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+		  this.calTableHeight()
+	},
+	// #endif
+	methods: {
+
+		// 点击加载更多 回调事件
+		clickLoadMore(res){
+			this.more = moreStatus.loading
+			this.isFilterDataByPage = true
+			this.pageSetting.current = this.pageSetting.current+1
+			this.loaddingData()
+		},
+		// 验证数据
+	    ValidateData(){
+			let flag = false
+			// if(!!!this.formItem.searchMode){
+			// 	this.toast.message('请选择搜索模式')
+			// 	flag = true
+			// }
+			return flag
+		},
+		// 搜索数据 通过条件
+		searchDataBy(){
+			//debugger
+			if(!!this.ValidateData()){
+				return
+			}
+			this.loaddingData()
+		},
+		// 查询数据
+		loaddingData(){
+			if(!this.isFilterDataByPage){
+				// 非分页加载数据
+				this.dataTableList = []      // 清空数据列表
+				this.pageSetting.current = 1 // 重置当前页码
+			}
+			let url = '/warehouse/warehouse/executeTitle/spSPaperStoreTotalAnalyzerNewAPP'
+			let params = {
+				Type:this.formItem.Type,//  --原纸类型
+				Gram:this.formItem.Gram,//  --克重
+				UserID:this.userInfo.erpUserCode,   //--用户ID
+				// pageSize:this.pageSetting.pageSize, // --页大小【不清楚就，默认传0】
+				// pageNum:this.pageSetting.current, // --页码【不清楚就，默认传0】
+			}
+			this.getOrPostDataBy(url,params).then(res=>{
+				//debugger
+				this.formatColTitleData(res.titleList)
+				if(res&& res.list.length>0){
+					this.doSomeLogicWhenDataNotNull(res)
+				}else{
+					this.more = moreStatus.noMore
+					this.hiddenLoadMore = true
+					if(!this.isFilterDataByPage){
+							this.toast.message('暂无数据!')
+					}else{
+						this.toast.message('暂无更多数据!')
+					}
+				}
+			  this.isFilterDataByPage = false // 重置分页查询条件
+			})
+		},
+		// 参数:仅仅一个标题字段列表,返回完整序列的标题设计列表
+		formatColTitleData(dataList){
+			if(dataList && Array.isArray(dataList) && dataList.length>0){
+				dataList = dataList.map(item=>{
+					let standItem = {
+						key: item , 
+						title: item, 
+						$width: this.avgWidth, 
+						titleAlign: 'center', 
+						columnAlign: 'center' }
+					// 特别字段标题 自定义
+					if(item == 'ss_Vend'){
+						standItem.title='供应商'
+						standItem.$fixed="left"
+						standItem.$width=130
+					}
+					// 特别字段标题 自定义
+					if(item == 'sp_Type'){
+						standItem.title='类型'
+						standItem.$fixed="left"
+						standItem.$width=80
+					}
+					// 特别字段标题 自定义
+					if(item == 'sp_Gram'){
+						standItem.title='克重'
+						standItem.$fixed="left"
+						standItem.$width=85
+					}
+					
+					// 特别字段标题 自定义
+					if(item == 'Total'){
+						standItem.title='卷/重'
+						standItem.$width=180
+					}
+					return standItem
+				})
+				let indexNumItem = { key: 'Serial',$fixed:"left", title: '序号',$width: 75, }
+				dataList.unshift(indexNumItem)
+				this.dataColumns = dataList
+				//this.avgWidth = this.getTableAvgWidth(this.dataColumns);
+				return dataList
+			}else{
+				return
+			}
+		},
+		// 数据逻辑处理
+		doSomeLogicWhenDataNotNull(res){
+			let preIndex = this.dataTableList.length // 分页查询 目前下标
+			this.more = moreStatus.more
+			this.hiddenLoadMore = false  // 显示加载更多
+			let customDataList = res.list.filter((item,index)=>{
+				// 自定义序号
+				item.Serial= index +1 + preIndex
+				return item
+			})
+			// 千分符数据格式化,保留小数等
+			let formatDataList = this.formatDataListBy(customDataList)
+			// 小于最低页面 应该加载更多
+			if(customDataList.length<20){
+				this.hiddenLoadMore = true
+			}
+			// 分页数据累加
+			let tempDataList = this.dataTableList.concat(formatDataList) 
+			this.dataTableList = tempDataList
+		},
+		// 格式化指定字段
+		formatDataListBy(dataList){
+			//debugger
+			if(dataList && Array.isArray(dataList) && dataList.length>0)
+			{
+				dataList = dataList.map(item=>{
+					// if(!!item && item.contains('-')){
+					// 	let itemArray = item.split('-')
+					// 	item = itemArray[0]+'<br/>'+itemArray[1]
+					// }
+					return item
+				})
+			}
+			return dataList
+		},
+	
+		// 设置表格使用剩余高度
+		calTableHeight(){
+			this.$nextTick(()=>{
+				this.getOtherContentHeight()
+				setTimeout(()=>{
+					//延时执行,方便个别小程序兼容
+					let tempHeight =  this.setTableHeight(true)
+					this.tableHeight =tempHeight//特别处理
+				},200)
+			})
+		}
+	}
+};
+</script>
+
+<style>
+	.margin-left-custom{
+		margin-left: 10rpx;
+	}
+	.cu-form-group uni-picker .picker{
+		    line-height: 30px !important;
+	}
+	.cu-form-group uni-picker::after{
+		 line-height: 30px !important;
+	}
+	.border-top{
+		  border-top: 1px solid #eee;
+	}
+</style>
