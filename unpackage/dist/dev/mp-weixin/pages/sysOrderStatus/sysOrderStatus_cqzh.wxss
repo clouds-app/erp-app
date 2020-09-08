@@ -1,0 +1,20 @@
+
+.xunhoutop{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.border-top {
+	-webkit-box-pack:justify;
+	-webkit-justify-content:space-between;
+	        justify-content:space-between
+}
+/* .topstate{
+	padding-right: 17rpx !important;
+	background: #FFFFFF !important;
+	
+} */
+/* .pickertop{
+	padding-right: 0px;
+} */
+

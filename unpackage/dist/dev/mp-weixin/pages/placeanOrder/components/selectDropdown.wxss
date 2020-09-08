@@ -1,0 +1,20 @@
+
+.searchfrom.data-v-811a262c{
+	/* display: flex; */
+	position: fixed;
+	width: 60%;
+	z-index: 4;
+}
+.checkboxitem.data-v-811a262c {
+	position: absolute;
+	right: 10px;
+}
+.footbutton.data-v-811a262c{
+	position: absolute;
+	left: 0px;
+	z-index: 3;
+}
+.fontweight.data-v-811a262c{
+		font-weight: bold;
+}
+

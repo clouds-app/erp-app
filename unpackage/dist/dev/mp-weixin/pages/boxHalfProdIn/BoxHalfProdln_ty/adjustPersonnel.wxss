@@ -1,0 +1,24 @@
+
+.updete.data-v-9edc0646 {
+	/* width: 50%; */
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	margin: 10px 10px;
+	-webkit-box-pack:end;
+	-webkit-justify-content:flex-end;
+	        justify-content:flex-end
+}
+.xunhoubtm.data-v-9edc0646 {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-justify-content:space-around;
+	        justify-content:space-around;
+	position: fixed;
+	background-color: #FFFFFF;
+	bottom: 0px;
+	width: 100%;
+	z-index: 9;
+}
+

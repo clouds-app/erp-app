@@ -1,0 +1,411 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="true">
+				<block slot="content">纸板下单</block>
+		</cu-custom>
+		
+		
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<selectDropdown
+					:disabled="disable"
+					:otherHeight='CustomBarHeight' 
+					ref="CustDrawer"
+					url="appGetCustomerList"
+					title="客ㅤ户"
+					placeholdertext="请选择客户"
+					v-model='paperInFormItems.CustID'
+					:params='{modelCode:"paper_order",pageNum:1,pageSize:100,UserCode:userInfo.erpUserCode}'
+					@onChange='getcustomerArt'
+				></selectDropdown>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group border-top">
+					<view class="title">信用额:</view>
+					<input v-model="paperInFormItems.creditLines" name="input" disabled/>
+				</view>
+			</view>
+			<view class="flex-sub">
+				<view class="cu-form-group border-top">
+					<view class="title">下单:</view>
+					<input v-model="paperInFormItems.saleName"  name="input" disabled/>
+				</view>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<selectDropdown
+					:disabled="disable"
+					:otherHeight='CustomBarHeight' 
+					ref="papeDrawer"
+					url="appSpGetReportPriceArt"
+					title="纸ㅤ质"
+					placeholdertext="请选择纸质"
+					v-model='paperInFormItems.customerArt'
+					@onChange='closeMain'
+					:Reload='true'
+				></selectDropdown>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<selectDropdown
+					:disabled="disable"
+					titleColor="red"
+					:otherHeight='CustomBarHeight' 
+					ref="LBDrawer"
+					url="appSpPhoneGetArtLB"
+					title="楞ㅤ别"
+					placeholdertext="请选择楞别"
+					v-model='paperInFormItems.artLB'
+					:Reload='true'
+				></selectDropdown>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">纸长:</view>
+					<input type="number" v-model="paperInFormItems.paperLength" placeholder="请输入纸长" @blur="getyxStr" :disabled="disable"/>
+				</view>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">纸宽:</view>
+					<input type="number" v-model="paperInFormItems.paperWidth" placeholder="请输入纸宽" @blur="getyxStr" :disabled="disable"/>
+				</view>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">箱高:</view>
+					<input type="number" v-model="paperInFormItems.boxHeight" placeholder="请输入箱高" @blur="getyxStr" :disabled="disable"/>
+				</view>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group"  style="color: red; font-weight: bold;">
+					<view class="title">数量(片):</view>
+					<input type="number" v-model="paperInFormItems.qty" placeholder="请输入数量" :disabled="disable"/>
+				</view>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">压ㅤㅤ线:</view>
+					<input v-model="paperInFormItems.yxStr" placeholder="请输入压线,格式0+0+0" :disabled="disable"/>
+				</view>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub" >
+				<selectDropdown
+					:disabled="disable"
+					titleColor="red"
+					:otherHeight='CustomBarHeight' 
+					ref="lineDrawer"
+					url="appGetLineType"
+					title="压线类型"
+					placeholdertext="请选择压线类型"
+					v-model='paperInFormItems.lineType'
+				></selectDropdown>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub"  style="color: red; font-weight: bold;">
+				<view class="cu-form-group">
+					<view class="title">泼水剂:</view>
+					<switch :disabled="disable" @change="SwitchA" :class="paperInFormItems.waterRepellant?'checked':''" :checked="paperInFormItems.waterRepellant?true:false"></switch>
+				</view>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">交货日期:</view>
+					<picker :disabled="disable" mode="date" :value="paperInFormItems.dueDate" :start="startData" @change="endDateChange" >
+							{{paperInFormItems.dueDate}}
+					</picker>
+				</view>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">生产备注:</view>
+					<input :disabled="disable" v-model="paperInFormItems.produceRemark" placeholder="请输入生产备注"/>
+				</view>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">送货备注:</view>
+					<input :disabled="disable" v-model="paperInFormItems.remark" placeholder="请输入送货备注"/>
+				</view>
+			</view>
+		</view>
+		
+		<view class="flex solid-bottom padding justify-around chucangbtm">
+			<button :disabled="disable" @click="resetFrom"  type="primary" size="mini" class="bg-grey radius">清除</button>
+			<button :disabled="disable" @click="submitData"  type="primary" size="mini" class="bg-grey radius">下单</button>
+		</view>
+	</view>
+</template>
+
+<script>
+import selectDropdown from '@/components/selectDropdown/selectDropdown.vue'
+import cuCustom from '../../ui/colorui/components/cu-custom.vue' 
+import warehouse from '@/mixins';
+import dayjs from 'dayjs'
+import request from '@/utils/request.js';
+	export default {
+	components:{cuCustom,selectDropdown},
+	mixins:[warehouse],
+		data() {
+			return {
+				disable:false,
+				startData:'',
+				typename:'',//判断是新增还是修改
+				paperInFormItems:{
+					saleName:'',//下单人
+					waterRepellant:false,//泼水剂
+					CustID:'',//客户
+					artLB:'',//楞别
+					customerPo:'',//官方PO
+					creditLines:'',//信用额
+					lineType:'',//压线类型
+					customerArt:'',//纸质
+					paperWidth:'',//纸宽
+					paperLength:'',//纸长
+					boxHeight:'',//箱高
+					qty:'',//数量
+					produceRemark:'',//生产备注
+					yxStr:'',//压线
+					remark:'',//送货备注
+					userinformation:'',
+					dueDate:dayjs().format('YYYY-MM-DD'),//交货日期
+					heightUnit:"mm",// --箱高单位
+					widthUnit: "inch", //--纸宽单位
+					lengthUnit: "inch",// --纸长单位
+				}
+			}
+		},
+		onReady(){
+			// this.getcreditLines()
+			this.setDropdowndata()
+			this.getinitData()
+		},
+		onLoad(id) {
+			// debugger
+			if(!id.id){
+				this.paperInFormItems.saleName = this.userInfo.erpUserName
+				return
+			}
+			this.typename = id.type
+			this.disable = true
+			let data = this.cache.get(id.id)
+			this.paperInFormItems = data
+		},	
+		methods: {
+			// 泼水剂改变回调方法
+			SwitchA(){
+				this.paperInFormItems.waterRepellant = !this.paperInFormItems.waterRepellant
+			},
+			// 跳转页面数据回填
+			setDropdowndata(){
+				if(this.paperInFormItems.artLB === ''){
+					return
+				}
+				this.$refs.LBDrawer.$data.formItem.customers = this.paperInFormItems.artLB
+				this.$refs.papeDrawer.$data.formItem.customers = this.paperInFormItems.customerArt
+				this.$refs.lineDrawer.$data.formItem.customers = this.paperInFormItems.lineType
+				this.$refs.CustDrawer.$data.formItem.customers = this.paperInFormItems.customerName
+			},
+			// 获取初始化数据
+			getinitData(){
+				this.toast.loading()
+				let _self = this
+				request.post('/warehouse/warehouse/execute/appGetPaperMinDate').then(res=>{
+					this.paperInFormItems.dueDate = res.list[0].deferMinDate
+					this.startData = res.list[0].deferMinDate
+					this.toast.hide()
+				}).catch(err=>{
+					this.toast.hide()
+					this.toast.message(err)
+				})
+			},
+			// 获取压线类型
+			getyxStr(){
+				if(this.paperInFormItems.paperWidth===''||this.paperInFormItems.paperLength===''||this.paperInFormItems.boxHeight===''){
+					return
+				}
+				this.toast.loading()
+				let parms = {
+					customerId:this.paperInFormItems.CustID,
+					paperWidth:this.paperInFormItems.paperWidth,
+					paperLength:this.paperInFormItems.paperLength,
+					boxHeight:this.paperInFormItems.boxHeight
+				}
+				request.post('/warehouse/warehouse/execute/appGetCalcLineValue',parms).then(res=>{
+					if(!!res.list[0].res){
+						this.toast.hide()
+						this.paperInFormItems.yxStr = res.list[0].resDesc
+						return
+					}
+					this.toast.message(res.list[0].resDesc)
+				}).catch(err=>{
+					this.toast.hide()
+					this.toast.message(err)
+				})
+			},
+			//选择纸质回调事件
+			closeMain(data){
+				let parms = {
+					paperArt:data.customers
+				}
+			   this.$refs.LBDrawer.getdataArray(parms)
+			},
+			// 客户选中回调事件
+			getcustomerArt(data){
+				let parms = {
+					CustID:data.customersId
+				}
+				this.$refs.papeDrawer.getdataArray(parms)
+				this.getcreditLines(data.customersId)
+			},
+			// 获取信用额
+			getcreditLines(data){
+				this.toast.loading()
+				let parms = {UserCode:data}
+				request.post('/warehouse/warehouse/execute/appSpPhoneInfoCredit',parms).then(res=>{
+					this.paperInFormItems.creditLines = res.list[0].ct_RemainCredit
+					this.toast.hide()
+				}).catch(err=>{
+					this.toast.message(err)
+				})
+			},
+			// 清空表单数据
+			resetFrom(){
+				this.paperInFormItems.waterRepellant = false//官方PO
+				this.paperInFormItems.lineType = ''//压线类型
+				this.paperInFormItems.customerArt = ''//纸质
+				this.$refs.LBDrawer.$data.formItem.customers = ''
+				this.$refs.papeDrawer.$data.formItem.customers = ''
+				this.$refs.lineDrawer.$data.formItem.customers = ''
+				this.$refs.LBDrawer.$data.formItem.customersId = ''
+				this.$refs.papeDrawer.$data.formItem.customersId = ''
+				this.$refs.lineDrawer.$data.formItem.customersId = ''
+				this.paperInFormItems.paperWidth = ''//纸宽
+				this.paperInFormItems.artLB = ''//楞别
+				this.paperInFormItems.paperLength = ''//纸长
+				this.paperInFormItems.boxHeight = ''//箱高
+				this.paperInFormItems.qty = ''//数量
+				this.paperInFormItems.produceRemark = ''//生产备注
+				this.paperInFormItems.yxStr = ''//压线
+				this.paperInFormItems.remark = ''//送货备注
+				this.paperInFormItems.userinformation = ''//生产备注
+				this.typename = ''//修改新增
+			},
+			// 提交数据
+			submitData(){
+				let url;
+				let vluedata = this.checkValuedata()
+				if(vluedata){
+					return
+				}
+				let params = {
+					UserID:this.userInfo.erpUserCode,
+					customerId:this.paperInFormItems.CustID,
+					customerArt:this.paperInFormItems.customerArt,
+					artLB:this.paperInFormItems.artLB,
+					paperWidth:this.paperInFormItems.paperWidth,
+					paperLength:this.paperInFormItems.paperLength,
+					qty:this.paperInFormItems.qty,
+					boxHeight:this.paperInFormItems.boxHeight,
+					yxStr:this.paperInFormItems.yxStr,
+					dueDate:this.paperInFormItems.dueDate,
+					remark:this.paperInFormItems.remark,
+					widthUnit:this.paperInFormItems.widthUnit,
+					lengthUnit:this.paperInFormItems.lengthUnit,
+					lineType:this.paperInFormItems.lineType,
+					produceRemark:this.paperInFormItems.produceRemark,
+					heightUnit:this.paperInFormItems.heightUnit,
+					waterRepellant:this.paperInFormItems.waterRepellant,
+				}
+				// if(this.typename == 1){
+				// 	url = '/order/update'
+				// }else{
+				// 	url = '/order/savePaperOrder'
+				// }
+				this.toast.loading()
+				request.post('/warehouse/warehouse/execute/appSavePhoneBill',params).then(res=>{
+					if(!!res.list[0].res){
+						this.toast.message('下单成功')
+						this.resetFrom()
+						return
+					}
+					this.toast.message('下单失败，请重试')
+				}).catch(err=>{
+					this.toast.message(err)
+				})
+			},
+			// 表单数据校验
+			checkValuedata(){
+				if(this.paperInFormItems.customerArt === ''){
+					this.toast.message('请选择纸质')
+					return true
+				}
+				if(this.paperInFormItems.artLB === ''){
+					this.toast.message('请选择楞别')
+					return true
+				}
+				if(this.paperInFormItems.paperLength === ''){
+					this.toast.message('请输入纸长')
+					return true
+				}
+				if(this.paperInFormItems.boxHeight === ''){
+					this.toast.message('请输入纸宽')
+					return true
+				}
+				if(this.paperInFormItems.paperWidth === ''){
+					this.toast.message('请输入纸宽')
+					return true
+				}
+				if(this.paperInFormItems.qty === ''){
+					this.toast.message('请输入数量')
+					return true
+				}
+				if(this.paperInFormItems.lineType === ''){
+					this.toast.message('请选择压线类型')
+					return true
+				}
+				return false
+			},
+			// 结束时间选择 回调
+			endDateChange(e) {
+				this.paperInFormItems.dueDate = e.detail.value
+			},
+		}
+	}
+</script>
+
+<style>
+.chucangbtm{
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+	z-index: 2;
+}
+.redtitle .title{
+	font-weight: bold;
+}
+</style>

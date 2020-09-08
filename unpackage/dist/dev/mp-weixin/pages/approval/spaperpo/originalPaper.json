@@ -1,6 +1,7 @@
 {
   "navigationStyle": "custom",
   "usingComponents": {
-    "approval": "/components/approval/approval"
+    "approval": "/components/approval/approval",
+    "originalPaper-approval-content": "/pages/approval/spaperpo/originalPaper-approval-content"
   }
 }

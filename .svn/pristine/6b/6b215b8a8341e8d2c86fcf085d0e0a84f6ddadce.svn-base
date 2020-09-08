@@ -1,0 +1,463 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" class="titlefrom"><block slot="content">反馈列表</block></cu-custom>
+		<mescroll-body  ref="mescrollRef" @init="mescrollInit" :down="downOption" @down="downCallback" :up="upOption" @up="upCallback"  >
+		<form class="xunhoutop">
+			<view class="bodyContentHeight">
+				<view class="cu-form-group border-top">
+					<view class="title" style="font-size: 30upx;color: red;">您的反馈是晨龙前行最大的动力:</view>
+					<button @click="tofeedbackSys" type="primary" size="mini"><text style="font-size: 30upx;">我要反馈</text></button>
+				</view>
+			</view>
+		</form>
+		<view style="height: 80rpx;"></view>
+		<view class="grid-warp" v-for="(item, index) in FeedbackList" :key="index">
+			<view class="grid-title">
+				时间:{{ item.createtime }}
+				<!-- item.isExpand = !item.isExpand -->
+				<view>
+					<uni-icons
+						@click="expandDetail(item.isExpand, item.id, index)"
+						color="#999999"
+						style="cursor: pointer;"
+						size="24"
+						:type="!item.isExpand ? 'arrowup' : 'arrowdown'"
+					/>
+				</view>
+			</view>
+			<view class="grid-body">
+				<view class="grid-flex padding-10">
+					<view>
+						<text>类别：{{ item.typecodeName }}</text>
+					</view>
+					<view>
+						<text :class="[item.statusfeed > 0 ? (item.statusfeed == 1 ? 'statusfeedCurrent' : 'statusfeedDone') : 'statusfeedPending']" class="maringR">提出</text>
+						<text :class="[item.statusfeed > 1 ? (item.statusfeed == 2 ? 'statusfeedCurrent' : 'statusfeedDone') : 'statusfeedPending']" class="maringR">接收</text>
+						<text :class="[item.statusfeed > 2 ? (item.statusfeed == 3 ? 'statusfeedCurrent' : 'statusfeedDone') : 'statusfeedPending']" class="maringR">分配</text>
+						<text :class="[item.statusfeed > 3 ? (item.statusfeed == 4 ? 'statusfeedCurrent' : 'statusfeedDone') : 'statusfeedPending']" class="maringR">完工</text>
+						<text :class="[item.statusfeed > 4 ? (item.statusfeed == 5 ? 'statusfeedCurrent' : 'statusfeedDone') : 'statusfeedPending']" class="maringR">回访</text>
+						<text
+							:class="[item.statusfeed > 4 ? (item.statusfeed == 5 ? 'statusfeedCurrent' : 'statusfeedDone') : 'statusfeedPending']"
+							@click="evaluatetap(item.statusfeed, item.id)"
+							class="maringR"
+						>
+							评价
+						</text>
+					</view>
+				</view>
+				<view class="grid-flex padding-10">
+					<view style="width: 650rpx; word-wrap:break-word;word-break:normal;">内容：{{ item.content }}</view>
+				</view>
+				<view v-show="item.isExpand">
+					<view class="grid-flex padding-10">
+						<view>
+							<text>提出：{{ item.proposeInfo }}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>审批：{{ item.approvalInfo }}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>接收：{{ item.receiveInfo }}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>处理：{{ item.handleInfo }}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>完结：{{ item.endInfo }}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view style="width: 650rpx; word-wrap:break-word;word-break:normal;">评价：{{ item.evaluateInfo }}</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view style="height: 80rpx;"></view>
+		<colorUiDialog :isloading="isLoaddingData" title="评价" @comfirmModal="comfirmColorUiDialog" @cancelModal="cancelColorUiDialog" :toShowModal="showColorUiDialog">
+			<view class="modalFormBox">
+				<view class="modalFormItem">
+					<textarea
+						v-model="FeedbackContent"
+						maxlength="300"
+						placeholder="请输入评价"
+						style="text-align: left; width: auto; height: 300rpx;border: 1px solid #ccc;"
+					></textarea>
+				</view>
+			</view>
+		</colorUiDialog>
+
+		<boboMessage ref="Message"></boboMessage>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+import boboMessage from '@/components/bobo-message/bobo-message.vue';
+import colorUiDialog from '@/components/color-ui-dialog/color-ui-dialog.vue';
+import { timeToDate } from '@/utils/common.js'; //时间戳转时间格式
+import uniIcons from '@/components/uni-icons/uni-icons.vue';
+import wxBase from '@/mixins/wxBase';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import dayjs from 'dayjs';
+const defaultformItem = {};
+export default {
+	name: 'feedbackList',
+	components: { cuCustom, uniIcons, colorUiDialog, boboMessage },
+	mixins: [wxBase,MescrollMixin],
+	data() {
+		return {
+			// 下拉配置
+			 downOption:{
+				// textLoading:"11"
+			},
+			// 上拉配置
+			upOption:{
+				use:false, // 关闭上拉刷新
+			},
+			feedbackId: '', // 当前评价ID
+			FeedbackContent: '', //评价内容
+			showColorUiDialog: false, // 是否显示弹框
+			FeedbackType: [
+				{
+					id: 1,
+					typecode: 1,
+					typename: 'ERP',
+					usercode: 0
+				},
+				{
+					id: 2,
+					typecode: 2,
+					typename: '生管',
+					usercode: 0
+				},
+				{
+					id: 3,
+					typecode: 3,
+					typename: '设备/其它',
+					usercode: 0
+				},
+				{
+					id: 4,
+					typecode: 4,
+					typename: '业务',
+					usercode: 0
+				},
+				{
+					id: 5,
+					typecode: 5,
+					typename: '投诉',
+					usercode: 0
+				}
+			], // 问题大类 列表
+			FeedbackList: [], // 用户反馈列表
+			wxOpenId: 'oiC0B6FB94zzfSQMPMb6EhJh_uWo' // 微信openid
+		};
+	},
+	watch: {},
+	// #ifdef H5
+	mounted() {
+		
+		this.initFunction();
+		this.mescroll.textLoading='11';
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+		this.initFunction();
+	},
+
+	// #endif
+	methods: {
+		/*下拉刷新的回调*/
+		downCallback(){
+			setTimeout(()=>{
+				this.getFeedbackByOpenId();
+				this.mescroll.endSuccess()	
+			}, 500)
+		},
+		// 上拉加载的回调
+		upCallback() {
+			// mixin默认延时500自动结束加载
+			setTimeout(()=>{
+				this.getFeedbackByOpenId();
+				this.mescroll.endErr();
+			}, 500)
+		},
+		// 用户提交对评价
+		submitFeedbackOpt() {
+			//debugger
+			let hasErr = false;
+			let message = '';
+			if (!!!this.feedbackId) {
+				hasErr = true;
+				message = 'feedbackId 为空';
+			}
+			if (!!!this.wxOpenId) {
+				hasErr = true;
+				message = 'wxOpenId 为空';
+			}
+			if (!!!this.FeedbackContent) {
+				hasErr = true;
+				message = '评价内容为空';
+			}
+			if (hasErr) {
+				this.$refs['Message'].warn(message);
+				return;
+			}
+			let _url = `${this.$config.wxBaseUrl}/wx/submitFeedbackOpt`;
+			let params = {
+				feedbackId: this.feedbackId,
+				openId: this.wxOpenId,
+				statusFeed: 6, //参数statusFeed： 状态（1已提出，2已接收，3已分配，4已完工，5已回访,6已评价）
+				remark: this.FeedbackContent
+			};
+			let _self = this;
+			this.getOrPostDataBy(_url, params)
+				.then(res => {
+					_self.$refs['Message'].success('评价成功');
+					setTimeout(() => {
+						_self.FeedbackContent = '';
+						_self.showColorUiDialog = false;
+						_self.getFeedbackByOpenId(); // 刷新列表
+					}, 500);
+				})
+				.catch(err => {
+					_self.$refs['Message'].error('评价失败,请稍后再试');
+				});
+		},
+		comfirmColorUiDialog() {
+			this.submitFeedbackOpt();
+			//this.showColorUiDialog =false
+		},
+		cancelColorUiDialog() {
+			this.showColorUiDialog = false;
+		},
+		initFunction() {
+			//this.getAllFeedbackType()
+			setTimeout(() => {
+				
+				this.getFeedbackByOpenId();
+			}, 1000);
+			uni.$on('updateFeedbackList', function(data) {
+				this.getFeedbackByOpenId();
+			});
+			//this.mescroll.lockUpScroll(true) // 锁定上拉
+		},
+
+		///wx/getFeedbackOptById
+		// 获取所有反馈类型
+		getAllFeedbackType() {
+			if (this.FeedbackType.length > 0) {
+				// 读取缓存
+				return;
+			}
+			let _url = `${this.$config.wxBaseUrl}/wx/getAllFeedbackType`;
+			let _self = this;
+			this.getOrPostDataBy(_url).then(res => {
+				_self.FeedbackType = res;
+			});
+		},
+		expandDetail(status, detailId, index) {
+			this.FeedbackList[index].isExpand = !status;
+			if (!!!this.FeedbackList[index].isExpand) {
+				return;
+			}
+			let _url = `${this.$config.wxBaseUrl}/wx/getFeedbackOptById`;
+			let params = {
+				feedbackId: detailId
+			};
+			let _self = this;
+			clearTimeout(this.expandDetailTimer);
+			this.expandDetailTimer = setTimeout(() => {
+				this.getOrPostDataBy(_url, params).then(res => {
+					if (res.length > 0) {
+						if (res[0] && Object.keys(res[0]).length > 0) {
+							let itemObj = res[0];
+							let detailInfo = itemObj.username + ' ' + itemObj.createtime;
+							this.FeedbackList[index].proposeInfo = detailInfo; // 提出
+						}
+						if (res[1] && Object.keys(res[1]).length > 0) {
+							let itemObj = res[1];
+							let detailInfo = itemObj.username + ' ' + itemObj.createtime;
+							this.FeedbackList[index].approvalInfo = detailInfo; // 审批
+						}
+						if (res[2] && Object.keys(res[2]).length > 0) {
+							let itemObj = res[2];
+							let detailInfo = itemObj.username + ' ' + itemObj.createtime;
+							this.FeedbackList[index].receiveInfo = detailInfo; // 接收
+						}
+						if (res[3] && Object.keys(res[3]).length > 0) {
+							let itemObj = res[3];
+							let detailInfo = itemObj.username + ' ' + itemObj.createtime;
+							this.FeedbackList[index].handleInfo = detailInfo; // 处理
+						}
+						if (res[4] && Object.keys(res[4]).length > 0) {
+							let itemObj = res[4];
+							let detailInfo = itemObj.username + ' ' + itemObj.createtime;
+							this.FeedbackList[index].endInfo = detailInfo; // 完结
+						}
+						if (res[5] && Object.keys(res[5]).length > 0) {
+							this.FeedbackList[index].evaluateInfo = ''; // 评价
+						}
+
+						//
+					}
+				});
+			}, 1000);
+		},
+		// 获取微信openID
+		getWxOpenId() {
+			this.wxOpenId = ''; // 每次登陆前重置为空
+			let _url = `${this.$config.wxBaseUrl}/wx/grantAuth`;
+			// request.get(_url,{}).then(res => {
+			// 	debugger
+			// 	 this.wxOpenId = res
+			// });
+			uni.request({
+				url: _url,
+				success: res => {
+					console.log(res.data);
+				}
+			});
+		},
+		// 校验是否已经获取了微信OPENID,否则提示再次获取
+		checkOpenIdBeforePost() {
+			if (!!!this.wxOpenId) {
+			}
+		},
+		/// 根据openID获取用户反馈列表
+		getFeedbackByOpenId() {
+			this.FeedbackList = [];
+			let _url = `${this.$config.wxBaseUrl}/wx/getFeedbackByOpenId`;
+			let params = {
+				openId: this.wxOpenId
+			};
+			let config = {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			};
+			let _self = this;
+			this.getOrPostDataBy(_url, params, config).then(res => {
+				if (res && res.length > 0) {
+					let dataFormat = res.map(item => {
+						// 自定义字段,是否展开
+						item.proposeInfo = ''; // 提出
+						item.approvalInfo = ''; // 审批
+						item.receiveInfo = ''; // 接收
+						item.handleInfo = ''; // 处理
+						item.endInfo = ''; // 完结
+						item.evaluateInfo = ''; // 评价
+						item.isExpand = false;
+						item.typecodeName = _self.getTypeCodeName(item.typecode);
+						// 时间戳转时间格式
+						item.createtime = timeToDate(item.createtime);
+
+						return item;
+					});
+					_self.FeedbackList = dataFormat;
+				}
+			});
+		},
+		// 获取类别名称
+		getTypeCodeName(typeCode) {
+			if (this.FeedbackType && this.FeedbackType.length > 0) {
+				let typeCodeItem = this.FeedbackType.find(item => {
+					return item.typecode == typeCode;
+				});
+				if (!!typeCodeItem && Object.keys(typeCodeItem).length > 0) {
+					return typeCodeItem.typename;
+				} else {
+					return typeCode;
+				}
+			} else {
+				return typeCode;
+			}
+		},
+		//评价点击事件
+		evaluatetap(statusCode, feedbackId) {
+			this.feedbackId = feedbackId;
+			let status = Number(statusCode);
+			if (status == 5) {
+				this.toast.message('此功能开发中,请等待!');
+			} else {
+				this.$refs['Message'].info('请等待回访后再评价');
+				//this.toast.message('请等待回访后再评价')
+				this.showColorUiDialog = true;
+				// 自定义单个消息的样式
+			}
+		},
+		// 跳转反馈页面
+		tofeedbackSys() {
+			uni.navigateTo({
+				url: 'feedbackSys?wxOpenId=' + this.wxOpenId
+			});
+		}
+	}
+};
+</script>
+
+<style lang="scss" scoped>
+.modalFormBox {
+	display: flex;
+	margin: 0 10px;
+	//background: white;
+	.modalFormItem {
+		height: 300rpx;
+		width: 100%;
+		//border: 1px solid red;
+	}
+}
+.statusfeedCurrent {
+	color: green;
+}
+.statusfeedDone {
+	color: blue;
+}
+.statusfeedPending {
+	color: #afafaf;
+}
+.maringR {
+	margin-right: 10rpx;
+}
+.xunhoutop {
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+.xunhuoclass {
+	margin-top: 10px;
+}
+.xunhoubtm {
+	display: flex;
+	justify-content: space-between;
+	position: fixed;
+	background-color: #ffffff;
+	bottom: 0px;
+	width: 100%;
+}
+.xunhoubtm > view:first-child {
+	display: flex;
+	align-items: center;
+	margin: 5px;
+}
+.xunhoubtm > view:last-child {
+	margin: 5px;
+}
+.flex-sub {
+	background-color: #ffffff;
+}
+</style>

@@ -27,7 +27,6 @@
 		<!--  :height="tableHeight"-->
 		<view class="vtable">
 			<v-table
-			     ref='viewBox'
 				:fixedMultipleLeft="true"
 				:row-class-name="rowClassNameFn"
 				:columns="dataColumns" 
@@ -83,16 +82,7 @@ export default {
 	// #ifdef H5
 	mounted() {
 	  this.calTableHeight()
-	  this.$nextTick(()=>{
-		
-	  // 	// 通过$refs获取dom元素
-	  // 	 let box = this.$refs.viewBox;
-	  // 	 box.addEventListener('scroll', () => {
-	  // 			  console.log('=scroll====box===')
-	  // 	 })
-	  })
-	
-	  
+	 
 	},
 	// #endif
 	// #ifndef H5

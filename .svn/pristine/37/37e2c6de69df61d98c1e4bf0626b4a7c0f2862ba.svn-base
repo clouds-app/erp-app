@@ -1,0 +1,533 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" class="titlefrom" :isBack="true"><block slot="content">我要反馈</block></cu-custom>
+		<view class="contentBodyBox">
+			<view class="contentBodyItem mainBox">
+				<view class="questionTypeBox">
+								<view class="questionTypeItem left">
+									问题大类
+								</view>
+								<view class="questionTypeItem right">
+									<radio-group class="block" @change="RadioChange">
+									<block v-for="(item,index) in FeedbackType">
+									<radio class="radioComponent" :checked="formDataItem.typeCode==item.typecode?true:false" :value="item.typecode"></radio><text :class="item.typecode==5?'colorRed':''" class="radioDesc">{{item.typename}}</text>
+									
+									</block>
+									</radio-group>
+								</view>
+							</view>
+							<view class="border-top cu-form-group align-start">
+									<view class="title">问题详情</view>
+									<textarea v-model="formDataItem.content" maxlength="300"  placeholder="请输入问题详情" style="height: 400rpx;border: 1px solid #ccc;" ></textarea>
+							</view>
+			</view>
+			<view class="contentBodyItem uploadImg">
+					<form>
+								<view class="border-top cu-form-group align-start">
+										<view class="title">图片上传</view>
+								</view>
+								<view class="cu-form-group" style="border: none; padding-top:10px ;">
+									<view class="grid col-4 grid-square flex-sub">
+										<view class="bg-img" v-for="(item,index) in imgList" :key="index" @tap="ViewImage" :data-url="imgList[index]">
+										 <image :src="imgList[index]" mode="aspectFill"></image>
+											<view class="cu-tag bg-red" @tap.stop="DelImg" :data-index="index">
+												<text class='cuIcon-close'></text>
+											</view>
+										</view>
+										<view class="solids" @tap="ChooseImage" v-if="imgList.length<4">
+											<text class='cuIcon-cameraadd'></text>
+										</view>
+									</view>
+								</view>
+							</form>
+			</view>
+			<view class="border-top contentBodyItem personInfoBox">
+				<view class="personInfoItem inputDescBox">
+						<view class="inputDescItem descTitle">
+							反馈人
+						</view>
+					    <view class="inputDescItem other">
+					    	<input v-model="formDataItem.uname"  name="input"/>
+					    </view>
+				</view>
+				<view class="personInfoItem phoneNumBox">
+					<view class="phoneNumItem descTitle">反馈手机</view>
+					<view class="phoneNumItem other">
+						<input v-model="formDataItem.phoneno" name="phoneno" type="number"/>
+					</view>
+					
+				</view>
+			</view>
+			<view class="contentBodyItem personInfoBox">
+				<view class="personInfoItem inputCompanyDescBox">
+						<view class="inputDescItem descTitle">
+							反馈单位
+						</view>
+					    <view class="inputDescItem other">
+					    		<input v-model="formDataItem.companyname" name="companyname"/>
+					    </view>
+				</view>
+			</view>
+			<view class="contentBodyItem submitBtnBox">
+				<view style="margin: 0 20rpx;" class="margin-text-center"><button :loading="isSubmitting" @click="preSubmitData()"  type="primary" class="primary-btn">提ㅤ交</button></view>
+					</view>
+			</view>
+	
+		</view>
+	</view>
+</template>
+
+<script>
+import {isPhoneNumber} from '@/utils/common.js'
+import wxBase from '@/mixins/wxBase';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import request from '@/utils/request.js';
+import dayjs from 'dayjs'
+const defaultFormItem={
+				openId:'',
+				companyname:'',
+				content:'',
+				imgids:'',
+				phoneno:'',
+				typeCode:1,
+				uname:''
+			}
+export default {
+	name: 'paperIn',
+	components: { cuCustom},
+	mixins: [wxBase],
+	data() {
+		return {
+			isSubmitting:false,// 是否正在提交数据
+			FeedbackType:[
+					{
+						"id": 1,
+						"typecode": 1,
+						"typename": "ERP",
+						"usercode": 0
+					},
+					{
+						"id": 2,
+						"typecode": 2,
+						"typename": "生管",
+						"usercode": 0
+					},
+					{
+						"id": 3,
+						"typecode": 3,
+						"typename": "设备/其它",
+						"usercode": 0
+					},
+					{
+						"id": 4,
+						"typecode": 4,
+						"typename": "业务",
+						"usercode": 0
+					},
+					{
+						"id": 5,
+						"typecode": 5,
+						"typename": "投诉",
+						"usercode": 0
+					}
+				],// 问题大类 列表
+			FeedbackList:[],
+			formDataItem:Object.assign({},defaultFormItem),
+			imgList:[],//存储图片数组
+			index: -1,
+			FeedbackHistoryInfo:{}
+		};
+	},
+	watch:{
+
+	},
+	onLoad(option){
+		  defaultFormItem.openId = option.wxOpenId
+	  this.formDataItem.openId = option.wxOpenId
+	  // console.log('this.formDataItem.openId====:'+this.formDataItem.openId)
+	},
+	// #ifdef H5
+	mounted() {
+		this.initDataFunction()
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+		this.initDataFunction()
+	},
+	
+	// #endif
+	methods: {
+		initDataFunction(){
+			//this.getAllFeedbackType()
+			this.getFeedbackInfoByOpenId()
+		},
+		// 校验必填数据
+		checkBeforeSubmit(){
+			let hasErr = false
+			let errMsg = ''
+			if(!!!this.formDataItem.content){
+				errMsg = '问题详情必填!'
+				hasErr= true
+			}
+			if(!!this.formDataItem.content && this.formDataItem.content.length<10){
+				errMsg = '问题详情至少10个字以上!'
+				hasErr= true
+			}
+			if(!!!this.formDataItem.companyname){
+				errMsg = '反馈人单位必填!'
+				hasErr= true
+			}
+			if(!!!this.formDataItem.phoneno){
+				errMsg = '反馈人手机必填!'
+				hasErr= true
+			}
+			if(!!this.formDataItem.phoneno && !isPhoneNumber(this.formDataItem.phoneno)){
+				errMsg = '手机格式错误!'
+				hasErr= true
+			}
+			if(!!!this.formDataItem.uname){
+				errMsg = '反馈人必填!'
+				hasErr= true
+			}
+			if(!!!this.formDataItem.openId){
+				errMsg = '列表ID获取失败,请返回上一页!'
+				hasErr= true
+			}
+		    this.toast.message(errMsg)
+			return hasErr
+			
+		},
+		getFeedbackTypeName(typeCode){
+			let selectedItem = this.FeedbackType.find(item=>{
+				return item.typecode== typeCode
+			})
+			if(selectedItem){
+					return selectedItem.typename
+				}else{
+					return '--'
+				}
+			
+		},
+		// 获取所有反馈类型
+		getAllFeedbackType(){
+			if(this.FeedbackType.length>0){
+				// 读取缓存
+				return
+			}
+			let _url = `${this.$config.wxBaseUrl}/wx/getAllFeedbackType`
+			this.getOrPostDataBy(_url).then(res=>{
+				this.FeedbackType = res
+				//this.toast.message('获取所有反馈类型成功!')
+			})
+		},
+		// 根据openId获取用户历史反馈信息，包含历史记录单位，手机号等
+		getFeedbackInfoByOpenId(){
+			this.FeedbackHistoryInfo ={}
+			let _url = `${this.$config.wxBaseUrl}/wx/getFeedbackInfoByOpenId`
+			let params = {
+				openId:this.formDataItem.openId
+			}
+			let config = {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			}
+			this.getOrPostDataBy(_url,params,config).then(res=>{
+				this.FeedbackHistoryInfo = res
+				this.formDataItem.companyname= this.FeedbackHistoryInfo.companyname
+				this.formDataItem.phoneno= this.FeedbackHistoryInfo.phoneno
+				this.formDataItem.uname= this.FeedbackHistoryInfo.uname
+			})
+		},
+		
+		ChooseImage() {
+			uni.chooseImage({
+				count: 4, //默认9
+				sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
+				sourceType: ['album'], //从相册选择
+				success: (res) => {
+					//debugger
+					let tempFilesList = res.tempFiles
+					if (this.imgList.length != 0) {
+						this.imgList = this.imgList.concat(res.tempFilePaths)
+					} else {
+						this.imgList = res.tempFilePaths
+					}
+					let tempFilePaths = res.tempFilePaths
+					uni.showLoading({
+						title: '上传中...'
+					});
+					let _self = this
+					for (var i = 0; i < tempFilePaths.length; i++) {
+						//debugger
+						let fileObj = tempFilesList[i]
+						uni.uploadFile({
+							url: `${this.$config.wxBaseUrl}/wx/submitFeedbackImg`,
+							filePath: tempFilePaths[i],
+							fileType: 'image',
+							name: 'file',
+							headers: {
+								'Accept': 'application/json',
+								'Content-Type': 'multipart/form-data',
+							},
+							formData: {
+								'file': tempFilePaths[i]
+							},
+							success: (uploadFileRes) => {
+								debugger
+								let resData = JSON.parse(uploadFileRes.data)
+								if(!!resData.success){
+										 _self.toast.message(' 上传成功!')
+										 if (!!!_self.formDataItem.imgids) {
+										 	_self.formDataItem.imgids = resData.result
+										 } else {
+										 	_self.formDataItem.imgids = _self.formDataItem.imgids+ resData.result
+										 }
+								}else{
+									_self.toast.message(fileObj.name+'上传失败!')
+								}
+							
+							},
+							fail: (error) => {
+								this.toast.message(fileObj.name+'上传失败!')
+							},
+							complete: () => {
+								setTimeout(function() {
+									uni.hideLoading();
+								}, 250);
+							},
+						});
+					}
+				}
+			});
+		},
+		ViewImage(e) {
+			uni.previewImage({
+				urls: this.imgList,
+				current: e.currentTarget.dataset.url
+			});
+		},
+		DelImg(e) {
+			uni.showModal({
+				title: '提示',
+				content: '确定要删除吗？',
+				cancelText: '取消',
+				confirmText: '确定',
+				success: res => {
+					if (res.confirm) {
+						this.imgList.splice(e.currentTarget.dataset.index, 1)
+					}
+				}
+			})
+		},
+		// 问题大类选择回调
+		RadioChange(e){
+			this.formDataItem.typeCode = this.FeedbackType[Number(e.detail.value) - 1].typecode
+		},
+		// 预提交数据验证
+		preSubmitData(){
+			if(this.checkBeforeSubmit()){
+				return
+			}
+			let hasSubmitDataBefore = false
+			if(this.FeedbackHistoryInfo && Object.keys(this.FeedbackHistoryInfo).length>0)
+			{
+				hasSubmitDataBefore = true
+			}
+			
+		},
+		// 提交回调事件
+		SubmitData(){
+			this.isSubmitting = true
+			let _url = `${this.$config.wxBaseUrl}/wx/submitFeedback`
+			let params = this.formDataItem
+			this.getOrPostDataBy(_url,params).then(res=>{
+				this.isSubmitting = false
+				this.toast.message('反馈成功!')
+				this.formDataItem = Object.assign({},defaultFormItem) // 清空
+				setTimeout(()=>{
+					uni.$emit('updateFeedbackList',{msg:'页面更新'})
+					uni.navigateTo({
+					    url: 'feedbackList?wxOpenId='+this.wxOpenId
+					});
+					
+				},1000)
+			}).catch(err=>{
+				this.isSubmitting = false
+			})
+		
+		},
+	
+	}
+};
+</script>
+
+<style scoped lang="scss">
+	.colorRed{
+		color: red;
+	}
+	 // :style="[{height:'calc(100vh - '+ CustomBar + 'px - 50px)'}]"
+	.contentBodyBox{
+		font-size: 32upx;
+		background:white;
+		display: flex;
+		flex-direction: column;
+		height:calc(100vh - 45px);
+		//border: 1px solid red;
+		.contentBodyItem{
+			&.mainBox{
+				overflow: hidden;
+				//width: 100vw;
+				height: 50%;
+				
+			}
+			&.uploadImg {
+				overflow: hidden;
+				height: 20%;
+			//
+			}
+			&.personInfoBox{
+				overflow: hidden;
+				height: 8%;
+				//border: 1px solid red;
+				display: flex;
+				.personInfoItem{
+					width: 50%;
+					height: 80rpx;
+					//border: 1px solid blue;
+					overflow: hidden;
+					&.inputCompanyDescBox{
+						display: flex;
+						width: 100%;
+						justify-content: center;
+						align-items: center;
+						.inputDescItem{
+							&.descTitle{
+								width: 20%;
+								margin-left: 15px;
+							}
+							&.other{
+								flex:1;
+								border-bottom: 1px solid #ccc;
+							}
+						}
+					}
+					&.inputDescBox{
+						display: flex;
+						width: 40%;
+						justify-content: center;
+						align-items: center;
+						.inputDescItem{
+							&.descTitle{
+								width: 80%;
+								margin-left: 15px;
+								
+							}
+							&.other{
+								//
+								border-bottom: 1px solid #ccc;
+							}
+						}
+					}
+					&.phoneNumBox{
+						
+						flex: 1;
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						.phoneNumItem{
+							//border: 1px solid red;
+							&.descTitle{
+								width: 40%;
+								margin-left: 15px;
+							}
+							&.other{
+								//
+								border-bottom: 1px solid #ccc;
+							}
+						}
+					}
+				}
+			}
+			
+			&.submitBtnBox{
+				flex: 1;
+			}
+		}
+	}
+	.radioComponent{
+		margin-top: 10rpx;
+		margin-right: 5rpx;
+	}
+	.radioDesc{
+		font-size: 25upx;
+		margin-right: 50rpx;
+	}
+	.questionTypeBox{
+		//border: 1px solid red;
+		height: 160rpx;
+		width: 100vw;
+		background: white;
+		display: flex;
+	  		.questionTypeItem{
+	  			&.left{
+	  				width: 24%;
+	  				height: 100%;
+	  				//border: 1px solid blue;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+	  			}
+				&.right{
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					height: 160rpx;
+					font-size: 12rpx;
+					flex:1;
+					//border: 1px solid orange;
+				}
+	  			
+	  		}
+	}
+	
+.maringR {
+	margin-right: 10rpx;
+	color: #afafaf;
+}
+.xunhoutop{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+.xunhuoclass {
+	margin-top: 10px;
+}
+.xunhoubtm {
+	display: flex;
+	justify-content:space-between;
+	position: fixed;
+	background-color: #FFFFFF;
+	bottom: 0px;
+	width: 100%;
+	
+}
+.xunhoubtm >view:first-child{
+	display: flex;
+	align-items:center;
+	margin: 5px;
+	
+}
+.xunhoubtm >view:last-child{
+	margin: 5px;
+}
+.flex-sub {
+	background-color: #FFFFFF;
+}
+</style>
+

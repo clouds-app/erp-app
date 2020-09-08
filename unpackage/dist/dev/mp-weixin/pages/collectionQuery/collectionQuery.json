@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "select-dropdown": "/components/selectDropdown/selectDropdown",
+    "z-table": "/components/z-table/z-table",
+    "cu-custom": "/ui/colorui/components/cu-custom",
+    "mx-date-picker": "/components/mx-datepicker/mx-datepicker"
+  }
+}

@@ -1,0 +1,176 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" class="titlefrom" :isBack="true"><block slot="content">反馈列表</block></cu-custom>
+		<form class="xunhoutop">
+				<view class="bodyContentHeight">
+					<view class="cu-form-group border-top">
+						<view class="title" style="color: red;">您的反馈是晨龙前行最大的动力:</view>
+						<button @click="tofeedbackList" type="primary" size="mini">我要反馈</button>
+					</view>
+				</view>
+			<!-- 	<view class="cu-form-group border-top">
+					<view class="title">反馈列表:</view>
+				</view> -->
+		</form>
+			<view style="height: 80rpx;"></view>
+			<view  class="grid-warp" v-for="(item,index) in fromdata" :key='index'>
+				<view class="grid-title">
+					时间:{{item.data}}
+				</view>
+				<view class="grid-body">
+					<view class="grid-flex padding-10">
+						<view>
+							<text>类别：{{item.PaperInfo}}</text>
+						</view>
+						<view>
+							<text class="maringR">提出 </text>
+							<text class="maringR">接收 </text>
+							<text class="maringR">分配 </text>
+							<text class="maringR">完工 </text>
+							<text class="maringR">回访 </text>
+							<text @click="evaluatetap" class="maringR">评价 </text>
+						</view>
+						
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>内容：{{item.StationName}}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>提出：{{item.tichu}}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>审批：{{item.shenpi}}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>接收：{{item.jieshou}}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>处理：{{item.chuli}}</text>
+						</view>
+					</view>	
+					<view class="grid-flex padding-10">
+						<view>
+							<text>完结：{{item.wanjie}}</text>
+						</view>
+					</view>
+				</view>
+			</view>
+			<view style="height: 80rpx;"></view>		
+	</view>
+</template>
+
+<script>
+import customerSelect from '@/components/selectDropdown/selectDropdown.vue'
+import search from '@/components/search/search.vue';
+import approval from '@/components/approval/approval.vue'
+import warehouse from '@/mixins';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import request from '@/utils/request.js';
+import dayjs from 'dayjs'
+// import customerSelect from '@/components/customer/customer.vue';
+// import baseMixin from '@/mixins/index.js'
+const defaultformItem={
+						LicensePlate:'',//客户
+						LicensePlateid:'',//客户id
+					}
+export default {
+	name: 'paperIn',
+	components: { cuCustom, approval ,search,customerSelect},
+	mixins: [warehouse],
+	data() {
+		return {
+			fromdata:[{
+				data:dayjs(Date.now()).format('YYYY-MM-DD'),
+				PaperInfo:'ERP',
+				StationName:'范德萨客家话艰苦筹备小组v吉萨花费时间咖啡好的手机卡恢复健康大恢复健康大是安徽JFK收到',
+				tichu:'张三 2019/09/19 13:45',
+				shenpi:'同意/不同意/待定 李四 2019/09/19 13:45',
+				jieshou:'王武 2019/09/20 13:45',
+				chuli:'八六 2019/09/20 13:45',
+				wanjie:'八六 2019/09/20 13:45'
+				},
+			]
+		};
+	},
+	watch:{
+
+	},
+	// #ifdef H5
+	mounted() {
+
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+
+		
+	},
+	
+	// #endif
+	methods: {
+		//评价点击事件
+		evaluatetap(){
+			
+		},
+		// 跳转反馈页面
+		tofeedbackList(){
+			uni.navigateTo({
+			    url: 'feedbackList'
+			});
+		}
+	
+	}
+};
+</script>
+
+<style scoped>
+.maringR {
+	margin-right: 10rpx;
+	color: #afafaf;
+}
+.xunhoutop{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+.xunhuoclass {
+	margin-top: 10px;
+}
+.xunhoubtm {
+	display: flex;
+	justify-content:space-between;
+	position: fixed;
+	background-color: #FFFFFF;
+	bottom: 0px;
+	width: 100%;
+	
+}
+.xunhoubtm >view:first-child{
+	display: flex;
+	align-items:center;
+	margin: 5px;
+	
+}
+.xunhoubtm >view:last-child{
+	margin: 5px;
+}
+.flex-sub {
+	background-color: #FFFFFF;
+}
+</style>
+

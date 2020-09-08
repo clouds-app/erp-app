@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "select-dropdown": "/components/selectDropdown/selectDropdown"
+  },
+  "component": true
+}

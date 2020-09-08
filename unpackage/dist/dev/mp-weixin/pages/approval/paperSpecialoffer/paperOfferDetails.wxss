@@ -1,0 +1,16 @@
+
+.paddingnone{
+	padding: 0px;
+}
+.paddingRigntnone{
+	padding-right: 0px;
+}
+.dataClass{
+	height: 76%;
+	width: 18%;
+}
+.userclass{
+	height: 76%;
+	width: 15%;
+}
+

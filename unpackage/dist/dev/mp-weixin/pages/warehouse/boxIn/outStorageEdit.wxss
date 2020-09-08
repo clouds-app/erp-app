@@ -1,12 +1,12 @@
 
-.margin-text-center.data-v-bf412210{
+.margin-text-center.data-v-6d1c3fca{
 		text-align: center;
 		margin: 20rpx;
 }
-.border-top.data-v-bf412210{
+.border-top.data-v-6d1c3fca{
 		  border-top: 1px solid #eee;
 }
-.cu-form-group .title.data-v-bf412210 {
+.cu-form-group .title.data-v-6d1c3fca {
 		min-width: calc(4em + 15px);
 }
 

@@ -1,19 +1,19 @@
 
-.chucangbtm.data-v-39340a6c{
+.chucangbtm.data-v-4f9858ad{
 	position: fixed;
 	bottom: 0px;
 	width: 100%;
 	background-color: #FFFFFF;
 	z-index: 2;
 }
-.margin-text-center.data-v-39340a6c {
+.margin-text-center.data-v-4f9858ad {
 	text-align: center;
 	margin: 20rpx;
 }
-.border-top.data-v-39340a6c {
+.border-top.data-v-4f9858ad {
 	border-top: 1px solid #eee;
 }
-.cu-form-group .title.data-v-39340a6c {
+.cu-form-group .title.data-v-4f9858ad {
 	min-width: calc(4em + 15px);
 }
 

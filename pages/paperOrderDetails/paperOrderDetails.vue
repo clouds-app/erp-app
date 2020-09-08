@@ -1,0 +1,375 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="true">
+				<block slot="content">纸板订单明细</block>
+				<block slot="right">
+					<button  type="primary"  @click="condition=!condition"  size="mini">筛选</button>
+				</block>
+		</cu-custom>
+		<view class="bodyContentHeight" v-show="condition">
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<button :disabled="isLoaddingData" :style="{color: formItem.type=='week'?'red':''}" class="cu-btn  line-blue" @click="searchDataBy('week')" >本周</button>
+						<button :disabled="isLoaddingData" :style="{color: formItem.type=='month'?'red':''}" class="cu-btn  line-blue" @click="searchDataBy('month')" >本月</button>
+						<button :disabled="isLoaddingData" @click="restfrom()"  class="cu-btn  line-blue" size="mini">清空</button>
+						<button class="cu-btn bg-blue"  @click="searchDataBy('date')">查询</button>
+				  </view>
+				</view>
+			</view>
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<selectDropdown
+						:otherHeight='CustomBarHeight' 
+						ref="customerDrawer"
+						url="appGetCustomerList"
+						title="客ㅤ户"
+						placeholdertext="请选择客户"
+						v-model='formItem.guestId'
+						:params="{UserCode:userInfo.erpUserCode,modelCode:'paper_order_item'}"
+					></selectDropdown>
+				</view>
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">日期范围:</view>
+						<picker mode="date" :value="formItem.startDate" start="2015-09-01" :end="defaultEndDate" @change="startDateChange">
+							<view class="picker">
+								{{formItem.startDate}}
+							</view>
+						</picker>
+						<text class="margin-left">至</text>
+						<picker mode="date" :value="formItem.endDate" start="2015-09-01" :end="defaultEndDate" @change="endDateChange">
+							<view class="picker">
+								{{formItem.endDate}}
+							</view>
+						</picker>
+				   </view>
+				</view>
+			</view>
+		</view>	
+		<view class="vtable">
+			<v-table
+				:row-class-name="rowClassNameFn"
+				:columns="dataColumns" 
+				:list="dataTableList" 
+				selection="single"
+				:td-width="174"
+				:height="tableHeight-35"
+				>
+			</v-table>
+		</view>
+		<view style="height: 15rpx;" class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+				<uni-load-more :contentText="contentText" v-if="!hiddenLoadMore" @clickLoadMore="clickLoadMore" :status="more"></uni-load-more>
+				<!-- <view class="title"><text class="text-bold">合计:</text>{{sumMoney}}</view> -->
+				 </view>
+			</view>
+			
+		</view>
+	</view>
+</template>
+
+<script>
+import uniLoadMore from "@/components/uni-load-more/uni-load-more.vue"
+import selectDropdown from '@/components/selectDropdown/selectDropdown.vue'
+import dayjs from 'dayjs'
+import vTable from "@/components/table.vue"
+import baseMixin from '@/mixins';
+import cuCustom from '../../ui/colorui/components/cu-custom.vue' 
+const moreStatus ={
+	more:'more',
+	loading:'loading',
+	noMore:'noMore'
+}
+const defaultformItem = {
+						    type:'',// 本周 week,本月 month
+							searchMode:'0',// -0客户1业务员2地区3材质4层数/楞别
+							startDate: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+							endDate: dayjs().format('YYYY-MM-DD'),
+							guestName:'',//选择的客户
+							guestId:'',//选择的客户id
+							businessName:'',//选择的业务员
+							businessId:'',//选择的业务员id
+						}
+export default {
+	components: {cuCustom,vTable,selectDropdown,uniLoadMore},
+	mixins: [baseMixin],
+	data() {
+		return {
+			condition:false,
+			contentText:{
+				contentdown: '点击显示更多',
+				contentrefresh: '正在加载...',
+				contentnomore: '没有更多数据了'
+			},
+			sumMoney:0,
+			isFilterDataByPage:false,// false:条件查询数据,true:翻页查询 
+			pageSize:20, //--页大小
+			pageNum:1,//y页码
+			hiddenLoadMore:true, // 是否显示加载更多
+			more:moreStatus.more,// 是否还有更多的数据 more loading noMore）
+			formItem:Object.assign({},defaultformItem),
+			defaultEndDate:dayjs().format('YYYY-MM-DD'),
+			avgWidth:10, // 表格提示信息宽度,取所有字段的平均值
+			tableHeight: 0, //表格高度
+			dataTableList:[],
+			dataColumns:[
+				{ key: 'ct_Desc', title: '客户', $width: 300, titleAlign: 'center', columnAlign: 'center' },
+				{ key: 'co_No', title: '订单号', $width: 200, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'co_Date', title: '订期', $width: 100, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'co_DueDate', title: '交期', $width: 100, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'Size', title: '规格', $width: 400, titleAlign: 'center', columnAlign: 'center' },
+				{ key: 'co_Qty', title: '订单数', $width: 120, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'co_PCQty', title: '排产数', $width: 120, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'co_INQty', title: '入库数', $width: 120, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'co_CLQty', title: '装车数', $width: 120, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'co_OutQty', title: '送货数', $width: 120, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'co_StoreQty', title: '库存数', $width: 120, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'co_CustPo', title: '客户PO', $width: 300, titleAlign: 'center', columnAlign: 'center' },
+				{ key: 'co_Oremark', title: '生产备注', $width: 400, titleAlign: 'center', columnAlign: 'center' },
+				{ key: 'co_Remark', title: '送货备注', $width: 400, titleAlign: 'center', columnAlign: 'center' },
+			],
+		};
+	},
+	computed:{
+
+	},
+	// #ifdef H5
+	mounted() {
+		plus.screen.lockOrientation("landscape-secondary")
+		this.avgWidth = this.getTableAvgWidth(this.dataColumns);
+		this.calTableHeight()
+	 
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+		setTimeout(()=>{
+			plus.screen.lockOrientation("landscape-secondary")
+			this.avgWidth = this.getTableAvgWidth(this.dataColumns);
+			this.calTableHeight()
+		},1300)
+		
+	},	
+	// 监听页面返回时改成正常显示
+	onBackPress(){
+		// debugger
+		plus.screen.unlockOrientation();
+		setTimeout(()=>{
+			plus.screen.lockOrientation("portrait-primary")
+		},1300)
+		// debugger
+		// 重启APP
+		// plus.runtime.restart()
+		// debugger
+		// reload();
+		// location.reload()
+	},
+	// onLoad() {
+	// 	debugger
+	// },
+	// #endif
+	methods: {
+		togglePopup(type, open) {
+			// debugger
+			switch (type) {
+				case 'top':
+					this.content = '顶部弹出 popup'
+					break
+		
+				case 'bottom':
+					this.content = '底部弹出 popup'
+					break
+				case 'center':
+					this.content = '居中弹出 popup'
+					break
+			}
+			this.type = type
+			this.$nextTick(() => {
+				this.$refs['show' + open].open()
+			})
+		},
+		//清空
+		restfrom(){
+			this.formItem.guestId = ''
+			this.formItem.businessId = ''
+			this.$refs.customerDrawer.$data.formItem.customers  = ''
+			this.$refs.customerDrawer.$data.formItem.customersId  = ''
+			this.dataTableList = []
+		},
+		// 自定义某行样式
+		rowClassNameFn(row, index) {
+			if (Number(index) % 2 == 0) {
+				return 'table-single-row';
+			} 
+			return '';//'table-double-row';
+		},
+		// 点击加载更多 回调事件
+		clickLoadMore(res){
+			this.more = moreStatus.loading
+			this.isFilterDataByPage = true
+			this.pageSetting.current = this.pageSetting.current+1
+			this.loaddingData()
+		},
+		// 验证数据
+	    ValidateData(){
+			let flag = false
+			if(!!!this.formItem.searchMode){
+				this.toast.message('请选择搜索模式')
+				flag = true
+			}
+			return flag
+		},
+		// 搜索数据 通过条件
+		searchDataBy(type){
+			if(!!this.ValidateData()){
+				return
+			}
+			this.formItem.type = ''
+			// // 重置 搜索模式
+			let time = new Date();
+			let d = time.getDate()-1;
+			let nowDayOfWeek = new Date().getDay()-1; //今天本周的第几天
+			switch (type){
+				// 本周dayjs()
+				case 'week':
+				   this.formItem.type = 'week'
+				   this.formItem.startDate = dayjs().subtract(nowDayOfWeek, 'day').format('YYYY-MM-DD')
+				   this.formItem.endDate = dayjs().format('YYYY-MM-DD')
+					break;
+				// 本月
+				case 'month':
+					this.formItem.type = 'month'
+					this.formItem.startDate = dayjs().subtract(d, 'day').format('YYYY-MM-DD')
+					this.formItem.endDate = dayjs().format('YYYY-MM-DD')
+					break;
+				default:
+				  // 按日期搜索+其它条件
+					break;
+			}
+			this.loaddingData()
+		},
+		// 查询数据
+		loaddingData(){
+			if(!this.isFilterDataByPage){
+				// 非分页加载数据
+				this.dataTableList = []      // 清空数据列表
+				this.pageSetting.current = 1 // 重置当前页码
+			}
+			this.sumMoney =0
+			this.toast.loading()
+			let url = '/warehouse/warehouse/execute/appSpPaperCOQueryNew'
+			let params = {
+				From:this.formItem.startDate, //--起始日期
+				To:this.formItem.endDate,       //  --结束日期   
+				Cust:this.formItem.guestId,       //    --客户
+				UserID:this.userInfo.erpUserCode,   //--用户ID
+				pageSize:this.pageSetting.pageSize, //--页大小【不清楚就，默认传0】
+				pageNum:this.pageSetting.current, //--页码【不清楚就，默认传0】
+			}
+			this.getOrPostDataBy(url,params).then(res=>{
+				if(res&& res.list.length>0){
+					this.doSomeLogicWhenDataNotNull(this.handleData(res.list))
+					this.condition = false
+					this.toast.hide()
+				}else{
+					this.more = moreStatus.noMore
+					this.hiddenLoadMore = true
+					if(!this.isFilterDataByPage){
+							this.toast.hide()
+							this.toast.message('暂无数据...')
+					}else{
+						this.toast.hide()
+						this.toast.message('暂无更多数据...')
+					}
+				}
+			  this.isFilterDataByPage = false // 重置分页查询条件
+			})
+		},
+		handleData(res){
+			for(let i=0;i<res.length;i++){
+					res[i].ct_Desc = res[i].co_CustId+'-'+res[i].ct_Desc //客户
+					res[i].co_Date = res[i].co_Date.slice(5)//订期
+					res[i].co_DueDate = res[i].co_DueDate.slice(5)//交期
+					res[i].Size = res[i].co_ArtId+'/'+res[i].co_ArtLB+" "+res[i].Size.replace(/\s*/g, '') //规格
+			}
+			return res
+		},
+		// 数据逻辑处理
+		doSomeLogicWhenDataNotNull(res){
+			let preIndex = this.dataTableList.length // 分页查询 目前下标
+			this.more = moreStatus.more
+			this.hiddenLoadMore = false  // 显示加载更多
+			
+			// 千分符数据格式化,保留小数等
+			// let formatDataList = this.formatDataListBy(customDataList)
+			// 小于最低页面 应该加载更多
+			if(res.length<20){
+				this.hiddenLoadMore = true
+			}
+			// 分页数据累加
+			let tempDataList = this.dataTableList.concat(res) 
+			// 金额汇总
+			// let totalMoney = tempDataList.reduce((initMoney,nextItem)=>{
+			// 	return initMoney= initMoney + Number(nextItem.BMoneyCopy) 
+			// },0)
+			// this.sumMoney = this.addThousandthSign(Number((totalMoney).toFixed(2))) 
+			this.dataTableList = tempDataList
+		},
+		// 格式化指定字段
+		formatDataListBy(dataList){
+			if(dataList && Array.isArray(dataList) && dataList.length>0)
+			{
+				dataList = dataList.map(item=>{
+					if(!!item.co_Money){
+						item.co_Money = this.addThousandthSign(Number((item.co_Money).toFixed(2))) 
+					}
+					if(!!item.pd_Money){
+						item.pd_Money = this.addThousandthSign(Number((item.pd_Money).toFixed(2))) 
+					}
+					if(!!item.RemainCredit){
+						item.RemainCredit = this.addThousandthSign(Number((item.RemainCredit).toFixed(2)))
+					}
+					return item
+				})
+			}
+			return dataList
+		},
+		// 开始时间选择 回调
+		startDateChange(e) {
+			this.formItem.startDate = e.detail.value
+		},
+		// 结束时间选择 回调
+		endDateChange(e) {
+			this.formItem.endDate = e.detail.value
+		},
+		// 设置表格使用剩余高度
+		calTableHeight(){
+			this.$nextTick(()=>{
+				this.getOtherContentHeight()
+				setTimeout(()=>{
+					//延时执行,方便个别小程序兼容
+					let tempHeight =  this.setTableHeight(true)
+					this.tableHeight =tempHeight//特别处理
+				},200)
+			})
+		}
+	}
+};
+</script>
+
+<style>
+	.margin-left-custom{
+		margin-left: 10rpx;
+	}
+	.cu-form-group uni-picker .picker{
+		    line-height: 30px !important;
+	}
+	.cu-form-group uni-picker::after{
+		 line-height: 30px !important;
+	}
+	.border-top{
+		  border-top: 1px solid #eee;
+	}
+</style>

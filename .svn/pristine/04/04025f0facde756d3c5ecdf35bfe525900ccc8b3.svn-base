@@ -1,0 +1,161 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" class="titlefrom" :isBack="true"><block slot="content">客户反馈信息接收</block></cu-custom>
+		<view class="vtable">
+			<v-table
+				@on-selection-change='gettaskList'
+				:row-class-name="rowClassNameFn"
+				:columns="dataColumns" 
+				:list="dataTableList" 
+				selection="single"
+				:td-width="154"
+				:height="tableHeight-30"
+				>
+			</v-table>
+		</view>
+		<view style="height: 15rpx;" class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<uni-load-more :contentText="contentText" v-if="!hiddenLoadMore" @clickLoadMore="clickLoadMore"></uni-load-more>
+					<!-- <view class="title"><text class="text-bold">合计:</text>{{sumMoney}}</view> -->
+					<view>
+						<button  @click="getrastListData"  type="primary" size="mini" class="bg-grey radius">接收</button>
+					</view>
+				</view>
+			</view>
+		</view>
+		
+		<!-- 弹出层 -->
+		<view class="cu-modal" :class="modalName=='DialogModal1'?'show':''">
+			<view class="cu-dialog">
+				<view class="cu-bar bg-white justify-end">
+					<view class="content">反馈信息接收</view>
+					<view class="action" @tap="modalName=''">
+						<text class="cuIcon-close text-red"></text>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group" style="text-align: left;">
+							<view class="title">缓急程度:</view>
+							<input v-model="modaList.degree" Name="input" type="number"/>
+						</view>
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group" style="text-align: left;">
+							<view class="title">问题类型:</view>
+							<input v-model="modaList.degree" Name="input" type="number"/>
+						</view>
+					</view>
+				</view>
+				<view class="flex ">
+					<view class="flex-sub">
+						<view class="cu-form-group align-start" style="text-align: left;">
+								<view class="title">补充说明:</view>
+								<textarea maxlength="-1"  placeholder="请输入 "></textarea><!--@input="textareaBInput"-->
+						</view>
+					</view>
+				</view>
+					<view class="cu-bar bg-white">
+						<view class="action margin-0 flex-sub  solid-left" @tap="modalName=''">取消</view>
+						<view class="action margin-0 flex-sub text-green solid-left" @tap="updatarequest">确定</view>
+					</view>
+				</view>
+		</view>
+	</view>
+</template>
+
+<script>
+import customerSelect from '@/components/selectDropdown/selectDropdown.vue'
+import search from '@/components/search/search.vue';
+import approval from '@/components/approval/approval.vue'
+import warehouse from '@/mixins';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import request from '@/utils/request.js';
+import vTable from "@/components/table.vue"
+import uniLoadMore from "@/components/uni-load-more/uni-load-more.vue"
+import dayjs from 'dayjs'
+const moreStatus ={
+	more:'more',
+	loading:'loading',
+	noMore:'noMore'
+}
+export default {
+	name: 'paperIn',
+	components: { cuCustom, approval ,search,customerSelect,vTable,uniLoadMore},
+	mixins: [warehouse],
+	data() {
+		return {
+			modaList:{degree:''},
+			modalName:'',//弹出层显示字段
+			contentText:{
+				contentdown: '点击加载',
+				contentrefresh: '正在加载...',
+				contentnomore: '没有更多数据了'
+			},
+			taskList:{},//存储操作行
+			hiddenLoadMore:false,
+			tableHeight: 0, //表格高度
+			dataTableList:[{Serial:1,custname:'ddd'}],
+			dataColumns:[
+				{ key: 'Serial', title: '序号',$width: 80,},
+				{ key: 'custname', title: '状态', $width: 170, titleAlign: 'center', columnAlign: 'center' },
+				{ key: 'TotalAmt', title: '时间', $width: 190, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'Amt1', title: '单位名称', $width: 160, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'Amt2', title: '反馈人', $width: 160, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'Amt3', title: '手机号', $width: 160, titleAlign: 'center', columnAlign: 'right' },
+			]
+		};
+	},
+	watch:{
+
+	},
+	// #ifdef H5
+	mounted() {
+		this.calTableHeight()
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+		this.calTableHeight()
+		
+	},
+	
+	// #endif
+	methods: {
+		// 弹出层确认回调事件
+		updatarequest(){
+			
+		},
+		// 接收回调事件
+		getrastListData(){
+			if(!this.taskList.Serial){
+				this.toast.message('请选择操作行')
+				return
+			} 
+			this.modalName = 'DialogModal1'
+			
+		},
+		// Table单击回调事件
+		gettaskList(data){
+			this.taskList = data.new.item
+		},
+		// 设置表格使用剩余高度
+		calTableHeight(){
+			this.$nextTick(()=>{
+				setTimeout(()=>{
+					//延时执行,方便个别小程序兼容
+					let tempHeight =  this.setTableHeight(true)
+					this.tableHeight =tempHeight//特别处理
+				},200)
+			})
+		}
+	
+	}
+};
+</script>
+
+<style scoped>
+
+</style>
+

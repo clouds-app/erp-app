@@ -27,6 +27,7 @@
 .no-bad-table-wrap {
   position: relative;
   overflow: hidden;
+  table-layout: fixed;
 }
 .no-bad-table-wrap .table_box_big {
   overflow: auto;
@@ -126,6 +127,7 @@
 .no-bad-table-wrap .th .td .td_wrap,
 .no-bad-table-wrap .thead .tr .td .td_wrap,
 .no-bad-table-wrap .fixed-thead-tr .td .td_wrap {
+  line-height: 20px;
   background-color: #e0e0ea;
 }
 .no-bad-table-wrap .fixed-right {
@@ -225,6 +227,17 @@
     border-top-width: .5px;
 }
 }
+.no-bad-table-wrap .div-table-head {
+  border-bottom: 1px solid #000000 !important;
+}
+.no-bad-table-wrap .table-single-row:last-child {
+  border-bottom: 1px solid #000000 !important;
+  display: block !important;
+}
+.no-bad-table-wrap .tr:last-child {
+  border-bottom: 1px solid #000000 !important;
+  display: block !important;
+}
 .no-bad-table-wrap.td-center .td .td_wrap {
   text-align: center;
 }
@@ -236,6 +249,7 @@
   z-index: 1;
   position: relative;
   overflow: hidden;
+  /*默认居中*/
 }
 .no-bad-table-wrap .td .td_wrap {
   position: relative;
@@ -245,7 +259,7 @@
   line-height: 20px;
   font-size: 12px;
   background: #fff;
-  text-align: left;
+  text-align: center;
 }
 .no-bad-table-wrap .td.colspan {
   z-index: 10;
@@ -295,20 +309,25 @@
     border-left-width: .5px;
 }
 }
+.no-bad-table-wrap .text-center {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 .no-bad-table-wrap .th .td {
   font-weight: bold;
 }
 .no-bad-table-wrap .selected .td {
-  background-color: #d3e3ef;
+  background-color: #ccffff !important;
 }
 .no-bad-table-wrap .selected .td .td_wrap {
-  background-color: #d3e3ef;
+  background-color: #ccffff !important;
 }
 .no-bad-table-wrap .table-single-row .td {
-  background-color: #ccffff;
+  background-color: #eee;
 }
 .no-bad-table-wrap .table-single-row .td .td_wrap {
-  background-color: #ccffff;
+  background-color: #eee;
 }
 .no-bad-table-wrap .table-double-row .td {
   background-color: #FADBD9;

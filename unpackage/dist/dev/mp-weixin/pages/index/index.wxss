@@ -1,4 +1,46 @@
 
+.textright{
+	margin-right: 50rpx;
+}
+.window-bottom{
+	height: 100rpx;
+}
+.grid-title-color{
+	color: #007AFF;
+}
+.grid-warpBold{
+	/* font-weight: bold; */
+}
+.price-mini-panel{
+	margin-bottom: 30rpx;
+}
+.monthDay-mini-panel{
+	margin-bottom: 10rpx;
+}
+.special-mini-panel{
+	margin-bottom: 5rpx;
+}
+.grid-title{
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-pack: justify;
+	-webkit-justify-content: space-between;
+	        justify-content: space-between;
+}
+.text-price{
+	color:#0081ff;
+	font-size: 40rpx;
+}
+.text-area{
+	color:#0081ff;
+	font-size: 40rpx;
+}
+
+
+.textright{
+	margin-right: 50rpx;
+}
 .window-bottom{
 	height: 100rpx;
 }

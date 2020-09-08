@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "cu-custom": "/ui/colorui/components/cu-custom",
+    "v-table": "/components/table"
+  }
+}

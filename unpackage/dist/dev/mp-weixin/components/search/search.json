@@ -2,6 +2,7 @@
   "component": true,
   "usingComponents": {
     "uni-popup": "/components/uni-popup/uni-popup",
+    "select-dropdown": "/components/selectDropdown/selectDropdown",
     "uni-drawer": "/components/uni-drawer/uni-drawer",
     "customer-select": "/components/customer/customer"
   }

@@ -1,0 +1,276 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="true">
+				<block slot="content">客户欠款详情</block>
+		</cu-custom>
+		<view class="bodyContentHeight">
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<customerSelect
+						:otherHeight='CustomBarHeight' 
+						ref="customerDrawer" 
+						v-model="formItem.guestId"
+						url="appGetCustomer"
+						title="客ㅤ户"
+						placeholdertext="请选择客户"
+						:params='customerparams'
+					></customerSelect>
+				</view>
+				<view class="flex-sub">
+					<view class="cu-form-group">
+				<button :disabled="isLoaddingData" @click="searchDataBy('date')"  type="primary" size="mini">查询</button>
+				   </view>
+				</view>
+			</view>
+			
+		</view>	
+		<view class="vtable">
+			<v-table
+				:row-class-name="rowClassNameFn"
+				:columns="dataColumns" 
+				:list="dataTableList" 
+				selection="single"
+				:td-width="154"
+				:height="tableHeight-30"
+				>
+			</v-table>
+		</view>
+		<view style="height: 15rpx;" class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+				<uni-load-more :contentText="contentText" v-if="!hiddenLoadMore" @clickLoadMore="clickLoadMore" :status="more"></uni-load-more>
+				<view class="title"><text class="text-bold">合计:</text>{{sumMoney}}</view>
+				 </view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+import customerSelect from '@/components/selectDropdown/selectDropdown.vue'
+import uniLoadMore from "@/components/uni-load-more/uni-load-more.vue"
+import selectDropdown from '@/components/selectDropdown/selectDropdown.vue'
+import dayjs from 'dayjs'
+import vTable from "@/components/table.vue"
+import baseMixin from '@/mixins';
+import cuCustom from '../../ui/colorui/components/cu-custom.vue' 
+const moreStatus ={
+	more:'more',
+	loading:'loading',
+	noMore:'noMore'
+}
+const defaultformItem = {
+							guestName:'',//选择的客户
+							guestId:'',//选择的客户id
+						}
+export default {
+	components: {cuCustom,vTable,selectDropdown,uniLoadMore,customerSelect},
+	mixins: [baseMixin],
+	data() {
+		return {
+			contentText:{
+				contentdown: '点击加载',
+				contentrefresh: '正在加载...',
+				contentnomore: '没有更多数据了'
+			},
+			customerparams:{modelCode:'cust_arrears'},
+			sumMoney:0,
+			outsumMoney:0,//出仓合并
+			isFilterDataByPage:false,// false:条件查询数据,true:翻页查询 
+			hiddenLoadMore:true, // 是否显示加载更多
+			more:moreStatus.more,// 是否还有更多的数据 more loading noMore）
+			formItem:Object.assign({},defaultformItem),
+			defaultEndDate:dayjs().format('YYYY-MM-DD'),
+			avgWidth:10, // 表格提示信息宽度,取所有字段的平均值
+			tableHeight: 0, //表格高度
+			dataTableList:[],
+			dataColumnsCopy:[],
+			dataColumns:[
+				{ key: 'Serial', title: '序号',$width: 80,},
+				{ key: 'custname', title: '客户', $width: 170, titleAlign: 'center', columnAlign: 'center' },
+				{ key: 'TotalAmt', title: '总欠款', $width: 190, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'Amt1', title: '本月', $width: 160, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'Amt2', title: '上月', $width: 160, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'Amt3', title: '上上月', $width: 160, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'Amt4', title: '三月前', $width: 160, titleAlign: 'center', columnAlign: 'right' },
+			]
+		};
+	},
+	computed:{
+
+	},
+	// #ifdef H5
+	mounted() {
+	  this.avgWidth = this.getTableAvgWidth(this.dataColumns);
+	  // this.searchModeClick('0',false)
+	  this.calTableHeight()
+	 
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+		 this.avgWidth = this.getTableAvgWidth(this.dataColumns);
+		  // this.searchModeClick('0',false)
+		  this.calTableHeight()
+	},
+	// #endif
+	methods: {
+		// 自定义某行样式
+		rowClassNameFn(row, index) {
+			if (Number(index) % 2 == 0) {
+				return 'table-single-row';
+			} 
+			return '';//'table-double-row';
+		},
+		// 点击加载更多 回调事件
+		clickLoadMore(res){
+			this.more = moreStatus.loading
+			this.isFilterDataByPage = true
+			this.pageSetting.current = this.pageSetting.current+1
+			this.loaddingData()
+		},
+		// 验证数据
+	    ValidateData(){
+			let flag = false
+			if(!!!this.formItem.guestId){
+				this.toast.message('请选择搜索客户')
+				flag = true
+			}
+			return flag
+		},
+		// 搜索数据 通过条件
+		searchDataBy(type){
+			// if(!!this.ValidateData()){
+			// 	return
+			// }
+			this.loaddingData()
+		},
+		// 查询数据
+		loaddingData(){
+			if(!this.isFilterDataByPage){
+				// 非分页加载数据
+				this.dataTableList = []      // 清空数据列表
+				this.pageSetting.current = 1 // 重置当前页码
+			}
+			this.sumMoney =0
+			this.outsumMoney = 0
+			let url = '/warehouse/warehouse/execute/aspSysCustAccRe'
+			let params = {
+				Cust:this.formItem.guestId, 	//--客户编号
+				Saler:"",	//--业务员
+				UserID:this.userInfo.erpUserCode,    // -当前用户
+				EndDate:this.defaultEndDate,//截至日期
+				pageSize:this.pageSetting.pageSize, // --页大小【不清楚就，默认传0】
+				pageNum:this.pageSetting.current, // --页码【不清楚就，默认传0】
+			}
+			this.getOrPostDataBy(url,params).then(res=>{
+				if(res&& res.list.length>0){
+					this.doSomeLogicWhenDataNotNull(res)
+				}else{
+					this.more = moreStatus.noMore
+					this.hiddenLoadMore = true
+					if(!this.isFilterDataByPage){
+							this.toast.message('暂无数据...')
+					}else{
+						this.toast.message('暂无更多数据...')
+					}
+				}
+			  this.isFilterDataByPage = false // 重置分页查询条件
+			})
+		},
+		// 数据逻辑处理
+		doSomeLogicWhenDataNotNull(res){
+			let preIndex = this.dataTableList.length // 分页查询 目前下标
+			this.more = moreStatus.more
+			this.hiddenLoadMore = false  // 显示加载更多
+			let customDataList = res.list.filter((item,index)=>{
+				// 自定义序号
+				item.Serial= index +1 + preIndex
+				// 复制金额字段,防止格式化后无法计算,计算汇总金额
+				item.BMoneyCopy= item.TotalAmt
+				return item
+			})
+			// 千分符数据格式化,保留小数等
+			let formatDataList = this.formatDataListBy(customDataList)
+			// 小于最低页面 应该加载更多
+			if(customDataList.length<20){
+				this.hiddenLoadMore = true
+			}
+			// 分页数据累加
+			let tempDataList = this.dataTableList.concat(formatDataList) 
+			// 金额汇总
+			let totalMoney = tempDataList.reduce((initMoney,nextItem)=>{
+				return initMoney= initMoney + Number(nextItem.BMoneyCopy) 
+			},0)
+			this.sumMoney = this.addThousandthSign(Number((totalMoney).toFixed(2)).toLocaleString()) 
+			this.dataTableList = tempDataList
+		},
+		// 格式化指定字段
+		formatDataListBy(dataList){
+			if(dataList && Array.isArray(dataList) && dataList.length>0)
+			{
+				dataList = dataList.map(item=>{
+					if(!!item.TotalAmt){
+						item.TotalAmt =this.addThousandthSign(Number((item.TotalAmt).toFixed(2)).toLocaleString()) 
+					}
+					if(!!item.Amt1){
+						item.Amt1 =this.addThousandthSign(Number((item.Amt1).toFixed(2)).toLocaleString()) 
+					}
+					if(!!item.Amt2){
+						item.Amt2 =this.addThousandthSign(Number((item.Amt2).toFixed(2)).toLocaleString()) 
+					}
+					if(!!item.Amt3){
+						item.Amt3 =this.addThousandthSign(Number((item.Amt3).toFixed(2)).toLocaleString()) 
+					}
+					if(!!item.Amt4){
+						item.Amt4 =this.addThousandthSign(Number((item.Amt4).toFixed(2)).toLocaleString()) 
+					}
+					return item
+				})
+			}
+			return dataList
+		},
+		// 开始时间选择 回调
+		startDateChange(e) {
+			this.formItem.startDate = e.detail.value
+		},
+		// 结束时间选择 回调
+		endDateChange(e) {
+			this.formItem.endDate = e.detail.value
+		},
+		// 设置表格使用剩余高度
+		calTableHeight(){
+			this.$nextTick(()=>{
+				this.getOtherContentHeight()
+				setTimeout(()=>{
+					//延时执行,方便个别小程序兼容
+					let tempHeight =  this.setTableHeight(true)
+					this.tableHeight =tempHeight//特别处理
+				},200)
+			})
+		}
+	}
+};
+</script>
+
+<style>
+	.margin-left-custom{
+		margin-left: 10rpx;
+	}
+	.cu-form-group uni-picker .picker{
+		    line-height: 30px !important;
+	}
+	.cu-form-group uni-picker::after{
+		 line-height: 30px !important;
+	}
+	.border-top{
+		  border-top: 1px solid #eee;
+	}
+	.bottomMerge text{
+		font-size: 20rpx;
+	}
+	.columnAlignright{
+		text-align: right;
+		padding-left: 5px;
+	}
+</style>

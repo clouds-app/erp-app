@@ -1,0 +1,321 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="true">
+				<block slot="content">对账查询</block>
+		</cu-custom>
+		<form class="xunhoutop">
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+					<button :disabled="isLoaddingData" :style="{color: formItem.type=='week'?'red':''}" class="cu-btn  line-blue" @click="searchDataBy('week')" >本周</button>
+					
+						<button :disabled="isLoaddingData" :style="{color: formItem.type=='month'?'red':''}" class="cu-btn  line-blue" @click="searchDataBy('month')" >本月</button>
+				   </view>
+				</view>
+				<view class="flex-sub">
+					<view class="cu-form-group">
+				<button :disabled="isLoaddingData" @click="searchDataBy('date')"  type="primary" size="mini">查询</button>
+				   </view>
+				</view>
+			</view>
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">日期范围:</view>
+						<picker mode="date" :value="formItem.startDate" start="2000-09-01" :end="defaultEndDate" @change="startDateChange">
+							<view class="picker">
+								{{formItem.startDate}}
+							</view>
+						</picker>
+						<text class="margin-left">至</text>
+						<picker mode="date" :value="formItem.endDate" start="2000-09-01" :end="defaultEndDate" @change="endDateChange">
+							<view class="picker">
+								{{formItem.endDate}}
+							</view>
+						</picker>
+				   </view>
+				</view>
+			</view>
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="fixed-left">
+							<button :disabled="isLoaddingData" :style="{color: formItem.searchMode=='0'?'red':''}" class="cu-btn round line-cyan" @click="searchModeClick('0')" >明细查询</button>
+							<button :disabled="isLoaddingData" :style="{color: formItem.searchMode=='1'?'red':''}" class=" margin-left-custom cu-btn round line-brown" @click="searchModeClick('1')" >汇总查询</button>
+						</view>
+				   </view>
+				</view>
+			</view>
+		</form>
+		<view :style="{'height':topheight + 'px'}"></view>
+		<!-- 数据列表 -->
+		<view class="border-bottom grid-warp" v-for="(item,index) in orderList">
+			<view class="grid-title" >
+				<view>{{item.vnct_name}}</view>
+			</view>
+			<view v-show="formItem.searchMode=='0'">
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group" >
+							<view >业务员:{{item.Saler}}</view>
+						</view>
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view >单据类型:{{item.order_type}}</view>
+						</view>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view >增加金额:{{item.in_amt}}</view>
+						</view>
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view >减少金额:{{item.out_amt}}</view>
+						</view>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view >交易日期:{{item.order_date}}</view>
+						</view>
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view >月结日期:{{item.month_date}}</view>
+						</view>
+					</view>
+				</view>
+				<view class="cu-form-group" >
+					<view class="title">期末金额:{{item.amt}}</view>
+				</view>		
+			</view>
+			
+			<view v-show="formItem.searchMode=='1'">
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group" >
+							<view >业务员:{{item.Saler}}</view>
+						</view>
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view >单数:{{item.de_count}}</view>
+						</view>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group" >
+							<view >本期金额:{{item.by_amt}}</view>
+						</view>
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view >初始金额:{{item.c_amt}}</view>
+						</view>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group" >
+							<view >收款金額:{{item.am_amt}}</view>
+						</view>
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view >折扣金额:{{item.zk_amt}}</view>
+						</view>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group" >
+							<view >增加金额:{{item.in_amt}}</view>
+						</view>
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view >减少金额:{{item.out_amt}}</view>
+						</view>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group" >
+							<view >送貨金額:{{item.de_amt}}</view>
+						</view>
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view >退貨金額:{{item.re_amt}}</view>
+						</view>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group" >
+							<view >期初金额:{{item.init_amt}}</view>
+						</view>
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view >期末金额:{{item.amt}}</view>
+						</view>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<view class="cu-form-group" >
+							<view >其它應收:{{item.ao_amt}}</view>
+						</view>
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view >呆帐金额:{{item.ad_amt}}</view>
+						</view>
+					</view>
+				</view>
+				
+			</view>
+		</view>
+		
+		<view style=" height: 20rpx;"></view>
+	</view>
+</template>
+
+<script>
+import cuCustom from '@/ui/colorui/components/cu-custom.vue' 
+import vTable from "@/components/table.vue"
+import baseMixin from '@/mixins';
+import dayjs from 'dayjs'
+import request from '@/utils/request.js';
+const defaultformItem = {
+							startDate: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+							endDate: dayjs().format('YYYY-MM-DD'),
+							searchMode:0,
+							type:''
+						}
+	export default {
+		components:{cuCustom,vTable},
+		mixins:[baseMixin],
+		data() {
+			return {
+				topheight:'',//顶部赛帅筛选调条件高度
+				LoadorNot:true,//是否可以分页
+				pageNumber:1,//分页页码
+				formItem:Object.assign({},defaultformItem),
+				defaultEndDate:dayjs().format('YYYY-MM-DD'),
+				orderList:[]
+			}
+		},
+		onReady() {
+			this.gettophight('xunhoutop')
+		},
+		onReachBottom(){
+			if(this.LoadorNot){
+				this.pageNumber++
+				this.loaddingData()
+			}
+		},
+		methods: {
+			// 过去顶部列表高度
+			gettophight(className){
+				this.getOtherContentHeight(className).then(res=>{
+					this.topheight = res
+				})
+			},
+			// 清除分页数据
+			clearpagedata(){
+				this.orderList = []
+				this.pageNumber = 1
+			},
+			// 结束时间回调
+			endDateChange(e){
+				this.formItem.endDate = e.detail.value
+				this.clearpagedata()
+			},
+			// 起始时间回调
+			startDateChange(e){
+				this.formItem.startDate = e.detail.value
+				this.clearpagedata()
+			},
+			// 查询模式选择
+			searchModeClick(type){
+				this.formItem.searchMode= type
+				this.clearpagedata()
+				this.loaddingData()
+			},
+			// 搜索数据 通过条件
+			searchDataBy(type){
+				// // 重置 搜索模式
+				let time = new Date();
+				let d = time.getDate()-1;
+				let nowDayOfWeek = new Date().getDay()-1; //今天本周的第几天
+				switch (type){
+					// 本周dayjs()
+					case 'week':
+					   this.formItem.type = 'week'
+					   this.formItem.startDate = dayjs().subtract(nowDayOfWeek, 'day').format('YYYY-MM-DD')
+					   this.formItem.endDate = dayjs().format('YYYY-MM-DD')
+						break;
+					// 本月
+					case 'month':
+						this.formItem.type = 'month'
+						this.formItem.startDate = dayjs().subtract(d, 'day').format('YYYY-MM-DD')
+						this.formItem.endDate = dayjs().format('YYYY-MM-DD')
+						break;
+					default:
+					  // 按日期搜索+其它条件
+					  this.formItem.type = ''
+						break;
+				}
+				this.clearpagedata()
+				this.loaddingData()
+			},
+			//加载数据
+			loaddingData(){
+				let parms = {
+					pageNumber:this.pageNumber,
+					startDate:this.formItem.startDate ,//开始时间
+					endDate:this.formItem.endDate, //结束时间
+					baseCode:'', //客户IDbaseCode
+					saler:"",  //业务员
+					type:this.formItem.searchMode ,//查询类型  0明细  1汇总  2业务员汇总
+					userCode: this.userInfo.erpUserCode//登陆用户
+				}
+				this.toast.loading()
+				request.post('/report/aspAccRAnalyzer',parms).then(res=>{
+					if(res.records.length < 20){
+						this.pageNumber = 1
+						this.LoadorNot = false
+					}
+					this.LoadorNot = true
+					this.orderList = this.orderList.concat(res.records)
+					this.toast.hide()
+				}).catch(err=>{
+					this.toast.hide()
+					this.toast.message(err)
+				})
+			},
+			getDataList(parms){
+				
+			},
+		}
+	}
+</script>
+
+<style>
+	.margin-left-custom{
+		margin-left: 10rpx;
+	}
+	.xunhoutop{
+		position: fixed;
+		width: 100%;
+		z-index: 10;
+	}
+</style>

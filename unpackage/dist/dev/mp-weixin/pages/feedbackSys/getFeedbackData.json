@@ -1,0 +1,12 @@
+{
+  "navigationBarTitleText": "晨龙建议反馈平台",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "search-form": "/components/searchForm/searchDataList.vue",
+    "uni-popup": "/components/uni-popup/uni-popup",
+    "cu-custom": "/ui/colorui/components/cu-custom",
+    "v-table": "/components/table",
+    "color-ui-dialog": "/components/color-ui-dialog/color-ui-dialog",
+    "bobo-message": "/components/bobo-message/bobo-message"
+  }
+}

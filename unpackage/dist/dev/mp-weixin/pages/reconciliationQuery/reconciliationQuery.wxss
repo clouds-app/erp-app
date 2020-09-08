@@ -1,0 +1,10 @@
+
+.margin-left-custom{
+	margin-left: 10rpx;
+}
+.xunhoutop{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+

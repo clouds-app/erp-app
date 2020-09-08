@@ -1,0 +1,9 @@
+
+.color-ui-dialog-box{
+	font-size: 28rpx;
+}
+.textArea100{
+	 height: 100%;
+	 width: 100%;
+}
+

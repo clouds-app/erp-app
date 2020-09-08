@@ -1,5 +1,6 @@
 {
   "usingComponents": {
-    "approval": "/components/approval/approval"
+    "approval": "/components/approval/approval",
+    "boxSpecPrice-approval-content": "/pages/approval/boxSpecPrice/boxSpecPrice-approval-content"
   }
 }

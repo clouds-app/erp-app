@@ -1,0 +1,118 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" class="titlefrom"><block slot="content">系统用户绑定手机</block></cu-custom>
+		 <view class="contentBodyBox">
+		 	<view class="contentBodyItem">
+		 		<form>
+		 			<view class="cu-form-group margin-top">
+		 				<view class="title">手机</view>
+		 				<input maxlength="11" v-model="formItem.phoneNo" type="number" placeholder="输入手机" name="phoneNo"></input>
+		 			</view>
+					<view class="cu-form-group">
+						<view class="title">密码</view>
+						<input placeholder="输入密码" v-model="formItem.password" name="password"></input>
+					</view>
+					<view class="padding-xl">
+						
+						<button :disabled="disabledBtn" @click="handleSubmit()"  type="primary">
+							确认 </button>
+						
+					</view>
+				</form>
+		 	</view>
+			<view class="contentBodyItem">
+				
+			</view>
+			<view class="contentBodyItem">
+				
+			</view>
+		 </view>
+		 <boboMessage ref="Message"></boboMessage>
+	</view>
+</template>
+
+<script>
+import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+import boboMessage from '@/components/bobo-message/bobo-message.vue';
+import colorUiDialog from '@/components/color-ui-dialog/color-ui-dialog.vue';
+ import { isPhoneNumber,isWeiXinBrowser } from '@/utils/common.js'; //时间戳转时间格式
+import uniIcons from '@/components/uni-icons/uni-icons.vue';
+ import wxBase from '@/mixins/wxBase';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import dayjs from 'dayjs';
+const defaultformItem = {
+	phoneNo:null,
+	password:''
+};
+export default {
+	name: 'openIdBindWithPhone',
+	components: { cuCustom, uniIcons, colorUiDialog, boboMessage },
+	mixins: [wxBase],
+	data() {
+		return {
+			formItem:Object.assign({},defaultformItem),
+			disabledBtn:false,
+		}
+	},
+
+	methods: {
+				// 检验提交数据
+			    checkBeforeSubmit(){
+					let flag = false
+					let message = ''
+					if(!!!this.formItem.password){
+						message= '密码不可为空!'
+						flag = true
+					}
+					if(!!!this.formItem.phoneNo){
+						message= '手机号码不可为空!'
+						flag = true
+					}
+					if(!!this.formItem.phoneNo && !isPhoneNumber(this.formItem.phoneNo)){
+						message = '手机号码格式错误!'
+						flag= true
+					}
+					if(flag){
+						this.$refs['Message'].warn(message);
+					}
+					return flag
+					
+				},
+			   // 系统用户绑定手机 
+				handleSubmit(){
+					if(this.checkBeforeSubmit()){
+						return
+					}
+					if(!!!this.wxOpenid){
+						this.$refs['Message'].error('微信授权失败,无法提交!');
+						return
+					}
+					
+					let _url = `${this.$config.wxBaseUrl}/wx/bindUser`;
+					let params = {
+						password:this.formItem.password,
+						phoneNo:this.formItem.phoneNo,
+						openId:this.wxOpenid,
+					};
+					let _self = this;
+					this.getOrPostDataBy(_url,params).then(res=>{
+						this.$refs['Message'].success('绑定手机成功!')	
+						this.disabledBtn = true
+					})
+				}
+			}
+};
+</script>
+
+<style lang="scss" scoped>
+	.contentBodyBox{
+		height:calc(100vh - 45px);
+		display: flex;
+		flex-direction: column;
+		.contentBodyItem{
+			height: 33.33%;
+			//border: 1px solid red;
+		}
+	}
+</style>
+

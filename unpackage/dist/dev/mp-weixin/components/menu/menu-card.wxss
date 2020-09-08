@@ -68,6 +68,10 @@
 	        align-items: center;
 	/* padding-bottom: 20px; */
 }
+/* 修改全局菜单样式 去除内边距 */
+.cu-list.grid.no-border{
+	padding-bottom: 0 !important;
+}
 .no-border {
 	padding: 0;
 }
@@ -81,5 +85,9 @@
 }
 .padding-10 {
 	padding: 10rpx 20rpx;
+}
+.cu-list.grid.no-border>.cu-item{
+	padding-bottom: 5px !important;
+	padding-top: 3px !important;
 }
 

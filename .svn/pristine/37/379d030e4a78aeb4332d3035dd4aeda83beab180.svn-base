@@ -1,0 +1,101 @@
+//import request from '@/utils/request.js'
+export default {
+	data(){
+		return {
+			isLoaddingData:false,// 数据是否加载宏....,用于禁用按钮是否可以再次点击
+		}
+	},
+	methods:{
+		
+		// 上传图片
+		//  uploadImage(num, callback){
+		// 	uni.chooseImage({
+		// 		count: num,
+		// 		success: (res) => {
+		// 			uni.showLoading({
+		// 				title: '上传中...'
+		// 			});
+		// 			let tempFilePaths = res.tempFilePaths
+		// 			for (var i = 0; i < tempFilePaths.length; i++) {
+		// 				uni.uploadFile({
+		// 					url: apiBaseUrl + 'api.html',
+		// 					filePath: tempFilePaths[i],
+		// 					fileType: 'image',
+		// 					name: 'file',
+		// 					headers: {
+		// 						'Accept': 'application/json',
+		// 						'Content-Type': 'multipart/form-data',
+		// 					},
+		// 					formData: {
+		// 						'method': 'images.upload',
+		// 						'upfile': tempFilePaths[i]
+		// 					},
+		// 					success: (uploadFileRes) => {
+		// 						callback(JSON.parse(uploadFileRes.data));
+		// 					},
+		// 					fail: (error) => {
+		// 						if (error && error.response) {
+		// 							showError(error.response);
+		// 						}
+		// 					},
+		// 					complete: () => {
+		// 						setTimeout(function() {
+		// 							uni.hideLoading();
+		// 						}, 250);
+		// 					},
+		// 				});
+		// 			}
+		// 		}
+		// 	});
+		// },
+		
+		// 通用查询数据
+		 getOrPostDataBy(url,params,config){
+				this.isLoaddingData =true
+				this.toast.loading()
+				return new Promise((resolve, reject) => {
+					let headerConfig = {
+						'Content-Type': 'application/json;charset=UTF-8'
+					}
+					let methodType = 'POST'
+					if(config && Object.keys(config).length>0){
+						if(!!config['Content-Type']){
+							headerConfig = {
+								'Content-Type': config['Content-Type']
+							}
+						}
+						if(!!config['method']){
+							methodType = config['method']
+						}
+					}
+					uni.request({
+					    url: url, 
+					    data: params,
+						method:methodType,
+					    header: headerConfig,
+					    success: (res) => {
+							//debugger
+							res = res.data
+					       if(res.success){
+					       	resolve(res.result)
+					       }else{
+					       	let msg = res.message;
+					       	if(msg === undefined || msg === null || msg === ''){
+					       		msg = '业务执行失败'
+					       	}
+					       	reject(msg)
+					       }
+					    },
+					    fail: (res) => {
+						  	reject(res)
+						},
+						complete: () => {
+						   this.toast.hide()
+						   this.isLoaddingData =false
+						}
+					});
+					
+				})
+		 },
+	}
+}

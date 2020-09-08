@@ -1,0 +1,14 @@
+
+.placeanOrder{
+	border: 1px solid #DDDDDD; 
+	height: 50rpx;
+}
+.chucangbtm{
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+	z-index: 2;
+	height: 115rpx;
+}
+

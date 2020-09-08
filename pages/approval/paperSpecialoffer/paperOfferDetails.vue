@@ -1,0 +1,308 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="true">
+				<block slot="content">纸板特价详情</block>
+		</cu-custom>
+		<view class="flex border-top">
+			<view  class="dataClass">
+				<view class="cu-form-group paddingRigntnone">
+					<view class="title paddingnone">单号:</view>
+					<input v-model="FormItems.BillNo" disabled/>
+				</view>
+			</view>
+			<view  class="userclass">
+				<view class="cu-form-group paddingRigntnone">
+					<view class="title paddingnone">客户:</view>
+					<input class="paddingnone" v-model="FormItems.CustName" disabled/>
+				</view>
+			</view>
+			<view  class="dataClass">
+				<view class="cu-form-group paddingRigntnone">
+					<view class="title paddingnone">生效:</view>
+					<input class="paddingnone" v-model="FormItems.BeginDate" disabled/>
+				</view>
+			</view>
+			<view  class="dataClass">
+				<view class="cu-form-group paddingRigntnone">
+					<view class="title paddingnone">失效:</view>
+					<input class="paddingnone" v-model="FormItems.EndDate" disabled/>
+				</view>
+			</view>
+			
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<button :disabled="isLoaddingData" class="cu-btn lines-orange shadow"  @click="updateupdate">改配纸</button>
+					<button :disabled="isLoaddingData" class="cu-btn lines-green shadow"  @click="approval">同意</button>
+					<button :disabled="isLoaddingData" class="cu-btn lines-red shadow"  @click="reject">驳回</button>
+				</view>
+			</view>
+		</view>
+		<view class="vtable">
+			<v-table
+				:row-class-name="rowClassNameFn"
+				:columns="subdataColumns" 
+				:list="subdataTableList" 
+				selection="single"
+				:td-width="93"	
+				:height="tableHeight-30"
+				@on-selection-change='subClickitem'
+				>
+			</v-table>
+		</view>
+		<!--  改配纸弹出框 -->
+		<updateModal 
+			ref="child"
+			:modalName='modalName' 
+			:modaldata='modaldata' 
+			:selectparms='selectparms'
+			@updataData='updatarequest'
+			@cancel='cancel'
+			>
+		</updateModal>
+		<!-- 审核弹框 -->
+		<view class="cu-modal" :class="showExamine=='DialogModal1'?'show':''">
+			<view class="cu-dialog" style="width: 40%; margin-top: 5%;">
+				<view class="cu-bar bg-white justify-end">
+					<view class="content">{{examineName}}申请</view>
+					<view class="action" @tap="showExamine=''">
+						<text class="cuIcon-close text-red"></text>
+					</view>
+				</view>
+				<view class="uni-textarea" style="background-color: #d4d4d4;text-align: left;">
+					<textarea v-model="FormItems.remark" maxlength="100" 
+						placeholder="可输入我的审批意见,非必填" 
+						style="padding: 20rpx;"/>
+				</view>
+				<view class="cu-bar bg-white">
+					<view class="action margin-0 flex-sub  solid-left" @tap="showExamine=''">取消</view>
+					<view class="action margin-0 flex-sub text-green solid-left" @tap="submitExamine">确定</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+import updateModal from './updateModal'
+import selectDropdown from '@/components/selectDropdown/selectDropdown.vue';
+import dayjs from 'dayjs';
+import cuCustom from '../../../ui/colorui/components/cu-custom.vue' ;
+import warehouse from '@/mixins';
+import request from '@/utils/request.js';
+import vTable from "@/components/table.vue";
+	export default {
+		components:{cuCustom,vTable,selectDropdown,updateModal},
+		mixins:[warehouse],
+		data() {
+			return {
+				examineName:'',//审核Name
+				showExamine:'',//审核弹框
+				selectparms:{modelCode:"approval_paperSpecialOffer",CustID:'',pageSize:'',pageNum:1},
+				BaseRateId:'',//单号ID
+				modalName:'',
+				modaldata:{},//改配纸弹出层数据
+				FormItems:{
+					BillNo:'',
+					startDate:'',
+					endDate:'',
+					groupCode:'',
+					CustID:'',
+					remark:"",
+				},
+				tableindex:0,//tavle点击索引
+				tableclickitem:0,//table点击行
+				tableHeight:300,//table高度
+				subdataTableList:[],//从表显示数据
+				subdataColumns:[
+					{ key: 'rownumber', title: '序号',$width: 75,columnAlign: 'center'},
+					{ key: 'soi_ArtId', title: '材质', $width: 100, titleAlign: 'center', columnAlign: 'center'},
+					{ key: 'soi_lb', title: '楞别', $width: 80, titleAlign: 'center', columnAlign: 'center'},
+					{ key: 'soi_price', title: '特价', $width: 75, titleAlign: 'center', columnAlign: 'right'},
+					{ key: 'soi_CostPrice', title: '原纸成本', $width: 120, titleAlign: 'center', columnAlign: 'right'},
+					{ key: 'soi_WorkPrice', title: '加工费', $width: 100, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'soi_OtherPrice	', title: '其他费用', $width: 120, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'soi_Profit', title: '利润', $width: 75, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'soi_ProfitRate', title: '利润%', $width: 95, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'OneTJPrice', title: '上次特价', $width: 120, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'TwoTJPrice', title: '上上次特价', $width: 145, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'soi_PZ1', title: '配纸1', $width: 88, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'soi_PZ2', title: '配纸2', $width: 88, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'soi_PZ3', title: '配纸3', $width: 88, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'soi_PZ4', title: '配纸4', $width: 88, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'soi_PZ5', title: '配纸5', $width: 88, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'soi_PZ6', title: '配纸6', $width: 88, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'soi_PZ7', title: '配纸7', $width: 88, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'soi_PZ8', title: '配纸8', $width: 88, titleAlign: 'left', columnAlign: 'right'},
+					{ key: 'soi_PZ9', title: '配纸9', $width: 88, titleAlign: 'left', columnAlign: 'right'},
+				]
+			}
+		},
+		// #ifdef H5
+		mounted() {
+			this.$refs.child.getsleteFromData()
+			// let URL = '/warehouse/warehouse/execute/appGetPaperSpecialOfferItem'
+			// this.getsubdataTableList(this.BaseRateId,URL)
+		},
+		// #endif
+		// #ifndef H5
+		onLoad(data) {
+			this.FormItems = this.cache.get('getparms')
+			this.selectparms.CustID = this.FormItems.CustID
+			this.BaseRateId = data.id
+		},
+		onShow() {
+			plus.navigator.setFullscreen(false);
+			setTimeout(()=>{
+				plus.screen.lockOrientation("landscape-secondary")
+				this.avgWidth = this.getTableAvgWidth(this.dataColumns);
+				this.calTableHeight()
+				this.$refs.child.getsleteFromData()
+				let URL = '/warehouse/warehouse/execute/appGetPaperSpecialOfferItem'
+				this.getsubdataTableList(this.BaseRateId,URL)
+			},1300)
+		},
+		// 监听页面返回时改成正常显示
+		onBackPress(){
+			plus.screen.unlockOrientation();
+			setTimeout(()=>{
+				plus.screen.lockOrientation("portrait-primary")
+			},1300)
+		},
+		
+		// #endif
+		methods: {
+			// 获取table数据
+			getsubdataTableList(id,URL){
+				this.toast.loading()
+				this.modaldata = {}
+				let parms = {UserID:this.userInfo.erpUserCode,ID1:id}
+				request.post(URL,parms).then(res=>{
+					this.subdataTableList = res.list
+					this.toast.hide()
+				}).catch(err=>{
+					this.toast.message(err)
+				})
+			},
+			// 修改配纸确认回调事件
+			updatarequest(even){
+				if(JSON.stringify(even)===JSON.stringify(this.modaldata)){
+					this.modalName = ''
+					return
+				}
+				this.modalName = ''	
+				this.updatatableData(even)
+			},
+			// 提交修改配纸数据
+			updatatableData(even){
+				this.toast.loading()
+				let parms = {
+					UserID:this.userInfo.erpUserCode,
+					ID1:even.ID1,
+					ID2:even.ID2,
+					soi_PZ1:even.soi_PZ1,
+					soi_PZ2:even.soi_PZ2,
+					soi_PZ3:even.soi_PZ3,
+					soi_PZ4:even.soi_PZ4,
+					soi_PZ5:even.soi_PZ5,
+					soi_PZ6:even.soi_PZ6,
+					soi_PZ7:even.soi_PZ7,
+					soi_PZ8:even.soi_PZ8,
+					soi_PZ9:even.soi_PZ9,
+				}
+				request.post('/warehouse/warehouse/execute/appUpdatePaperSpecialOfferItem',parms).then(res=>{
+					if(!res.list[0].res){
+						this.toast.message('修改失败')
+						return
+					}
+					this.toast.message('修改成功')
+					this.getsubdataTableList(this.BaseRateId,'/warehouse/warehouse/execute/appRefreshPaperSpecialOfferItem')
+				}).catch(err=>{
+					this.toast.message(err)
+				})
+			},
+			// 改配纸取消回调
+			cancel(){
+				this.modalName = ''
+			},
+			// 改配纸按钮回调
+			updateupdate(){
+				if(!this.modaldata.ID1){
+					this.toast.message('请选择修改数据')
+					return
+				}
+				this.modalName = 'DialogModal2'
+			},
+			// 同意按钮回调
+			approval(){
+				this.examineName = '同意'
+				this.showExamine = 'DialogModal1'
+			},
+			// 驳回按钮回调
+			reject(){
+				this.examineName = '驳回'
+				this.showExamine = 'DialogModal1'
+			},
+			// 审核弹框确认按钮
+			submitExamine(){
+				this.toast.loading()
+				let state  = ''
+				if(this.examineName == '同意'){
+					state = 1
+				}else{
+					state = 0
+				}
+				let _self = this
+				let parms = {approvalId:this.BaseRateId,spNo:this.FormItems.BillNo,state,remark:this.FormItems.remark}
+				request.post('/approval/paperSpecialOffer/approval',parms).then(res=>{
+					_self.showExamine = ''
+					_self.toast.hide()
+					_self.returnquery()
+				}).catch(err=>{
+					this.toast.message(err)
+				})
+			},
+			// 审核成功后跳到上级页面
+			returnquery(){
+				// uni.redirectTo({
+				//     url: 'test'
+				// })
+				uni.navigateBack({
+				    delta: 1
+				});
+			},
+			// table点击回调事件
+			subClickitem(data){
+				// debugger
+				this.tableindex = data.new.index
+				this.modaldata =JSON.parse(JSON.stringify(data.new.item)) 
+			},
+			// 设置表格使用剩余高度
+			calTableHeight(){
+				this.$nextTick(()=>{
+					setTimeout(()=>{
+						//延时执行,方便个别小程序兼容
+						let tempHeight =  this.setTableHeight(true)
+						this.tableHeight =tempHeight//特别处理
+					},200)
+				})
+			}
+		}
+	}
+</script>
+
+<style>
+.paddingnone{
+	padding: 0px;
+}
+.paddingRigntnone{
+	padding-right: 0px;
+}
+.dataClass{
+	height: 76%;
+	width: 18%;
+}
+.userclass{
+	height: 76%;
+	width: 15%;
+}
+</style>

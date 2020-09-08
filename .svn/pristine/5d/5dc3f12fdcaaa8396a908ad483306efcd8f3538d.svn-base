@@ -1,0 +1,291 @@
+//import request from '@/utils/request.js'
+import cache from '@/utils/cache.js'
+import { getQueryString,getUrlParams,GetRequest } from '@/utils/common.js';
+export default {
+	data(){
+		return {
+			openIdTimer: 10,
+			wxOpenId:'',//微信OPENID wxOpenId:'oiC0B6FB94zzfSQMPMb6EhJh_uWo' 测试
+			pageSetting:{
+						current:1, // 当前页码
+						pageSize:10, // 每页条数
+						total:0, // 总条数
+						hasNextPage:false,//是否有下一页
+			},
+			CustomBar: this.CustomBar,// 顶部占位高度PX
+			otherHeight:0,
+			leftContentHeight:0,
+			avgWidth:90,// v-table 平均宽度
+			isLoaddingData:false,// 数据是否加载宏....,用于禁用按钮是否可以再次点击
+		}
+	},
+	// #ifdef H5
+	mounted() {
+		//console.log('======base=H5===')
+		this.getWxOpenId();
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+		//console.log('======base=other===')
+		this.getWxOpenId();
+	},
+   // #endif
+	methods:{
+		// 验证码倒计时
+		reTryToGetOpenId() {
+		  let openid_timer = setInterval(() => {
+		    // 定时器设置每秒递减
+		    this.openIdTimer-- // 递减时间
+		    uni.setStorage({
+		      key: 'openIdTimer',
+		      data: this.openIdTimer,
+		      success: function() {}
+		    })
+		    if (this.openIdTimer <= 0) {
+		      this.verification = true // 10s时间返回查询并清除定时器
+		      clearInterval(openid_timer)
+		    }
+		  }, 1000)
+		},
+		// 获取 access_token 
+		getAccessToken(){
+			let _url = `${this.$config.wxBaseUrl}/wx/getAccessToken`;
+			this.getOrPostDataBy(_url).then(res => {
+				uni.setStorage({
+					key:'access_token',
+					data:res,
+				});
+				
+			});
+		},
+		// 微信公众号授权
+		wxGrantAuth() {
+			let wxOpenId =uni.getStorageSync('wxOpenId')
+			if(!!wxOpenId){
+				this.wxOpenId = wxOpenId
+				// 已经授权,立即返回
+				return 
+			}
+			let _url = `${this.$config.wxBaseUrl}/wx/grantAuth`;
+			let params ={
+				redirect_uri:encodeURIComponent(window.location.href)
+			}
+			let config ={
+				method:'GET'
+			}
+			var _self = this
+			this.getOrPostDataBy(_url,'',config).then(res => {
+				// 	let authURL = res
+			 //        window.location.href = authURL;
+				// this.getRequsetOpenId(res,callBack)
+			});
+		},
+		// 获取微信openID
+		getWxOpenId() {
+			//debugger
+		 // 1.先从链接中获取 openId 
+		 let wxOpenId = getUrlParams('openId')
+		 if(!!!wxOpenId){
+			 if(!!this.wxOpenId){
+				  // 2.再从本地固定代码中获取 openId 
+			 	wxOpenId = this.wxOpenId
+			 }else{
+				 // 3.最后从缓存中获取 openId 
+				 let wxOpenId_st =uni.getStorageSync('wxOpenId')
+				 if(!!wxOpenId_st){
+				 	wxOpenId = wxOpenId_st
+				 } 
+			 }
+		 }
+		console.log('====this.wxOpenId==='+this.wxOpenId)
+		 if(!!wxOpenId){
+			this.wxOpenId = wxOpenId 
+			uni.setStorage({
+				key:'wxOpenId',
+				data:this.wxOpenId
+			});
+		 }else{
+			 let _self = this
+			 uni.showModal({
+			     title: '提示',
+			     content: '获取授权失败,请重新获取',
+			     success: function (res) {
+			         if (res.confirm) {
+			            // console.log('用户点击确定');
+			 		   window.location.href=`${_self.$config.wxBaseUrl}/wx/grantAuth`;
+			         } else if (res.cancel) {
+			            // console.log('用户点击取消');
+			         }
+			     }
+			 });
+		 }
+		},
+		getRequsetOpenId(url,callBack){
+			let _self = this
+			this.getOrPostDataBy(url,{},{method:'GET'}).then(res=>{
+				if(!!res){
+					uni.showToast(
+						{
+						    title: res,
+						    duration: 20000
+					})
+				}else{
+					uni.showToast(
+						{
+						    title: '请求了没返回值',
+						    duration: 20000
+					})
+				}
+				_self.wxOpenId = res.openId
+				//debugger
+				if(!!_self.wxOpenId){
+					uni.setStorage({
+						key:'wxOpenId',
+						data:_self.wxOpenId,
+					});
+					callBack()
+				}else{
+					this.$refs['Message'].warn('获取微信授权失败,返回上一页');
+					// uni.navigateBack({
+					// 	// 跳转的返回，默认1为返回上一级
+					// 	delta: 1
+					// });
+				}
+			}).catch(err=>{
+				this.$refs['Message'].warn('获取微信授权失败,返回上一页');
+				// uni.navigateBack({
+				// 	// 跳转的返回，默认1为返回上一级
+				// 	delta: 1
+				// });
+			})
+		},
+		// 获取表格所有字段的长度的平均值
+		getTableAvgWidth(dataColumns){
+			let totalLength = 0
+			this.avgWidth = 90
+			let totalWidht = 0
+			if(dataColumns && dataColumns.length>0){
+				totalLength = dataColumns.length
+				totalWidht = dataColumns.reduce((initWidth,item)=>{
+					initWidth = initWidth+ Number(!!!item.$width?0:item.$width)
+					return initWidth
+				},0)
+			}
+			if(totalWidht>0 && totalLength>0){
+				this.avgWidth = ~~(totalWidht/totalLength)
+			}
+		   return this.avgWidth
+		},
+		//获取指定内容占用高度,计算剩余高度 单位:PX
+		getOtherContentHeight(className='bodyContentHeight'){
+				  return new Promise((resolve, reject) => {
+					   let eleHeight=0
+					   let _self =this
+					   let info = uni.createSelectorQuery().select("."+className);
+					  info.boundingClientRect(function(data) { //data - 各种参数
+					  　　　  console.log('other Height:'+data.height)  // 获取元素宽度		
+					  　　   _self.otherHeight = data.height
+					  	  eleHeight = data.height
+						  resolve(data.height)
+					   }).exec(function (res) {
+					   })
+				  })
+		},
+		// 自定义某行样式
+		rowClassNameFn(row, index) {
+			if (Number(index) % 2 == 0) {
+				return 'table-single-row';
+			} 
+			return '';//'table-double-row';
+		},
+		//计算设置表格高度
+		setTableHeight(needOtherHeight=false){
+				  if(!needOtherHeight){
+					  this.otherHeight = 0
+				  }
+				try {
+				    const res = uni.getSystemInfoSync();
+					this.leftContentHeight =res.windowHeight -this.CustomBar - this.otherHeight -10
+					return this.leftContentHeight
+				} catch (e) {
+				}
+		},
+		// 通用查询数据
+		 getOrPostDataBy(url,params={},config={},showLoadding=true){
+				 if(!!!url){
+					 console.error('请求路径URL不可以为空!')
+					 return
+				 }
+			     let access_token =''
+				 let temp_access_token =uni.getStorageSync('access_token')
+				 if(!!temp_access_token){
+					 access_token = temp_access_token
+				 }
+				this.isLoaddingData =true
+				if(showLoadding){
+					this.toast.loading()
+				}
+				return new Promise((resolve, reject) => {
+					let headerConfig = {
+						'Content-Type': 'application/json;charset=UTF-8'
+					}
+					let methodType = 'POST'
+					if(config && Object.keys(config).length>0){
+						if(!!config['Content-Type']){
+							headerConfig = {
+								'Content-Type': config['Content-Type'],
+								'access_token': access_token //自定义请求头信息
+							}
+						}
+						if(!!config['method']){
+							methodType = config['method']
+						}
+						
+					}
+					uni.request({
+					    url: url, 
+					    data: params,
+						method:methodType,
+					    header: headerConfig,
+					    success: (res) => {
+							//debugger
+							res = res.data
+					       if(res.success && res){
+					       	resolve(res.result)
+					       }else{
+					       	let msg = res.message;
+					       	if(msg === undefined || msg === null || msg === ''){
+					       		msg = '业务执行失败'
+					       	}
+							if(typeof res.result =='string'){
+								msg = msg +' ' + res.result
+							}
+					       	reject(msg)
+					       }
+					    },
+					    fail: (res) => {
+						  	reject(res)
+						},
+						complete: () => {
+						  setTimeout(()=>{
+							  if(showLoadding){
+							  	 this.toast.hide()
+							  }
+							 this.isLoaddingData =false 
+						  },500)
+						 
+						}
+					});
+					
+				})
+		 },
+		 setOpenId(id){
+			 cache.put('OpenId',id)
+		 },
+		 getOpenId(id){
+			 let openid = cache.get(id)
+			 return openid
+		 }
+	}
+}

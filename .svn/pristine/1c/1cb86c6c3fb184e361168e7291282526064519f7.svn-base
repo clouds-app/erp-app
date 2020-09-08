@@ -1,0 +1,488 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+		    "path" : "pages/index/home",
+		    "style" : {
+				"navigationBarTitleText": "首页",
+				"navigationStyle":"custom"
+			}
+		},
+		{
+		    "path" : "pages/login/login2",
+		    "style": {
+		    	"navigationBarTitleText": "用户登陆",
+		    	"navigationStyle":"custom"
+		    }
+		}
+		,{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页",
+				"navigationStyle":"custom"
+			}
+		}
+	    ,{
+            "path" : "pages/index/report",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/index/uCenter",
+            "style" : {}
+        },
+		{
+		    "path" : "pages/index/function",
+		   "style": {
+			"navigationBarTitleText": "首页",
+			"navigationStyle":"custom"
+		   }
+		}
+        ,{
+            "path" : "pages/approval/spaperpo/originalPaper",
+            "style" : {
+				"navigationStyle":"custom"
+			}
+        }
+        ,{
+            "path" : "pages/approval/spaperpo/originalPaperDetail",
+            "style" : {
+				"navigationStyle":"custom"
+			}
+        }
+        ,{
+            "path" : "pages/approval/approvalConfirm",
+            "style" : {
+				"navigationStyle":"custom"
+			}
+        }
+        ,{
+            "path" : "pages/approval/boxSpecPrice/boxSpecPrice",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/approval/boxSpecPrice/detail",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/approval/paperSpecPrice/paperSpecPrice",
+            "style" : {}
+        },
+		{
+			"path" : "pages/warehouse/paperIn/paperIn",
+			"style" : {}
+		},
+		{
+			"path" : "pages/warehouse/paperOB/paperOB",
+			"style" : {}
+		},
+		{
+			"path" : "pages/warehouse/paperOB/chucangCheck",
+			"style" : {}
+		},
+		{
+			"path" : "pages/warehouse/boxIn/boxIn",
+			"style" : {}
+		},{
+			"path":"components/list-select/list-select",
+			"style" : {}
+		}
+        ,{
+            "path" : "pages/quotedPrice/quotedPrice",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/uCenter/uCenter",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/changePassword/changePassword",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/boxHalfProdIn/boxHalfProdIn",
+            "style" : {}
+        }
+		,{
+		    "path" : "pages/boxHalfProdIn/adjustPersonnel",
+		    "style" : {}
+		}
+		,{
+		    "path" : "pages/boxHalfProdIn/publicRecord/adjustPersonnel",
+		    "style" : {}
+		}
+		,{
+		    "path" : "pages/boxHalfProdIn/publicRecord/publicRecord",
+		    "style" : {}
+		}
+        ,{
+            "path" : "pages/warehouse/boxIn/chengpinruku",
+            "style" : {}
+        },{
+            "path" : "pages/warehouse/boxIn/banchengpinruku",
+            "style" : {}
+        },{
+            "path" : "pages/warehouse/boxIn/chengpinchuku",
+            "style" : {}
+        }   
+        ,{
+            "path" : "pages/warehouse/paperIn/zhibanruku",
+            "style" : {}
+        },
+		{
+            "path" : "pages/warehouse/paperIn/zhibanruku_dzcx/rukuDatelis_dzcx",
+            "style" : {}
+        },
+		{
+		    "path" : "pages/warehouse/paperIn/zhibanruku_dzcx/zhibanruku_dzcx",
+		    "style" : {}
+		}
+        ,{
+            "path" : "pages/warehouse/paperIn/zhibanxunhuo",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/warehouse/paperIn/chucangsaomiao",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/warehouse/paperOB/chucang",
+            "style" : {}
+        },{
+            "path" : "pages/warehouse/paperOB/kucunchaxun",
+            "style" : {}
+        },{
+            "path" : "pages/warehouse/paperOB/tuicang",
+            "style" : {}
+        },
+		{
+		    "path" : "pages/warehouse/boxIn/outStorageEdit",
+		    "style" : {
+				"navigationBarTitleText": "出仓界面",
+				"navigationStyle":"custom"
+			}
+		}
+        ,{
+            "path" : "pages/warehouse/paperIn/outStorageEdit",
+            "style" : {
+				"navigationBarTitleText": "出仓界面",
+				"navigationStyle":"custom"
+			}
+        }
+        ,{
+            "path" : "pages/warehouse/boxIn/taojianmixi/taojianmixi",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/warehouse/boxIn/chengpinzhaohuo",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/browser/browser",
+            "style" : {
+				"navigationBarTitleText": "浏览",
+				"navigationStyle":"custom"
+			}
+        }
+        ,{
+            "path" : "pages/register/register",
+            "style" : {
+				"navigationStyle":"custom"
+			}
+        }
+        ,{
+            "path" : "pages/uCenter/switchAccount",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/uCenter/addAccount",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/boxHalfProdIn_xjxm/boxHalfProdIn_xjxm",
+            "style" : {}
+        }
+		,{
+		    "path" : "pages/boxHalfProdIn_xjxm/adjustPersonnel_xjxm",
+		    "style" : {}
+		} 
+        ,{
+            "path" : "pages/collectionQuery/collectionQuery",
+            "style" : {}
+        },{
+            "path" : "pages/collectionQuery/custdetails",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/baseshortpaper/baseshortpaper",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/summaryTable/summaryTable",
+            "style" : {}
+        }
+		,{
+			"path" : "pages/CardboardSalesProfit/CardboardSalesProfit",
+			"style" : {}
+		}
+
+        ,{
+            "path" : "pages/CardboardDeliverySummary/CardboardDeliverySummary",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/CartonDeliverySummary/CartonDeliverySummary",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/manager/manager",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/manager/managerDetail",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/masterBoard/masterBoard",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/approval/paperSpecPrice/detail",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/cardboardOrderSummary/cardboardOrderSummary",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/paperTurnoverSummary/paperTurnoverSummary",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/materialTurnoverSummary/materialTurnoverSummary",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/customerDebt/customerDebt",
+            "style" : {}
+        },
+		{
+			"path" : "pages/receiptPaymentSummary/receiptPaymentSummary",
+			"style" : {}
+		}
+		,{
+			"path" : "pages/boxOrderSummary/boxOrderSummary",
+			"style" : {}
+		}
+		,{
+			"path" : "pages/boxSalesProfit/boxSalesProfit",
+			"style" : {}
+		}
+		,{
+			"path" : "pages/BusinessSalesPerformance/BusinessSalesPerformance",
+			"style" : {}
+		},
+		{
+			"path" : "pages/BaseStockSummary/BaseStockSummary",
+			"style" : {}
+		}
+        // ,{
+        //     "path" : "pages/canvasAutograph/canvasAutograph",
+        //     "style" : {}
+        // }
+		// 权限模块
+        // ,{
+        //     "path" : "pages/modularAuthorization/modularAuthorization",
+        //     "style" : {}
+        // },{
+        //     "path" : "pages/modularAuthorization/myFeatures",
+        //     "style" : {}
+        // }
+        ,{
+            "path" : "pages/warehouse/paperIn/chucangsaomiao_dzcx/chucangsaomiao_dzcx",
+            "style" : {}
+        }	
+        ,{
+            "path" : "pages/placeanOrder/placeanOrder",
+            "style" : {}
+        } 
+		,{
+		    "path" : "pages/placeanOrder/placeanOrder_czln",
+		    "style" : {}
+		}
+		,{
+            "path" : "pages/orderInquiry/orderInquiry",
+            "style" : {}
+        }
+		,{
+			"path" : "pages/orderInquiry/orderInquiry_cqzh",
+			"style" : {}
+		}
+        ,{
+            "path" : "pages/placeanOrder/placeanOrder_cqzh",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/quotedPrice/matchingQuotation/matchingQuotation",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/quotedPrice/LBQuotation/LBQuotation",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/reconciliationQuery/reconciliationQuery",
+            "style" : {}
+        }
+		,{
+		    "path" : "pages/reconciliationQuery/billQuery_cqzh",
+		    "style" : {}
+		}
+        ,{
+            "path" : "pages/quotedPrice/paperQuotation/paperQuotation",
+            "style" : {}
+        }
+        ,{  
+            "path" : "pages/sysOrderStatus/sysOrderStatus",
+            "style" : {}
+        }
+		,{
+		    "path" : "pages/sysOrderStatus/sysOrderStatus_cqzh",
+		    "style" : {}
+		}
+        ,{
+            "path" : "pages/paperOrderDetails/paperOrderDetails",
+            "style" : {}
+        }
+        // ,{
+        //     "path" : "pages/chartDatademo/chartDatademo",
+        //     "style" : {}
+        // }
+        ,{
+            "path" : "pages/masterBoard/masterBoard_zshlz/masterBoard_zshlz",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/quotedBasepaper/quotedBasepaper",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/CardboardQuotauota/CardboardQuotauota",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/CardboardQuotauota/BasepaperPriceSee",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/CardboardQuotauota/processCostSee",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/CardboardQuotauota/setpaperQuotation",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/CardboardQuotauota/CreateOffer",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/feedbackSys/feedbackSys",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/feedbackSys/feedbackList",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/feedbackSys/getFeedbackData",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/feedbackSys/setFeedbackData",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/sysOrderStatus/sysOrderStatus_czln",
+            "style" : {}
+        }
+		,{
+		    "path" : "pages/sysOrderStatus/sysOrderStatus_cqln",
+		    "style" : {}
+		}
+        ,{
+            "path" : "pages/orderInquiry/orderInquiry_czln",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/placeanOrder/placeanOrder_wzfx",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/orderInquiry/orderInquiry_wzfx",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/approval/paperSpecialoffer/paperSpecialoffer",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/approval/paperSpecialoffer/paperOfferDetails",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/boxHalfProdIn/BoxHalfProdln_ty/BoxHalfProdln_ty",
+            "style" : {}
+        }
+        ,{
+            "path" : "pages/boxHalfProdIn/BoxHalfProdln_ty/adjustPersonnel",
+            "style" : {}
+        }
+    ],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "晨龙ERP",
+		"navigationBarBackgroundColor": "#0081ff",
+		"backgroundColor": "#FFFFFF",
+		"app-plus":{
+			"scrollIndicator":"none",
+			"compatible": {  
+			    "ignoreVersion": true //true表示忽略版本检查提示框，HBuilderX1.9.0及以上版本支持  
+			}
+		},
+		"navigationStyle":"custom"
+	}/* ,
+	"tabBar":{
+		"color":"#000000",
+		"selectedColor":"#0081FF",
+		"backgroundColor":"#FFFFFF",
+		"position":"bottom",
+		"list":[{
+			"pagePath":"pages/index/index",
+			"text":"首页",
+			"iconPath":"static/index-unChecked.png",
+			"selectedIconPath":"static/index-checked.png"
+		},{
+			"pagePath":"pages/index/manager",
+			"text":"看板",
+			"iconPath":"static/kanban.png",
+			"selectedIconPath":"static/kanban-checked.png"
+		},
+		 {
+			"pagePath":"pages/index/function",
+			"text":"功能",
+			"iconPath":"static/function-unChecked.png",
+			"selectedIconPath":"static/funtion-checked.png"
+		},
+		{
+			"pagePath":"pages/index/report",
+			"text":"报表",
+			"iconPath":"static/count-unChecked.png",
+			"selectedIconPath":"static/count-checked.png"
+		},
+		{
+			"pagePath":"pages/uCenter/uCenter",
+			"text":"我的",
+			"iconPath":"static/my-unChecked.png",
+			"selectedIconPath":"static/my-checked.png"
+		}]
+	} */
+}

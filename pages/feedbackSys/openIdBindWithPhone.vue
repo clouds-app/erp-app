@@ -1,0 +1,140 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" class="titlefrom"><block slot="content">系统用户绑定手机</block></cu-custom>
+		 <view class="contentBodyBox">
+		 	<view class="contentBodyItem">
+		 		<form>
+		 			<view class="cu-form-group margin-top">
+		 				<view class="title">用户编码</view>
+		 				<input @blur="checkUserCode" maxlength="30" v-model="formItem.userCode" placeholder="输入用户编码" name="phoneNo"></input>
+		 			</view>
+					<view class="cu-form-group">
+						<view class="title"> 识 别 码 </view>
+						<input maxlength="30" placeholder="输入识别码" v-model="formItem.identifiCode" name="identifiCode"></input>
+					</view>
+					<view class="padding-xl">
+						
+						<button :disabled="disabledBtn" @click="handleSubmit()"  type="primary">
+							确认 </button>
+						
+					</view>
+				</form>
+		 	</view>
+			<view class="contentBodyItem">
+				
+			</view>
+			<view class="contentBodyItem">
+				
+			</view>
+		 </view>
+		 <boboMessage ref="Message"></boboMessage>
+	</view>
+</template>
+
+<script>
+import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+import boboMessage from '@/components/bobo-message/bobo-message.vue';
+import colorUiDialog from '@/components/color-ui-dialog/color-ui-dialog.vue';
+ import { isPhoneNumber,isWeiXinBrowser } from '@/utils/common.js'; //时间戳转时间格式
+import uniIcons from '@/components/uni-icons/uni-icons.vue';
+ import wxBase from '@/mixins/wxBase';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import dayjs from 'dayjs';
+const defaultformItem = {
+	userCode:'',
+	identifiCode:''
+};
+export default {
+	name: 'openIdBindWithPhone',
+	components: { cuCustom, uniIcons, colorUiDialog, boboMessage },
+	mixins: [wxBase],
+	data() {
+		return {
+			formItem:Object.assign({},defaultformItem),
+			disabledBtn:true,
+		}
+	},
+	methods: {
+				// 验证用户编码
+				checkUserCode(){
+					this.disabledBtn = true
+					if(!!!this.formItem.userCode){
+						return
+					}
+					let _url = `${this.$config.wxBaseUrl}/wx/checkUserCode`;
+					let params = {
+						userCode:this.formItem.userCode
+					};
+					let config = {
+						'Content-Type': 'application/x-www-form-urlencoded'
+					}
+					let _self = this;
+					this.getOrPostDataBy(_url,params,config).then(res=>{
+						//console.log('===after checkUserCode=this.wxOpenId==='+this.wxOpenId)
+						this.disabledBtn = false
+					}).catch(err=>{
+						this.$refs['Message'].error(err);
+					})
+				},
+				// 检验提交数据
+			    checkBeforeSubmit(){
+					let flag = false
+					let message = ''
+					if(!!!this.formItem.identifiCode){
+						message= '识别码不可为空!'
+						flag = true
+					}
+					if(!!!this.formItem.userCode){
+						message= '用户编码不可为空!'
+						flag = true
+					}
+					
+					if(flag){
+						this.$refs['Message'].warn(message);
+					}
+					return flag
+					
+				},
+			   // 系统用户绑定手机 
+				handleSubmit(){
+					if(this.checkBeforeSubmit()){
+						return
+					}
+					if(!!!this.wxOpenId){
+						this.$refs['Message'].error('微信授权失败,无法提交!');
+						return
+					}
+					
+					let _url = `${this.$config.wxBaseUrl}/wx/bindUser`;
+					let params = {
+						identifiCode:this.formItem.identifiCode,
+						userCode:this.formItem.userCode,
+						openId:this.wxOpenId,
+					};
+					let config = {
+						'Content-Type': 'application/x-www-form-urlencoded'
+					}
+					let _self = this;
+					this.getOrPostDataBy(_url,params,config).then(res=>{
+						this.$refs['Message'].success('执行成功!')	
+						this.disabledBtn = true
+					}).catch(err=>{
+						this.$refs['Message'].error(err);
+					})
+				}
+			}
+};
+</script>
+
+<style lang="scss" scoped>
+	.contentBodyBox{
+		height:calc(100vh - 45px);
+		display: flex;
+		flex-direction: column;
+		.contentBodyItem{
+			height: 33.33%;
+			//border: 1px solid red;
+		}
+	}
+</style>
+

@@ -1,5 +1,6 @@
 {
   "usingComponents": {
-    "approval": "/components/approval/approval"
+    "approval": "/components/approval/approval",
+    "paperSpecPrice-approval-content": "/pages/approval/paperSpecPrice/paperSpecPrice-approval-content"
   }
 }

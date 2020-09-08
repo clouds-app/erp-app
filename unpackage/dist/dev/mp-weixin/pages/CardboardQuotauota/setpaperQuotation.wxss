@@ -1,0 +1,10 @@
+
+.chucangbtm{
+	height: 50px;
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+	z-index: 2;
+}
+

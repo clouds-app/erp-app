@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "晨龙建议反馈平台",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "uni-icons": "/components/uni-icons/uni-icons",
+    "cu-custom": "/ui/colorui/components/cu-custom",
+    "color-ui-dialog": "/components/color-ui-dialog/color-ui-dialog",
+    "bobo-message": "/components/bobo-message/bobo-message"
+  }
+}

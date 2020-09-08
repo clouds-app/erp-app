@@ -1,7 +1,8 @@
 {
   "usingComponents": {
-    "search": "/components/search/search",
+    "select-dropdown": "/components/selectDropdown/selectDropdown",
     "cu-custom": "/ui/colorui/components/cu-custom",
+    "search": "/components/search/search",
     "z-table": "/components/z-table/z-table"
   }
 }

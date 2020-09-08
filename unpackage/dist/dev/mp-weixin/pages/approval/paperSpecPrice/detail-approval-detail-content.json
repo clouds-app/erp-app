@@ -2,6 +2,7 @@
   "component": true,
   "usingComponents": {
     "detail-approval-detail-content": "/pages/approval/paperSpecPrice/detail-approval-detail-content",
-    "approval-detail": "/components/approval/approvalDetail"
+    "approval-detail": "/components/approval/approvalDetail",
+    "examine-modal": "/components/approval/examineModal"
   }
 }

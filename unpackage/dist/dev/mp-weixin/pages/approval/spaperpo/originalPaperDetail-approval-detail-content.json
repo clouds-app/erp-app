@@ -2,6 +2,7 @@
   "component": true,
   "usingComponents": {
     "originalPaperDetail-approval-detail-content": "/pages/approval/spaperpo/originalPaperDetail-approval-detail-content",
-    "approval-detail": "/components/approval/approvalDetail"
+    "approval-detail": "/components/approval/approvalDetail",
+    "examine-modal": "/components/approval/examineModal"
   }
 }

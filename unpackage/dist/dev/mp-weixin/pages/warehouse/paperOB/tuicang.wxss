@@ -1,22 +1,22 @@
 
-.margin-text-center.data-v-ccc4b206 {
+.margin-text-center.data-v-6d08680c {
 	text-align: center;
 	margin: 20rpx;
 }
-.border-top.data-v-ccc4b206 {
+.border-top.data-v-6d08680c {
 	border-top: 1px solid #eee;
 }
-.cu-form-group .title.data-v-ccc4b206 {
+.cu-form-group .title.data-v-6d08680c {
 	min-width: calc(4em + 15px);
 }
-.chucangbtm.data-v-ccc4b206{
+.chucangbtm.data-v-6d08680c{
 	position: fixed;
 	bottom: 0px;
 	width: 100%;
 	background-color: #FFFFFF;
 	z-index: 2;
 }
-.lastState.data-v-ccc4b206{
+.lastState.data-v-6d08680c{
 	margin-top: 30px;
 	/* bottom: 0px; */
 	display: -webkit-box;

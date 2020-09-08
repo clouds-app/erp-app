@@ -1,0 +1,14 @@
+
+.xunhoutop.data-v-087f9a62{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.chucangbtm.data-v-087f9a62{
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+	z-index: 2;
+}
+

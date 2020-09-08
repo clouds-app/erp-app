@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "cu-custom": "/ui/colorui/components/cu-custom",
+    "v-table": "/components/table",
+    "select-dropdown": "/components/selectDropdown/selectDropdown",
+    "uni-load-more": "/components/uni-load-more/uni-load-more"
+  }
+}

@@ -1,0 +1,134 @@
+//import request from '@/utils/request.js'
+import cache from '@/utils/cache.js'
+export default {
+	data(){
+		return {
+			pageSetting:{
+						current:1, // 当前页码
+						pageSize:10, // 每页条数
+						total:0, // 总条数
+						hasNextPage:false,//是否有下一页
+			},
+			CustomBar: this.CustomBar,// 顶部占位高度PX
+			otherHeight:0,
+			leftContentHeight:0,
+			avgWidth:90,// v-table 平均宽度
+			isLoaddingData:false,// 数据是否加载宏....,用于禁用按钮是否可以再次点击
+		}
+	},
+	methods:{
+		// 获取表格所有字段的长度的平均值
+		getTableAvgWidth(dataColumns){
+			let totalLength = 0
+			this.avgWidth = 90
+			let totalWidht = 0
+			if(dataColumns && dataColumns.length>0){
+				totalLength = dataColumns.length
+				totalWidht = dataColumns.reduce((initWidth,item)=>{
+					initWidth = initWidth+ Number(!!!item.$width?0:item.$width)
+					return initWidth
+				},0)
+			}
+			if(totalWidht>0 && totalLength>0){
+				this.avgWidth = ~~(totalWidht/totalLength)
+			}
+		   return this.avgWidth
+		},
+		//获取指定内容占用高度,计算剩余高度 单位:PX
+		getOtherContentHeight(className='bodyContentHeight'){
+				  return new Promise((resolve, reject) => {
+					   let eleHeight=0
+					   let _self =this
+					   let info = uni.createSelectorQuery().select("."+className);
+					  info.boundingClientRect(function(data) { //data - 各种参数
+					  　　　  console.log('other Height:'+data.height)  // 获取元素宽度		
+					  　　   _self.otherHeight = data.height
+					  	  eleHeight = data.height
+						  resolve(data.height)
+					   }).exec(function (res) {
+					   })
+				  })
+		},
+		// 自定义某行样式
+		rowClassNameFn(row, index) {
+			if (Number(index) % 2 == 0) {
+				return 'table-single-row';
+			} 
+			return '';//'table-double-row';
+		},
+		//计算设置表格高度
+		setTableHeight(needOtherHeight=false){
+				  if(!needOtherHeight){
+					  this.otherHeight = 0
+				  }
+				try {
+				    const res = uni.getSystemInfoSync();
+					this.leftContentHeight =res.windowHeight -this.CustomBar - this.otherHeight -10
+					return this.leftContentHeight
+				} catch (e) {
+				}
+		},
+		// 通用查询数据
+		 getOrPostDataBy(url,params,config,showLoadding=true){
+				this.isLoaddingData =true
+				if(showLoadding){
+					this.toast.loading()
+				}
+				return new Promise((resolve, reject) => {
+					let headerConfig = {
+						'Content-Type': 'application/json;charset=UTF-8'
+					}
+					let methodType = 'POST'
+					if(config && Object.keys(config).length>0){
+						if(!!config['Content-Type']){
+							headerConfig = {
+								'Content-Type': config['Content-Type']
+							}
+						}
+						if(!!config['method']){
+							methodType = config['method']
+						}
+						
+					}
+					uni.request({
+					    url: url, 
+					    data: params,
+						method:methodType,
+					    header: headerConfig,
+					    success: (res) => {
+							res = res.data
+					       if(res.success||res){
+					       	resolve(res.result)
+					       }else{
+					       	let msg = res.message;
+					       	if(msg === undefined || msg === null || msg === ''){
+					       		msg = '业务执行失败'
+					       	}
+					       	reject(msg)
+					       }
+					    },
+					    fail: (res) => {
+						  	reject(res)
+						},
+						complete: () => {
+						  setTimeout(()=>{
+							  if(showLoadding){
+							  	 this.toast.hide()
+							  }
+							 this.isLoaddingData =false 
+						  },500)
+						 
+						}
+					});
+					
+				})
+		 },
+		 setOpenId(id){
+			 cache.put('OpenId',id)
+		 },
+		 getOpenId(id){
+			 let openid = cache.get(id)
+			 return openid
+		 }
+	}
+}
