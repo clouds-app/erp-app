@@ -1,0 +1,1124 @@
+<template>
+	<view>
+	<cu-custom bgColor="bg-gradual-blue" class="titlefrom" :isBack="true"><block slot="content">我要反馈</block></cu-custom>
+	<form>
+		<view class="flex bg-white padding-bottom-xs">
+			<view class="flex-width-25   flex justify-center align-center"><view class="flex-title base-height justify-center align-center">问题大类</view></view>
+			<view class="flex-sub padding-right-xs">
+				<radio-group class="block" @change="RadioChange">
+					<block v-for="(item, index) in FeedbackType">
+						<radio class="radioComponent" :checked="formDataItem.typeCode == item.typecode ? true : false" :value="item.typecode"></radio>
+						<text :class="item.typecode == 5 ? 'colorRed' : ''" class="radioQuesDesc">{{ item.typename }}</text>
+					</block>
+				</radio-group>
+			</view>
+		</view>
+		<view class="flex bg-white padding-top-xs solid-top padding-bottom-xs">
+			<view class="flex-width-25">
+				<view class="flex-title base-height justify-center align-center">问题详情</view>
+			</view>
+			<view class="flex-sub">
+				<view class="flex text-sm align-center justify-start base-height padding-right-xs">(回复时间: 工作日 8:00-20:00 非工作日 9:00-17:00)</view>
+			</view>
+		</view>
+		<view class="flex bg-white">
+			<view class="flex-sub padding-10">
+				<textarea v-model="formDataItem.content" maxlength="200"  placeholder="请输入问题详情 (最多200汉字)" style="width: auto; height: 230rpx;border: 1px solid #ccc;" ></textarea>
+			</view>
+		</view>
+		<view class="flex bg-white">
+			<view class="flex-sub">
+				<view class="flex-title base-height justify-start align-center">
+					<text class="margin-left-sm">图片上传 (最多2M/4张)</text>
+				</view>
+			</view>
+			
+		</view>
+		<view class="flex bg-white imgUpload-cus">
+			<view class="grid col-4 grid-square flex-sub">
+				<view class="bg-img" v-for="(item,index) in imgList" :key="index" @tap="ViewImage" :data-url="imgList[index]">
+				 <image :src="imgList[index]" mode="aspectFill"></image>
+					<view class="cu-tag bg-red" @tap.stop="DelImg" :data-index="index">
+						<text class='cuIcon-close'></text>
+					</view>
+				</view>
+				<view class="solids" @tap="ChooseImage" v-if="imgList.length<4">
+					<text class='cuIcon-cameraadd'></text>
+				</view>
+			</view>
+		</view>
+		<view class="flex">
+			<view class="flex-width-50 ">
+				<view class="cu-form-group">
+					<view class="flex-title">姓名</view>
+					<input v-model="formDataItem.uname" placeholder="输入姓名" name="uname"></input>
+				</view>
+			</view>
+			<view class="flex-width-50 ">
+				<view class="cu-form-group">
+					<view class=" flex-title">手机</view>
+					<input placeholder="输入手机" maxlength="11" v-model="formDataItem.phoneno" name="phoneno" type="number"/>
+				</view>
+			</view>
+		</view>
+		<view class="flex">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="flex-title">单位</view>
+					<input v-model="formDataItem.companyname" placeholder="输入单位" name="companyname"></input>
+				</view>
+			</view>
+		</view>
+		<view class="flex bg-white">
+			<view class="flex-width-15 margin-left-sm">
+				<view class="text-black flex-title base-height justify-center align-center">
+					省市
+				</view>
+			</view>
+			<view class="flex-sub flex ">
+				<view class="flex-width-50 base-height">
+					<view class="flex">
+						<view class="flex-sub base-height flex align-center">
+							<input style="font-size: 26rpx;" :disabled="true" @tap="handleTap('provinceName')" v-model="provinceName" placeholder="选择所属省" name="provinceName"/> 
+						</view>
+						<view class="flex-width-15 base-height ">
+							<view class="flex-title base-height justify-center align-center">
+								<text @tap="handleTap('provinceName')" :class="[!!!provinceName ? 'text-green' : 'text-gray']"  class='cuIcon-rounddown'></text>
+							</view>
+							
+						</view>
+					</view>
+					
+				</view>
+				<view class="flex-width-50 base-height ">
+					<view class="flex">
+						<view class="flex-sub base-height flex align-center">
+							<input style="font-size: 26rpx;" :disabled="true" @tap="handleTap('areaName')" v-model="areaName" placeholder="选择所属市" name="areaName"/> 
+						</view>
+						<view class="flex-width-15 base-height ">
+						 <view class="flex-title base-height justify-center align-center">
+						 	<text @tap="handleTap('areaName')" :class="[!!!areaName ? 'text-green' : 'text-gray']"  class='cuIcon-rounddown'></text>
+						 </view>	
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view class="flex">
+			<view class="flex-sub padding-xl">
+				<button :loading="isSubmitting" @click="preSubmitData()"  type="primary" class="primary-btn">提ㅤ交</button>
+			</view>
+		</view>
+		</form>
+		<colorUiDialog :isloading="isLoaddingData" title="验证" @comfirmModal="comfirmColorUiDialog" @cancelModal="cancelColorUiDialog" :toShowModal="showColorUiDialog">
+			<view class="modalFormBox">
+				<view class="modalFormItem">
+					<view class="inputInfoBox">
+						<view class="InputInfoItem leftItem">
+							手机号码
+						</view>
+						<view class="InputInfoItem rightItem">
+							 <input style="text-align: left;width: auto;" type="number" v-model="verificationForm.mobile" :maxlength="11" placeholder="请输入手机号码"/>
+						</view>
+					</view>
+				</view>
+				<view class="modalFormItem">
+					<view class="inputInfoBox">
+						<view class="InputInfoItem leftItem">
+							图形验证码
+						</view>
+						<view class="InputInfoItem rightInfoBox">
+							<view class="rightInfoItem rightInfoLeft">
+								 <input style="text-align: left;width: auto;"  v-model="verificationForm.imgValCode" :maxlength="4" placeholder="图形验证码"/>
+							</view>
+							<view class="rightInfoItem rightInfoRight">
+								<imgValCode ref="imgValCode"></imgValCode>
+							</view>
+						</view>
+					</view>
+				</view>
+				<view class="modalFormItem">
+					<view class="inputInfoBox">
+						<view class="InputInfoItem leftItem">
+							手机验证码
+						</view>
+						<view class="InputInfoItem rightInfoExtBox">
+							<view class="rightInfoExtItem extLeft">
+								<input style="text-align: left;width: auto;"  v-model="verificationForm.mobileValCode" :maxlength="6" placeholder="请输入手机验证码"/>
+							</view>
+							<view class="rightInfoExtItem extRight">
+								<view :class="sendCodeBtn" @click="sendCode" v-if="verification">发送验证码</view>
+								<view class="btn btn-g" v-if="!verification">{{ timer }} 秒后重新获取</view>
+							</view>
+						</view>
+					</view>
+				</view>
+				
+			</view>
+		</colorUiDialog>	
+		<boboMessage ref="Message"></boboMessage>
+		<lb-picker ref="provinceName"
+			  v-model="provinceName"
+			  mode="multiSelector"
+			  :list="provincelist"
+			  :level="1"
+			  @change="handleChange_provinceName"
+			  @confirm="handleConfirm_provinceName"
+			  @cancel="handleCancel_provinceName">
+			</lb-picker>
+			<lb-picker ref="areaName"
+				  v-model="areaName"
+				  mode="multiSelector"
+				  :list="areaList"
+				  :level="1"
+				  @change="handleChange"
+				  @confirm="handleConfirm"
+				  @cancel="handleCancel">
+				</lb-picker>
+		</view>
+	
+	</view>
+</template>
+
+<script>
+//import areaData from './area-data-min'
+import LbPicker from '@/components/lb-picker'
+import imgValCode from '@/components/zhstars2013-imgcode/zhstars2013-imgcode.vue'
+import boboMessage from '@/components/bobo-message/bobo-message.vue'
+import colorUiDialog from '@/components/color-ui-dialog/color-ui-dialog.vue'
+import {isPhoneNumber} from '@/utils/common.js'
+import wxBase from '@/mixins/wxBase';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import request from '@/utils/request.js';
+import dayjs from 'dayjs'
+const defaultFormItem={
+				openId:'',
+				companyname:'',
+				areaId:'',
+				content:'',
+				imgids:'',
+				phoneno:'',
+				typeCode:"1",
+				uname:''
+			}
+export default {
+	name: 'paperIn',
+	components: { cuCustom,colorUiDialog,boboMessage,imgValCode,LbPicker},
+	mixins: [wxBase],
+	data() {
+		return {
+			triggerFormList:false,// 是否列表触发的数据
+			provinceName:'',
+			areaName:'',
+			//list: areaData,
+			provincelist: [
+			  {
+			    label: '北京',
+			    value: '11',
+			    children: [
+					{
+					  label: '北京',
+					  value: '1101'
+					}
+				]
+			  }
+			],
+			areaList:[
+				  {
+				    label: '北京',
+				    value: "1101"
+				  }
+			],
+			verificationForm:{
+				mobile:'',
+				imgValCode:'',
+				mobileValCode:''
+			},
+			timer: 60, // 定义初始时间为60s
+			verification: true, // 通过v-show控制显示获取还是倒计时
+			showColorUiDialog:false,
+			isSubmitting:false,// 是否正在提交数据
+			FeedbackType:[
+					{
+						"id": 1,
+						"typecode": "1",
+						"typename": "ERP",
+						"usercode": 0
+					},
+					{
+						"id": 2,
+						"typecode": "2",
+						"typename": "生管",
+						"usercode": 0
+					},
+					{
+						"id": 3,
+						"typecode": "3",
+						"typename": "设备/其它",
+						"usercode": 0
+					},
+					{
+						"id": 4,
+						"typecode": "4",
+						"typename": "业务",
+						"usercode": 0
+					},
+					{
+						"id": 5,
+						"typecode": "5",
+						"typename": "投诉",
+						"usercode": 0
+					}
+				],// 问题大类 列表
+			FeedbackList:[],
+			formDataItem:Object.assign({},defaultFormItem),
+			imgList:[],//存储图片数组
+			index: -1,
+			FeedbackHistoryInfo:{}
+		};
+	},
+	computed:{
+		// 验证手机号
+		rightMobile() {
+			//debugger
+		  let res = {}
+		  let imgcode ="abc"
+		  let tempCode =uni.getStorageSync('imgcode')
+		  if(!!tempCode){
+			  imgcode = tempCode
+		  }
+		  if (!this.verificationForm.mobile) {
+		    res.status = false
+		    res.msg = '请输入手机号'
+		  } else if (!/^1[3456789]{1}\d{9}$/gi.test(this.verificationForm.mobile)) {
+		    res.status = false
+		    res.msg = '手机号格式不正确'
+		  } 
+		  else if (!!!this.verificationForm.imgValCode){
+		  			res.status = false
+		  			res.msg = '请输入图形验证码'
+		  }
+		  else if (this.verificationForm.imgValCode.toLowerCase()!=imgcode.toLowerCase()){
+			res.status = false
+			res.msg = '图形验证码不匹配'
+		  }
+		  else {
+		    res.status = true
+		  }
+		  return res
+		},
+		// 动态计算发送验证码按钮样式
+		sendCodeBtn() {
+		  let btn = 'btn btn-g'
+		  if (this.verificationForm.mobile.length === 11 && this.rightMobile.status) {
+		    return btn + ' btn-b'
+		  } else {
+		    return btn
+		  }
+		},
+	},
+	onLoad(option){
+		  defaultFormItem.openId = option.wxOpenId
+	  this.formDataItem.openId = option.wxOpenId
+	  // console.log('this.formDataItem.openId====:'+this.formDataItem.openId)
+	},
+	// #ifdef H5
+	mounted() {
+		this.initDataFunction()
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+		this.initDataFunction()
+	},
+	
+	// #endif
+	methods: {
+			//获取所有省、直辖市
+			getProvinceArea(){
+				let _url = `${this.$config.wxBaseUrl}/wx/getProvinceArea`
+				this.getOrPostDataBy(_url).then(res=>{
+					let provincelist =[]
+					if(res && res.length>0){
+						res.forEach(item=>{
+							let provinceItem={
+								label: item.name,
+								value: item.id,
+								children: [
+									{
+									  label: '北京',
+									  value: '1101'
+									}
+								]
+							}
+							provincelist.push(provinceItem)
+						})
+					}
+					this.provincelist = provincelist
+				})	
+			},
+			// 获取下一级地区
+			getArea(_Id){
+				//debugger
+				if(!!!_Id){
+					return
+				}
+				let _url = `${this.$config.wxBaseUrl}/wx/getArea`
+				let params ={
+					id:_Id
+				}
+				let _self = this
+				this.getOrPostDataBy(_url,params,{},false).then(res=>{
+					//debugger
+					let areaList =[]
+					if(res && res.length>0){
+						res.forEach(item=>{
+							let areaItem={
+								label: item.name,
+								value: item.id,
+							}
+							areaList.push(areaItem)
+						})
+					}
+					_self.areaList = areaList
+				})	
+			},
+			handleTap (picker) {
+				this.$refs[picker].show()
+			},
+			handleChange_provinceName (itemInfo) {
+				
+				let _id = itemInfo.item[0].value
+				clearTimeout(this.provinceTimer)
+				this.provinceTimer = setTimeout(()=>{
+					console.log('setTimeout id:'+_id)
+					this.getArea(_id)
+				},200)
+							//console.log('change::', item)
+						},
+			handleConfirm_provinceName (itemInfo) {
+				let provinceName = itemInfo.item[0].label
+				this.provinceName = provinceName
+				this.areaName = ''
+				this.formDataItem.areaId = -1
+			},
+			handleCancel_provinceName (itemInfo) {
+
+			},
+			handleChange (itemInfo) {
+			},
+			handleConfirm (itemInfo) {
+				let areaName = itemInfo.item[0].label
+				let areaId = itemInfo.item[0].value
+				this.areaName = areaName
+				this.formDataItem.areaId = areaId
+			},
+			handleCancel (itemInfo) {
+			},
+		// 验证手机短信验证码
+		checkPhoneSmsCode(){
+			let _url = `${this.$config.wxBaseUrl}/wx/checkPhoneSmsCode`
+			let params = {
+				phoneCode:this.verificationForm.mobileValCode,
+				phoneNo:this.verificationForm.mobile
+			}
+			return new Promise((resolve, reject) => {
+				this.getOrPostDataBy(_url,params).then(res=>{
+					resolve(res)
+				}).catch(err=>{
+					reject(err)
+				})	
+			})
+		
+		},
+		//获取手机短信验证码
+		sendCode() {
+		  if (!this.rightMobile.status) {
+			  this.$refs['Message'].warn(this.rightMobile.msg)	 
+		  } else {
+		    setTimeout(() => {
+			 
+			let _url = `${this.$config.wxBaseUrl}/wx/sendPhoneSmsCode`
+			let params = {
+				phoneNo:this.verificationForm.mobile
+			}
+			this.getOrPostDataBy(_url,params).then(res=>{
+				this.timer = 60
+				this.verification = false
+				this.$refs['Message'].success('成功发送获取验证码!')	
+				this.countDown() // 执行验证码计时
+			})	
+			
+		    }, 1000)
+		  }
+		},
+		comfirmColorUiDialog(){
+			if (!this.rightMobile.status) {
+				this.$refs['Message'].warn(this.rightMobile.msg)
+				 return
+			}
+			let hasErr = false
+			let message =""
+			if(!!!this.verificationForm.mobileValCode){
+				hasErr = true
+				message="手机验证码必填!"
+				
+			}
+			if(hasErr){
+				this.$refs['Message'].warn(message)
+				return
+			}else{
+				this.checkPhoneSmsCode().then(res=>{
+					// 验证短信号码通过,并且提交反馈
+					this.SubmitData()
+				
+				})
+			
+			}
+		},
+		cancelColorUiDialog(){
+			this.showColorUiDialog= false
+		},
+		// 验证码倒计时
+		countDown() {
+		  let auth_timer = setInterval(() => {
+		    // 定时器设置每秒递减
+		    this.timer-- // 递减时间
+		    uni.setStorage({
+		      key: 'timer',
+		      data: this.timer,
+		      success: function() {}
+		    })
+		    if (this.timer <= 0) {
+		      this.verification = true // 60s时间结束还原v-show状态并清除定时器
+		      clearInterval(auth_timer)
+		    }
+		  }, 1000)
+		},
+		// 初始化加载函数
+		initDataFunction(){
+			this.getProvinceArea()
+			this.getFeedbackInfoByOpenId()
+			//this.getArea(11)
+		},
+		// 校验必填数据
+		checkBeforeSubmit(){
+			let hasErr = false
+			let errMsg = ''
+			
+			if(!!!this.areaName){
+				errMsg = '所属市必填!'
+				hasErr= true
+			}
+			if(!!!this.provinceName){
+				errMsg = '所属省必填!'
+				hasErr= true
+			}
+			if(!!!this.formDataItem.content){
+				errMsg = '问题详情必填!'
+				hasErr= true
+			}
+			if(!!this.formDataItem.content && this.formDataItem.content.length<5){
+				errMsg = '问题详情至少5个字以上!'
+				hasErr= true
+			}
+			if(!!!this.formDataItem.companyname){
+				errMsg = '反馈人单位必填!'
+				hasErr= true
+			}
+			if(!!!this.formDataItem.phoneno){
+				errMsg = '反馈人手机必填!'
+				hasErr= true
+			}
+			if(!!this.formDataItem.phoneno && !isPhoneNumber(this.formDataItem.phoneno)){
+				errMsg = '手机格式错误!'
+				hasErr= true
+			}
+			if(!!!this.formDataItem.uname){
+				errMsg = '反馈人必填!'
+				hasErr= true
+			}
+			if(!!!this.wxOpenId){
+				errMsg = '列表ID获取失败,请返回反馈列表!'
+				hasErr= true
+			}
+			if(hasErr){
+				this.$refs['Message'].warn(errMsg)
+			}
+			return hasErr
+			
+		},
+		getFeedbackTypeName(typeCode){
+			let selectedItem = this.FeedbackType.find(item=>{
+				return item.typecode== typeCode
+			})
+			if(selectedItem){
+					return selectedItem.typename
+				}else{
+					return '--'
+				}
+			
+		},
+		// 获取所有反馈类型
+		getAllFeedbackType(){
+			if(this.FeedbackType.length>0){
+				// 读取缓存
+				return
+			}
+			let _url = `${this.$config.wxBaseUrl}/wx/getAllFeedbackType`
+			this.getOrPostDataBy(_url).then(res=>{
+				this.FeedbackType = res
+				//this.toast.message('获取所有反馈类型成功!')
+			})
+		},
+		// 根据openId获取用户历史反馈信息，包含历史记录单位，手机号等
+		getFeedbackInfoByOpenId(){
+			
+			this.FeedbackHistoryInfo ={}
+			let _url = `${this.$config.wxBaseUrl}/wx/getFeedbackInfoByOpenId`
+			let params = {
+				openId:this.wxOpenId
+			}
+			let config = {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			}
+			this.getOrPostDataBy(_url,params,config).then(res=>{
+				//debugger
+				if(res && typeof res == 'object'){
+					this.FeedbackHistoryInfo = res
+
+					this.provinceName= this.FeedbackHistoryInfo.provinceName
+					this.areaName= this.FeedbackHistoryInfo.cityName
+					this.formDataItem.areaId= this.FeedbackHistoryInfo.areaId
+					this.formDataItem.companyname= this.FeedbackHistoryInfo.companyname
+					this.formDataItem.phoneno= this.FeedbackHistoryInfo.phoneno
+					this.formDataItem.uname= this.FeedbackHistoryInfo.uname
+				}else{
+					this.FeedbackHistoryInfo ={}
+				}
+				
+			})
+		},
+		
+		ChooseImage() {
+			if(!!!this.wxOpenId){
+				this.$refs['Message'].error('微信授权失败,无法上传!');
+				return
+			}
+			uni.chooseImage({
+				count: 1, //默认9
+				sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
+				sourceType: ['album'], //从相册选择
+				success: (res) => {
+					//debugger
+					let tempFilesList = res.tempFiles
+					// if (this.imgList.length != 0) {
+					// 	this.imgList = this.imgList.concat(res.tempFilePaths)
+					// } else {
+					// 	this.imgList = res.tempFilePaths
+					// }
+					let tempFilePaths = res.tempFilePaths
+					
+					uni.showLoading({
+						title: '上传中...'
+					});
+					let _self = this
+					for (var i = 0; i < tempFilePaths.length; i++) {
+						//debugger
+						//let fileObj = tempFilesList[i]
+						uni.uploadFile({
+							url: `${this.$config.wxBaseUrl}/wx/submitFeedbackImg`,
+							filePath: tempFilePaths[i],
+							fileType: 'image',
+							name: 'file',
+							headers: {
+								'Accept': 'application/json',
+								'Content-Type': 'multipart/form-data',
+							},
+							formData: {
+								'file': tempFilePaths[i]
+							},
+							success: (uploadFileRes) => {
+								let resData = JSON.parse(uploadFileRes.data)
+								if(!!resData.success){
+										
+										 _self.$refs['Message'].success('上传成功')
+										 // 上传成功后才显示图片
+										 if (this.imgList.length != 0) {
+										 	this.imgList = this.imgList.concat(res.tempFilePaths)
+										 } else {
+										 	this.imgList = res.tempFilePaths
+										 }
+										  // 上传成功后才显示图片
+										 if (!!!_self.formDataItem.imgids) {
+										 	_self.formDataItem.imgids = resData.result
+										 } else {
+										 	_self.formDataItem.imgids = _self.formDataItem.imgids+ resData.result
+										 }
+								}else{
+									 _self.$refs['Message'].error('上传失败')
+									
+								}
+							
+							},
+							fail: (error) => {
+								this.$refs['Message'].error('上传失败')
+								// this.toast.message(fileObj.name+'上传失败!')
+							},
+							complete: () => {
+								setTimeout(function() {
+									uni.hideLoading();
+								}, 250);
+							},
+						});
+					}
+				}
+			});
+		},
+		ViewImage(e) {
+			uni.previewImage({
+				urls: this.imgList,
+				current: e.currentTarget.dataset.url
+			});
+		},
+		DelImg(e) {
+			let _self = this
+			uni.showModal({
+				title: '提示',
+				content: '确定要删除吗？',
+				cancelText: '取消',
+				confirmText: '确定',
+				success: res => {
+					if (res.confirm) {
+						//debugger
+					   _self.imgList.splice(e.currentTarget.dataset.index, 1)
+					  let imgidsList = _self.formDataItem.imgids.split(',')
+					  if(imgidsList && imgidsList.length>0){
+						 let delItem = imgidsList.splice(e.currentTarget.dataset.index, 1)
+						 if(delItem){
+							_self.deleteImgById(delItem.toString()) 
+						 }
+					  }
+					}
+				}
+			})
+		},
+		//删除图片
+		deleteImgById(imgId){
+			let _url = `${this.$config.wxBaseUrl}/wx/deleteImg`
+			let params = {
+				imgId:imgId,
+			    openId:this.wxOpenId
+			}
+			this.getOrPostDataBy(_url,params).then(res=>{
+				//debugger
+				this.formDataItem.imgids = this.formDataItem.imgids.replace(imgId+',','')
+				this.$refs['Message'].success('删除图片成功');
+			}).catch(err=>{
+				this.$refs['Message'].error('删除图片失败!!'+err);
+			})
+		},
+		// 问题大类选择回调
+		RadioChange(e){
+			this.formDataItem.typeCode = this.FeedbackType[Number(e.detail.value) - 1].typecode
+		},
+		// 预提交数据验证
+		preSubmitData(){
+			if(this.checkBeforeSubmit()){
+				return
+			}
+			let hasSubmitDataBefore = false
+			if(this.FeedbackHistoryInfo && Object.keys(this.FeedbackHistoryInfo).length==0)
+			{
+				hasSubmitDataBefore = true
+			}
+			if(hasSubmitDataBefore){
+				this.showColorUiDialog= true
+				// 电话号码 赋值
+				
+				this.verificationForm.mobile = this.formDataItem.phoneno
+				this.$nextTick(()=>{
+					this.$refs['imgValCode'].init()
+				})
+			}else{
+				this.SubmitData()
+			}
+			
+		},
+		// 提交回调事件
+		SubmitData(){
+			//debugger
+			this.isSubmitting = true
+			if(!!!this.wxOpenId){
+				this.$refs['Message'].error('微信授权失败,无法提交!');
+				return
+			}
+			let _url = `${this.$config.wxBaseUrl}/wx/submitFeedback`
+			let params = this.formDataItem
+			params.openId = this.wxOpenId
+			params.imgids = params.imgids.replace(/,,/g, ',')
+			this.getOrPostDataBy(_url,params).then(res=>{
+				this.isSubmitting = false
+				this.$refs['Message'].success('反馈成功')
+				this.formDataItem = Object.assign({},defaultFormItem) // 清空
+				setTimeout(()=>{
+					uni.$emit('updateFeedbackList',{msg:'页面更新'})
+					uni.navigateTo({
+					    url: 'feedbackList?wxOpenId='+this.wxOpenId
+					});
+					this.verificationForm = {
+						mobile:'',
+						imgValCode:'',
+						mobileValCode:''
+					}	
+				},1000)
+			}).catch(err=>{
+				this.isSubmitting = false
+			})
+		
+		},
+	
+	}
+};
+</script>
+
+<style scoped lang="scss">
+	
+	.imgUpload-cus{
+		//border:1px solid red;
+		height: 180rpx;
+		overflow: hidden;
+	}
+	.uni-textarea-placeholder {
+		font-size: 25rpx;
+	}
+	.uni-input-placeholder {
+		font-size: 25rpx;
+		//color: blue !important;
+	}
+	
+	.textareaFormBox{
+		display: flex;
+		flex-direction: column;
+		.textareaFormItem{
+			//border: 1px solid red;
+			&.oneBox{
+				width: 100%;
+				display: flex;
+				.oneBoxItem{
+					//border: 1px solid red;
+					&.leftItem{
+						width: 24%;
+						display: flex;
+						justify-content: center;
+						align-items: center;
+					}
+					&.rightItem{
+						flex: 1;
+						font-size: 20upx;
+						display: flex;
+						justify-content: flex-end;
+						align-items: center;
+						margin-right: 10rpx;
+					}
+				}
+			}
+			&.twoBox{
+				margin: 10px;
+				width: 94%;
+				height: 230rpx;
+				//border: 1px solid red;
+			}
+		}
+	}
+	.btn{
+		height: 55rpx;
+		line-height: 2em;
+		padding: 2px;
+		border: 1px solid #ccc;
+		&.btn-g{
+			border: 1px solid #ccc;
+			background: #ccc;
+			color: black;
+		}
+		&.btn-b{
+			border: 1px solid green;
+			background: green;
+			color: white;
+		}
+	}
+	.modalFormBox{
+		display:flex;
+		height: 300rpx;
+		width: 100%;
+		flex-direction: column;
+		.modalFormItem{
+			display:flex;
+			justify-content: center;
+			align-items: center;
+			margin: 0 10px;
+			height:100rpx;
+			//border: 1px solid red;
+			.inputInfoBox{
+				display:flex;
+				height: 80rpx;
+				width: 100%;
+				.InputInfoItem{
+					//border: 1px solid blue;
+					&.leftItem{
+						width: 25%;
+						margin-right: 10rpx;
+						display:flex;
+						justify-content: flex-end;
+						align-items: center;
+					}
+					&.rightInfoExtBox{
+						flex:1;
+						display:flex;
+						align-items: center;
+						border-bottom: 1px solid #ccc;
+						.rightInfoExtItem{
+							//border: 1px solid red;
+							height: 100%;
+							&.extLeft{
+								display:flex;
+								align-items: center;
+								width: 58%;
+							}
+							&.extRight{
+								font-size: 25upx;
+								display:flex;
+								align-items: center;
+								justify-content: center;
+								flex:1;
+							}
+						}
+					}
+					&.rightInfoBox{
+						flex:1;
+						display:flex;
+						align-items: center;
+						border-bottom: 1px solid #ccc;
+						.rightInfoItem{
+							display:flex;
+							align-items: center;
+							height: 100%;
+							//border: 1px solid red;
+							&.rightInfoLeft{
+								width: 40%;
+								// border-bottom: 1px solid #ccc;
+							}
+							&.rightInfoRight{
+								flex:1;
+								overflow: hidden;
+								//border: 1px solid red;
+							}
+						}
+					}
+					&.rightItem{
+						flex:1;
+						display:flex;
+						//justify-content: center;
+						align-items: center;
+						border-bottom: 1px solid #ccc;
+					}
+				}
+			}
+		}
+	}
+	.colorRed{
+		color: red;
+	}
+	 // :style="[{height:'calc(100vh - '+ CustomBar + 'px - 50px)'}]"
+	.contentBodyBox{
+		font-size: 32upx;
+		background:white;
+		display: flex;
+		flex-direction: column;
+		height:calc(100vh - 45px);
+		//border: 1px solid red;
+		.contentBodyItem{
+			&.mainBox{
+				overflow: hidden;
+				//width: 100vw;
+				height: 40%;
+				
+			}
+			&.uploadImg {
+				overflow: hidden;
+				height: 20%;
+			//
+			}
+			&.personInfoBox{
+				overflow: hidden;
+				height: 6%;
+				//border: 1px solid red;
+				display: flex;
+				.personInfoItem{
+					width: 50%;
+					height: 80rpx;
+					//border: 1px solid blue;
+					overflow: hidden;
+					&.inputCompanyDescBox{
+						display: flex;
+						width: 100%;
+						justify-content: center;
+						align-items: center;
+						.inputDescItem{
+							&.descTitle{
+								width: 13%;
+								margin-left: 15px;
+								
+							}
+							&.other{
+								flex:1;
+								
+								border-bottom: 1px solid #ccc;
+							}
+							&.areaBox{
+								flex:1;
+								display: flex;
+								height: 60%;
+								border-bottom: 1px solid #ccc;
+								.areaBoxItem{
+									width: 85%;
+									//border: 1px solid red;
+									&.oneItem{
+										display: flex;
+										align-items: center;
+									}
+									&.arrowIcon{
+										width: 50px;
+										display: flex;
+										align-items: center;
+										justify-content: center;
+									}
+								}
+							}
+						}
+					}
+					&.inputDescBox{
+						display: flex;
+						width: 50%;
+						justify-content: center;
+						align-items: center;
+						.inputDescItem{
+							&.descTitle{
+								width: 40%;
+								margin-left: 15px;
+							}
+							&.other{
+								margin-left: 5px;
+								border-bottom: 1px solid #ccc;
+							}
+						}
+					}
+					&.phoneNumBox{
+						
+						flex: 1;
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						.phoneNumItem{
+							//border: 1px solid red;
+							&.descTitle{
+								width: 40%;
+								margin-left: 15px;
+							}
+							&.other{
+								margin-left: 5px;
+								border-bottom: 1px solid #ccc;
+							}
+						}
+					}
+				}
+			}
+			
+			&.submitBtnBox{
+				margin-top: 25rpx;
+				flex: 1;
+			}
+		}
+	}
+	.radioComponent{
+		margin-top: 10rpx;
+		margin-right: 4rpx;
+	}
+	.radioQuesDesc{
+		font-size: 24rpx;
+		margin-right: 55rpx;
+	}
+	.radioDesc{
+		font-size: 25rpx;
+		margin-right: 50rpx;
+	}
+	.questionTypeBox{
+		//overflow: hidden;
+		border-bottom: 1px solid #eee;
+		height: 160rpx;
+		width: 100vw;
+		background: white;
+		display: flex;
+	  		.questionTypeItem{
+	  			&.left{
+	  				width: 24%;
+	  				height: 100%;
+	  				//border: 1px solid blue;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+	  			}
+				&.right{
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					height: 160rpx;
+					font-size: 12rpx;
+					flex:1;
+					//border: 1px solid orange;
+				}
+	  			
+	  		}
+	}
+	
+.maringR {
+	margin-right: 10rpx;
+	color: #afafaf;
+}
+.xunhoutop{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+.xunhuoclass {
+	margin-top: 10px;
+}
+.xunhoubtm {
+	display: flex;
+	justify-content:space-between;
+	position: fixed;
+	background-color: #FFFFFF;
+	bottom: 0px;
+	width: 100%;
+	
+}
+.xunhoubtm >view:first-child{
+	display: flex;
+	align-items:center;
+	margin: 5px;
+	
+}
+.xunhoubtm >view:last-child{
+	margin: 5px;
+}
+.flex-sub {
+	background-color: #FFFFFF;
+}
+</style>
+

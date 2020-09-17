@@ -5,7 +5,7 @@ export default {
 	data(){
 		return {
 			openIdTimer: 10,
-			wxOpenId:'2iC0B6FB94zzfSQMPMb6EhJh_uWo',//微信OPENID wxOpenId:'oiC0B6FB94zzfSQMPMb6EhJh_uWo' 测试
+			wxOpenId:'',//微信OPENID wxOpenId:'oiC0B6FB94zzfSQMPMb6EhJh_uWo' 测试
 			pageSetting:{
 						current:1, // 当前页码
 						pageSize:10, // 每页条数
@@ -83,6 +83,7 @@ export default {
 		},
 		// 获取微信openID
 		getWxOpenId() {
+			//debugger
 		 // 1.先从链接中获取 openId 
 		 let wxOpenId = getUrlParams('openId')
 		 if(!!!wxOpenId){

@@ -1,0 +1,53 @@
+{
+    "name": "支付宝原生扫码插件",
+    "id": "Mpaas-Scan",
+    "version": "1.0.0",
+    "description": "支付宝原生扫码组件，包体积仅0.7MB，15分钟即可完成接入。同时，mPaaS提供「扫码分析」大盘，",
+    "_dp_type":"nativeplugin",
+    "_dp_nativeplugin":{
+        "android": {
+            "plugins": [
+                {
+                    "type": "module",
+                    "name": "Mpaas-Scan-Module",
+                    "class": "com.mpaas.uniapp.scan.MpaasScanModule"
+                }
+            ],
+            "integrateType": "aar",
+            "minSdkVersion": "18",
+			"parameters": {
+			    "AppId": {
+			        "des": "Android平台的AppId，请填写Android的config文件中的appId对应的值",
+			        "key": "mobilegw.appid"
+			    },
+				"WorkspaceId": {
+				    "des": "Android平台的WorkspaceId，请填写Android的config文件中的workspaceId对应的值",
+				    "key": "workspaceId"
+				},
+				"License": {
+				    "des": "Android平台的License,，请填写Android的config文件中的mpaasConfigLicense对应的值",
+				    "key": "mpaasConfigLicense"
+				}
+			}
+        },
+        "ios": {
+            "plugins": [
+                {
+                    "type": "module",
+                    "name": "Mpaas-Scan-Module",
+                    "class": "MPPluginModule4Scan"
+                }
+            ],
+            "integrateType": "framework",
+            "privacies": [
+                "NSPhotoLibraryUsageDescription", 
+                "NSCameraUsageDescription"
+            ],
+            "resources": [
+                "TBDecodeSDK.bundle", 
+                "TBScanSDK.bundle",
+                "meta.config"
+            ]
+        }
+    }
+}

@@ -1,7 +1,7 @@
 <template>
 	<view>
 		<cu-custom bgColor="bg-gradual-blue" :isBack="true">
-				<block slot="content">订单状态查询_cqln</block>
+				<block slot="content">订单状态查询</block>
 		</cu-custom>
 		<form class="xunhoutop">
 			<view class="flex border-top topstate">
