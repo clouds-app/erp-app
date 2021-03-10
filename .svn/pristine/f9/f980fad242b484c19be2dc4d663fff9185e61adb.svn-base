@@ -1,0 +1,114 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="true">
+				<block slot="content">纸板特价申请审批</block>
+		</cu-custom>
+		
+		<view class="border-bottom grid-warp" v-for="(item,index) in fromdata" @tap="seeDetails(index)">
+			<view class="grid-title">
+				<view>序号:{{index+1}}</view>
+				<view  class="cu-tag bg-red radius">未审批</view>
+			</view>
+			<view class="grid-body">
+				<view class="grid-flex padding-10">
+					<view>
+						<text>客户:{{item.CustName}}</text>
+					</view>
+					<view>
+						<text>生效日期:{{item.BeginDate}}</text>
+					</view>
+				</view>
+				<view class="grid-flex padding-10">
+					<view>
+						<text>建档人:{{item.CreaterName}}</text>
+					</view>
+					<view>
+						<text>建档日期:{{item.CreateDate}}</text>
+					</view>
+				</view>
+				
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import dayjs from 'dayjs'
+	import cuCustom from '../../../ui/colorui/components/cu-custom.vue' ;
+	import warehouse from '@/mixins';
+	import request from '@/utils/request.js';
+	export default {
+		components:{cuCustom},
+		mixins:[warehouse],
+		data() {
+			return {
+				fromdata:[],
+				page:{
+					pageNumber:1,
+					showpage:true
+				},
+			}
+		},
+		// #ifdef H5
+		mounted() {
+			this.fromdata = []
+			this.getfromdata()
+		},
+		// #endif
+		// #ifndef H5
+		onShow() {
+			this.fromdata = []
+			this.page.pageNumber = 1
+			this.getfromdata()
+		},
+		// 监听页面触底触发，分页查询
+		onReachBottom(){
+			if(!this.page.showpage){
+				this.getfromdata()
+			}
+		},
+		// #endif
+		methods: {
+			getfromdata(){
+				this.toast.loading()
+				let _self = this
+				request.post(`/approval/paperSpecialApproval/approvalList?pageNumber=`+(this.page.pageNumber)).then(res=>{
+					_self.getshowPage(res.records.length)
+					_self.fromdata = _self.fromdata.concat(res.records) 
+					_self.toast.hide()
+				}).catch(err=>{
+					_self.toast.message(err)
+				})
+			},
+			//校验是否分页
+			getshowPage(length){
+				// debugger
+				if(length<20){
+					this.page.showpage = false
+				}else{
+					this.page.showpage = true
+					this.page.pageNumber++
+				}
+			},
+			// 点击数据回调事件 
+			seeDetails(index){
+				let parms = {
+					BillNo:this.fromdata[index].BillNo,
+					CustName:this.fromdata[index].CustName,
+					BeginDate:this.fromdata[index].BeginDate,
+					EndDate:this.fromdata[index].EndDate,
+					CustID:this.fromdata[index].CustID,
+					ID1:this.fromdata[index].ID1
+				}
+				this.cache.put('getparms',parms)
+				uni.navigateTo({
+				    url: `paperOfferDetails?id=`+(this.fromdata[index].ID1)
+				});
+			},
+		}
+	}
+</script>
+
+<style>
+
+</style>

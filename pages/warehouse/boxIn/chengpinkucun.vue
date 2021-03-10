@@ -1,0 +1,266 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="true">
+				<block slot="content">纸箱成品库存</block>
+				<!--<block slot="right">
+					<view class="rightBtnBox">
+						 <view @click="queryData()" class="cu-btn bg-blue shadow" style="margin-right: 10px;">
+							搜索
+						</view>
+						<view @click="getMoreData()" :disabled="!showPage" class="cu-btn bg-green shadow" >
+							加载更多
+						</view>
+					</view>
+				</block> -->
+		</cu-custom>
+		<view class="flex border-top topFrom">
+			<view  class="userclass">
+				<selectDropdown
+					:otherHeight='CustomBarHeight' 
+					ref="customerDrawer"
+					url="appGetCustomerList"
+					title="客ㅤ户"
+					placeholdertext="请选择客户"
+					v-model='FormItems.CustID'
+					:params='{
+						modelCode:"box_product_store",//模块标识
+						UserCode:this.userInfo.erpUserCode,//--用户编号
+						pageSize:50,
+						pageNum:1,
+					}'
+				></selectDropdown>
+			</view>
+			<view  class="dataClass">
+				<view class="cu-form-group paddingRigntnone">
+					<view class="title paddingnone">品名:</view>
+					<input v-model="FormItems.CoNo" class="borderbottom"/>
+				</view>
+			</view>
+			<view  class="dataClass">
+				<view class="cu-form-group paddingRigntnone">
+					<view class="title paddingnone">料号:</view>
+					<input v-model="FormItems.BatchNo" class="borderbottom"/>
+				</view>
+			</view><view  class="dataClass">
+				<view class="cu-form-group paddingRigntnone">
+					<view class="title paddingnone">工单号:</view>
+					<input v-model="FormItems.WorkNo" class="borderbottom"/>
+				</view>
+			</view>
+		</view>
+		<view class="flex-sub">
+			<view class="topbuttom">
+				<button :disabled="isLoaddingData" class="cu-btn lines-orange shadow"  @click="changeMode(0)">明细</button>
+				<button :disabled="isLoaddingData" class="cu-btn lines-brown shadow"  @click="changeMode(1)">客户汇总</button>
+				<button :disabled="isLoaddingData" class="cu-btn lines-purple shadow"  @click="changeMode(3)">产品汇总</button>
+				<button  class="cu-btn lines-blue shadow"  @click="queryData">查询</button>
+				<button  class="cu-btn lines-mauve shadow" :disabled="!showPage" @click="getMoreData">加载更多</button>
+			</view>
+		</view>
+		<view class="vtable">
+			<v-table
+				:row-class-name="rowClassNameFn"
+				:columns="subdataColumns" 
+				:list="subdataTableList" 
+				selection="single"
+				:td-width="134"	
+				:height="tableHeight-43"
+				>
+			</v-table>
+		</view>
+	</view>
+</template>
+
+<script>
+import selectDropdown from '@/components/selectDropdown/selectDropdown.vue';
+import dayjs from 'dayjs';
+import cuCustom from '../../../ui/colorui/components/cu-custom.vue' ;
+import warehouse from '@/mixins';
+import request from '@/utils/request.js';
+import vTable from "@/components/table.vue";
+const detailedColumn = [
+	{ key: 'rownumber', title: '序号',$width: 75,columnAlign: 'center'},
+	{ key: 'CustName', title: '客户名称', $width: 165, titleAlign: 'left', columnAlign: 'left'},
+	{ key: 'WorkNo', title: '工单号', $width: 165, titleAlign: 'left', columnAlign: 'left'},
+	{ key: 'DueDate', title: '交期', $width: 120, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'bpNo', title: '产品编号', $width: 140, titleAlign: 'left', columnAlign: 'left'},
+	{ key: 'bpName', title: '产品名称', $width: 340, titleAlign: 'left', columnAlign: 'left'},
+	{ key: 'CoQty', title: '订单数', $width: 100, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'StoreQty', title: '库存数', $width: 100, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'NoDelQty', title: '未送数', $width: 100, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Cube', title: '体积', $width: 100, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Area', title: '面积', $width: 100, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'InDate', title: '入库日期', $width: 130, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'PBoxName', title: '箱型', $width: 200, titleAlign: 'left', columnAlign: 'left'},
+	{ key: 'Spec', title: '纸箱信息', $width: 300, titleAlign: 'left', columnAlign: 'left'},
+];
+const gatherColumn = [
+	{ key: 'rownumber', title: '序号',$width: 75,columnAlign: 'center'},
+	{ key: 'CustName', title: '客户名称', $width: 300, titleAlign: 'center', columnAlign: 'center'},
+	{ key: 'WorkQty', title: '工单数', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'StoreQty', title: '库存数', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'NoDelQty', title: '未送数', $width: 280, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Cube', title: '体积', $width: 280, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Area', title: '面积', $width: 280, titleAlign: 'right', columnAlign: 'right'},
+];
+const gatproductColumn = [
+	{ key: 'rownumber', title: '序号',$width: 75,columnAlign: 'center'},
+	{ key: 'bpName', title: '产品名称', $width: 300, titleAlign: 'center', columnAlign: 'center'},
+	{ key: 'WorkQty', title: '工单数', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'StoreQty', title: '库存数', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'NoDelQty', title: '未送数', $width: 280, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Cube', title: '体积', $width: 280, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Area', title: '面积', $width: 280, titleAlign: 'right', columnAlign: 'right'},
+];
+const default_totalList = {CustName:'合计',CoQty:0,StoreQty:0,NoDelQty:0,Cube:0,Area:0,bpName:'合计'}//Table合计数据
+	export default {
+		components:{cuCustom,vTable,selectDropdown},
+		mixins:[warehouse],
+		data() {
+			return {
+				FormItems:{
+					BatchNo:'',//料号
+					CustID:'',//客户
+					CoNo:"",// --订单号
+					WorkNo:"", //--工单号
+					CoNo:'',//单号
+					Mode:0,// -- 0明细、1客户汇总、2产品汇总
+					pageSize:100,
+					pageNum:1,
+					UserID:'',
+				},
+				showPage:false,//是否继续分页查询
+				tableindex:0,//tavle点击索引
+				tableclickitem:0,//table点击行
+				tableHeight:300,//table高度
+				subdataTableList:[],//表显示数据
+				subdataColumns:Object.assign(detailedColumn),
+				totalList:JSON.parse(JSON.stringify(default_totalList))
+			}
+		},
+		// #ifdef H5
+		mounted() {
+		},
+		// #endif
+		// #ifndef H5
+		onLoad(data) {
+
+		},
+		onShow() {
+			plus.navigator.setFullscreen(false);
+			setTimeout(()=>{
+				plus.screen.lockOrientation("landscape-secondary")
+				this.calTableHeight()
+			},1300)
+		},
+		// 监听页面返回时改成正常显示
+		onBackPress(){
+			plus.screen.unlockOrientation();
+			setTimeout(()=>{
+				plus.screen.lockOrientation("portrait-primary")
+			},1300)
+		},
+		// #endif
+		methods: {		
+			//加载更多
+			getMoreData(){
+				this.FormItems.pageNum++
+				this.getTableList()
+			},
+			// Mode变化回调
+			changeMode(data){
+				switch (data){
+					case 0:
+						this.subdataColumns = Object.assign(detailedColumn)
+						break;
+					case 3:
+						this.subdataColumns = Object.assign(gatproductColumn)
+						break;
+					default:
+						this.subdataColumns = Object.assign(gatherColumn)
+						break;
+				}
+				this.totalList = JSON.parse(JSON.stringify(default_totalList))
+				this.subdataTableList = []
+				this.FormItems.Mode = data
+				this.FormItems.pageNum = 1
+				this.getTableList()
+			},
+			// 查询按钮回调
+			queryData(){
+				this.totalList = JSON.parse(JSON.stringify(default_totalList))
+				this.subdataTableList = []
+				this.FormItems.pageNum = 1
+				this.getTableList()
+			},
+			// 查询表单数据
+			getTableList(){
+				this.subdataTableList.splice(this.subdataTableList.length-1,1)
+				this.toast.loading()
+				let _self = this
+				 this.FormItems.UserID = this.userInfo.erpUserCode 
+				 request.post('/warehouse/warehouse/execute/appSpBoxProductStore',this.FormItems).then(res=>{
+					 _self.subdataTableList = _self.subdataTableList.concat(_self.transformData(res.list))
+					 setTimeout(function() {
+						_self.toast.hide()
+					 }, 1500);
+				 }).catch(err=>{
+					 this.toast.message(err)
+				 })
+			},
+			// Table显示数据处理
+			transformData(data){
+				if(data.length < this.FormItems.pageSize){
+					this.showPage = false
+				}else{this.showPage = true}
+				let _self = this
+				data.filter(item=>{
+					_self.totalList.CoQty+=item.CoQty
+					_self.totalList.StoreQty+=item.StoreQty
+					_self.totalList.NoDelQty+=item.NoDelQty
+					_self.totalList.Cube+=item.Cube
+					_self.totalList.Area+=item.Area
+				})
+				this.totalList.Cube=Number(this.totalList.Cube.toFixed(2))
+				this.totalList.Area=Number(this.totalList.Area.toFixed(2))
+				return (data.push(this.totalList),data)
+			},
+			// 设置表格使用剩余高度
+			calTableHeight(){
+				this.$nextTick(()=>{
+					setTimeout(()=>{
+						//延时执行,方便个别小程序兼容
+						let tempHeight =  this.setTableHeight(true)
+						this.tableHeight =tempHeight//特别处理
+					},200)
+				})
+			}
+		}
+	}
+</script>
+
+<style>
+.topbuttom{
+	background-color: #fff;
+}
+.topbuttom button{
+	margin-left: 10px;
+}
+.borderbottom{
+		border-bottom:1px solid #464E52 ;
+}
+.paddingnone{
+	padding: 0px;
+}
+.paddingRigntnone{
+	padding-right: 0px;
+}
+.dataClass{
+	height: 76%;
+	width: 25%;
+}
+.userclass{
+	height: 76%;
+	width: 30%;
+}
+</style>

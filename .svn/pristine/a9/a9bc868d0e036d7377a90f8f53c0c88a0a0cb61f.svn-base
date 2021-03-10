@@ -1,0 +1,469 @@
+<template>
+	<view>
+		<cu-custom class="titlefrom" bgColor="bg-gradual-blue" :isBack="true"><block slot="content">纸板入库</block></cu-custom>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<selectDropdown
+					:otherHeight='CustomBarHeight' 
+					ref="lineDrawer"
+					url="appFindLineSeparation"
+					title="线ㅤ别"
+					placeholdertext="ㅤ请选择线别"
+					v-model='paperInFormItems.lineCode'
+				></selectDropdown>
+			</view>
+			<view class="flex-sub">
+				<selectDropdown
+					:otherHeight='CustomBarHeight' 
+					ref="groupDrawer"
+					url="appFindClassBan"
+					title="班ㅤ别"
+					placeholdertext="ㅤ请选择班别"
+					v-model='paperInFormItems.groupCode'
+					:params='groupparams'
+				></selectDropdown>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<selectDropdown
+					:otherHeight='CustomBarHeight' 
+					ref="stationDrawer"
+					url="appFindSearchStation"
+					title="仓ㅤ位"
+					placeholdertext="ㅤ请选择仓位"
+					v-model='paperInFormItems.stationCode'
+					:params='stationparams'
+				></selectDropdown>
+			</view>
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">日ㅤ期:</view>
+					<input :disabled="true" v-model="paperInFormItems.date"/>
+				</view>
+			</view>
+		</view>
+		<view class="cu-form-group border-top">
+			<view class="title">工单号:</view>
+			<input v-model="paperInFormItems.fOrderNo" @blur="barCodeBlur" placeholder="请扫描工单号" />
+			<button @click="turnOnScanCode('in')"  type="primary" size="mini">扫描</button>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">客ㅤ户:</view>
+					<input :disabled="true" v-model="paperInFormItems.CustName"/>
+				</view>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">订单数:</view>
+					<input :disabled="true" v-model="paperInFormItems.Qty"/>
+				</view>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">已入库:</view>
+					<input :disabled="true" v-model="paperInFormItems.INQty"/>
+				</view>
+			</view>
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title" style="color: red;">入库数:</view>
+					<input type="number" @blur='checkFdNum' v-model="paperInFormItems.FQty" placeholder="请输入数量" />
+				</view>
+			</view>
+		</view>
+		<view class="cu-form-group border-top">
+			<view class="title">扫描入库次数:</view>
+			<input :disabled="true" v-model="paperInFormItems.inCount"/>
+			<button :disabled="paperInFormItems.inCount>0?false:true" @click="wrehouseDetalis()"  type="primary" size="mini">详情</button>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">纸ㅤ质:</view>
+					<input :disabled="true" v-model="paperInFormItems.ArtID"/>
+				</view>
+			</view>
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">楞ㅤ别:</view>
+					<input :disabled="true" v-model="paperInFormItems.LB"/>
+				</view>
+			</view>
+		</view>
+		<view class="cu-form-group border-top">
+			<view class="title">规ㅤ格:</view>
+			<input :disabled="true" v-model="paperInFormItems.Size"/>
+		</view>
+		<view class="cu-form-group border-top">
+			<view class="title">压ㅤ线:</view>
+			<input :disabled="true" v-model="paperInFormItems.YxStr"/>
+		</view>
+		<view class="cu-form-group border-top">
+			<view class="title">备ㅤ注:</view>
+			<textarea :disabled="true" maxlength="-1" v-model="paperInFormItems.Oremark"></textarea>
+		</view>
+		<!-- 底部按钮 -->
+		<view class="flex solid-bottom padding justify-around chucangbtm">
+			<button @click="resetFrom"  type="primary" size="mini" class="bg-grey radius">清除</button>
+			<button :disabled="disable" @click="paprtIn"  type="primary" size="mini" class="bg-grey radius">保存</button>
+		</view>
+		<!-- 抽屉 -->
+		<!--  侧边搜索列表 -->
+		<!-- <searchForm @getSelectDataInfo="getSelectDataInfo" :dataSource="dataSource" ref='searchForm'></searchForm> -->
+		
+	</view>
+</template>
+
+<script>
+import selectDropdown from '@/components/selectDropdown/selectDropdown.vue'
+import zTable from '@/components/z-table/z-table.vue';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import request from '@/utils/request.js';
+import warehouse from '@/mixins';
+import searchForm from '@/components/searchForm/searchDataList.vue.vue'
+export default {
+	name: 'paperIn',
+	components: { zTable, cuCustom, searchForm, selectDropdown },
+	mixins: [warehouse],
+	data() {
+		return {
+			stationparams:{type:2,modelCode:'paper_in'},
+			groupparams:{type:2,procType:5,modelCode:'paper_in'},
+			disable:true,
+			modelVal:null,//存储是那个抽屉
+			dataSource:[],//抽屉弹框数据
+			deepList:[],//班别数据列表
+			workHouseList:[],//仓位数据列表
+			lineList:[],//线别数据列表
+			modalName: null,
+			TabCur: 0,
+			scrollLeft: 0,
+			dataTableList: [],
+			errorContent: '暂无数据', //数据加载中...
+			tableHeight: 0, //表格高度
+			findGoodsTableDataItems: [],
+			paperOutTableDataItems: [],
+			paperInFormItems: {
+				instruct: '', //指令
+				station: '', //仓位				
+				stationCode:'',//仓位id
+				fOrderNo: '', //工单号
+				line: '', //线别
+				lineCode:'',//线别id
+				group: '', //班别
+				groupCode:'',//班别id
+				fQty: '', //数量
+				fDNum: '', //板号,
+				ArtID:'',//纸质id
+				CustID:'',//客户id
+				CustName:'',//客户名
+				INQty:'',//已入库数
+				FQty:'',//入库数
+				LB:'',//楞别
+				MinSize:'',//小尺寸
+				Size:'',//规格
+				YxStr:'',//压线
+				Qty:'',//订单数
+				Oremark:'',//备注
+				inCount:0,
+				date:new Date().toISOString().slice(0, 10),//日期
+			},
+			findGoodsItem: {
+				fOrderNo: '' //工单号
+			},
+			paperOutItem: {
+				fOrderNo: '', //工单号
+				batch: ''
+			},
+		};
+	},
+	mounted() {
+		// this.getlineList()//线别列表
+	},
+
+	onReady() {
+		// this.getlineList()//线别列表
+	},
+	methods: {
+		// 扫描入库详情
+		wrehouseDetalis(){
+			uni.navigateTo({
+			    url:`rukuDatelis_dzcx?id=${this.paperInFormItems.fOrderNo}`
+			});
+		},
+		//入库数校验
+		checkFdNum(){
+			let FQty = Number(this.paperInFormItems.FQty) //入库数
+			let INQty = Number(this.paperInFormItems.INQty) //已入库
+			let Qty = Number(this.paperInFormItems.Qty) //订单数
+			// let Qty
+			if(	FQty>(Qty-INQty)){
+				uni.showModal({
+				    title: '提示',
+				    content: '累计入库数已大于订单数,是否继续？',
+				    success: (res)=> {
+						if(res.cancel){
+							this.paperInFormItems.FQty = ''
+						}
+				    }
+				});
+				// this.toast.message('入库数不能大于未入库数')
+			}
+		},
+		//清除按钮
+		resetFrom(){
+			this.paperInFormItems.fOrderNo = ''
+			this.paperInFormItems.fQty = ''
+			this.paperInFormItems.fDNum = ''
+			this.paperInFormItems.ArtID = ''
+			this.paperInFormItems.CustID = ''
+			this.paperInFormItems.CustName = ''
+			this.paperInFormItems.INQty = ''
+			this.paperInFormItems.LB = ''
+			this.paperInFormItems.MinSize = ''
+			this.paperInFormItems.Size = ''
+			this.paperInFormItems.YxStr = ''
+			this.paperInFormItems.Qty = ''
+			this.paperInFormItems.Oremark = ''
+			this.paperInFormItems.FQty = ''
+			this.paperInFormItems.inCount = 0	
+		},
+		hideModal(e) {
+			this.modalName = null
+		},
+		tabSelect(e) {
+			this.TabCur = e.currentTarget.dataset.id;
+			this.scrollLeft = (e.currentTarget.dataset.id - 1) * 60;
+		},
+		//打开扫描
+		async turnOnScanCode(type) {
+			if(this.checkScan()){
+				this.toast.message('请在"e包装"公众号中下载APP后扫码!')
+				return
+			}
+			let scandata = await this.ScanModule(); 
+			if(scandata.resp_code==1000){
+				let a = scandata.resp_result.indexOf(',')
+				let b = 0
+				if(a<0){
+					b = scandata.resp_result
+				}else{
+					b = scandata.resp_result.substring(0,a)
+				}
+				this.paperInFormItems.fOrderNo = b;
+				this.getParamsFromScanCode();
+			}else{
+				this.toast.message('扫码失败请重试')
+			}
+		},
+		// turnOnScanCode(type) {
+		// 	if(window !== undefined){
+		// 		this.toast.message('请在"e包装"公众号中下载APP后扫码!')
+		// 		return
+		// 	}
+		// 	let _self = this;
+		// 	this.resetFrom()	
+		// 	// 调起条码扫描
+		// 	uni.scanCode({
+		// 		scanType: 'barCode',
+		// 		success: function(res) {
+		// 			// console.log('条码类型：' + res.scanType);
+		// 			_self.play_dede('../../../../static/wxbb.mp3')
+		// 			let a = res.result.indexOf(',')
+		// 			let b = 0
+		// 			console.log(a)
+		// 			if(a<0){
+		// 				b = res.result
+		// 			}else{
+		// 				b = res.result.substring(0,a)
+		// 			}
+		// 			switch (type) {
+		// 				case 'in': //入库
+		// 					_self.paperInFormItems.fOrderNo = b;
+		// 					_self.getParamsFromScanCode();
+		// 					break;
+		// 				case 'out': //出仓
+		// 					this.paperOutItem.fOrderNo = res.result;
+		// 					break;
+		// 				case 'search': //寻货
+		// 					this.findGoodsItem.fOrderNo = res.result;
+		// 					break;
+
+		// 				default:
+		// 					break;
+		// 			}
+		// 		}
+		// 	});
+		// },
+		barCodeBlur() {
+			// debugger
+			if (this.paperInFormItems.lineCode == '') {
+				this.toast.message('请先选择线别')
+				return;
+			}if (this.paperInFormItems.groupCode == '') {
+				this.toast.message('请先选择班别')
+				return;
+			}if (this.paperInFormItems.stationCode == '') {
+				this.toast.message('请先选择仓位')
+				return;
+			}
+			if (this.paperInFormItems.fOrderNo == '') {
+				this.toast.message('请输入或扫描条码')
+				return;
+			}
+			this.getParamsFromScanCode();
+		},
+		getpaperInFormItems(data){
+			this.paperInFormItems.ArtID = data.ArtID
+			this.paperInFormItems.CustID = data.CustID
+			this.paperInFormItems.CustName = data.CustName
+			this.paperInFormItems.LB = data.LB
+			this.paperInFormItems.MinSize = data.MinSize
+			this.paperInFormItems.Oremark = data.Oremark
+			this.paperInFormItems.Qty = data.Qty
+			this.paperInFormItems.INQty = data.INQty
+			this.paperInFormItems.Size = data.Size
+			this.paperInFormItems.YxStr = data.YxStr
+			this.paperInFormItems.FQty = data.FQty
+			this.paperInFormItems.inCount = data.inCount
+		},
+		//====入库====获取所需参数 从扫描中...
+		getParamsFromScanCode() {
+			// debugger
+			let params = {
+				OrderNo:this.paperInFormItems.fOrderNo,
+				// UserID:this.userInfo.phoneNo,
+			}
+			let data =  []
+			this.toast.loading();
+			// request.post('/proc/execute/spGetPaperCOInfoForAPP',{OrderNo:fOrderNo})
+			request.post('/proc/execute/appSpGetPaperCOInfoDzcx',params)
+			.then(res=>{
+				if(res.list.length===0){
+					this.toast.hide();
+					this.toast.message('对不起，系统没有此工单号，请重新扫描!');
+					this.resetFrom()
+					return;
+				}
+				this.disable = false
+				// data = res.list[0]
+				this.getpaperInFormItems(res.list[0])
+				this.toast.hide();
+			}).catch(err=>{
+				this.toast.hide()
+				this.toast.message('执行失败')
+			})			
+
+			Object.assign(this.paperInFormItems, data);
+		},
+		//提交数据
+		paperInRequest(data) {
+			// debugger
+			return request.post('/warehouse/warehouse/execute/appSpScanOrderDzcx', data);
+		},
+		//提交数据校验
+		ValidateData(){
+			let flag = false
+			if (this.paperInFormItems.lineCode == '') {
+				this.toast.message('请输入线别');
+				this.disable = false
+				flag = true
+			}
+			if (this.paperInFormItems.stationCode == '') {
+				this.toast.message('请输入仓位');
+				this.disable = false
+				flag = true
+			}
+			if (this.paperInFormItems.groupCode == '') {
+				this.toast.message('请输入班别');
+				this.disable = false
+				flag = true
+			}
+			if (this.paperInFormItems.fOrderNo == '') {
+				this.toast.message('请扫描工单号');
+				this.disable = false
+				flag = true
+			}
+			if (this.paperInFormItems.FQty === 0) {
+				this.toast.message('请输入入库数');
+				this.disable = false
+				flag = true
+			}
+			return flag
+		},
+		//确认提交===入仓===
+		paprtIn() {
+			if(!!this.ValidateData()){
+				return
+			}
+			let BarCodeStr = this.paperInFormItems.fOrderNo+'*'
+			+0+'*'+this.paperInFormItems.FQty
+			+'*'+this.paperInFormItems.lineCode+'*'
+			+this.paperInFormItems.groupCode
+			let user = this.cache.get(this.appConst.CLIENT_USER_CACHE_NAME)
+			let data = {
+				UserID:user.erpUserCode,
+				BarCodeStr: BarCodeStr,
+				Station: this.paperInFormItems.stationCode,
+				Flag: 0,
+				FOrderNo: this.paperInFormItems.fOrderNo,
+				FQty: this.paperInFormItems.FQty,
+				FDNum: 0,
+				FLine: this.paperInFormItems.lineCode,
+				FClass: this.paperInFormItems.groupCode,
+				Remark: this.paperInFormItems.Oremark,
+				OrderQty: this.paperInFormItems.Qty,
+				UserPhone: this.userInfo.phoneNo,
+			};
+			//debugger
+			this.toast.loading();
+			this.paperInRequest(data)
+				.then(res => {
+					//console.log(res)
+					this.toast.hide();
+					if (res.list && res.list[0].res == 1) {
+						this.toast.message('入仓成功');
+						this.resetFrom()
+						this.disable = true
+					} else {
+						this.toast.message('入仓失败');
+						this.getParamsFromScanCode()
+					}
+				})
+				.catch(err => {
+					this.toast.hide();
+					this.toast.message('入仓失败');
+					this.getParamsFromScanCode()
+				});
+		},
+		
+	}
+};
+</script>
+
+<style>
+.margin-text-center {
+	text-align: center;
+	margin: 20rpx;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+.chucangbtm{
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+	z-index: 2;
+}
+</style>

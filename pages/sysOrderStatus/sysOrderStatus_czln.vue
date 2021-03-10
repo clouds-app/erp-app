@@ -211,7 +211,7 @@ const defaultformItem = {
 				// // 重置 搜索模式
 				let time = new Date();
 				let d = time.getDate()-1;
-				let nowDayOfWeek = new Date().getDay()-1; //今天本周的第几天
+				let nowDayOfWeek = !!new Date().getDay()?new Date().getDay()-1:0; //今天本周的第几天
 				switch (type){
 					// 本周dayjs()
 					case 'week':

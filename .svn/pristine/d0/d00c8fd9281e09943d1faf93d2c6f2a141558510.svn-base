@@ -1,0 +1,608 @@
+<template>
+	<view>
+		<cu-custom class="titlefrom" bgColor="bg-gradual-blue" :isBack="true"><block slot="content">原纸库存查询</block></cu-custom>
+		<form class="xunhoutop">
+			<view class="bodyContentHeight">
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<!-- 制造商 -->
+						<selectDropdown
+							:otherHeight='CustomBarHeight'
+							title="制造商"
+							url="appFindVendor"
+							ref="customerDrawer" 
+							v-model="paperStoreItem.findVendor"
+							placeholdertext="请选择制造商"
+						></selectDropdown>
+							<!-- <customerSelect :otherHeight='otherHeight' ></customerSelect> -->
+					</view>
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='CustomBarHeight'
+							title="门ㅤ幅"
+							url="appFindPaperLimit"
+							ref="findPaperLimit" 
+							v-model="paperStoreItem.findPaperLimitCode"
+							placeholdertext="ㅤ请选择门幅"
+						></selectDropdown>
+						<!-- <view class="cu-form-group">
+							<view class="title">门ㅤ幅:</view>
+							<input @click="setSearchDataListSource('findPaperLimit')" :disabled="true" v-model="paperStoreItem.findPaperLimit" placeholder="请选择门幅" />
+							<text @click="setSearchDataListSource('findPaperLimit')" class="cuIcon-rounddown text-green"></text>
+						</view> -->
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='CustomBarHeight'
+							title="类ㅤ型"
+							url="appFindSPaperType"
+							ref="customertype"
+							v-model="paperStoreItem.findSPaperType"
+							placeholdertext="请选择类型"
+						></selectDropdown>
+							<!-- <typeselect :otherHeight='otherHeight'  ></typeselect> -->
+					</view>
+					<view class="flex-sub">
+						<view class="cu-form-group">
+							<view class="title">克ㅤ重:</view>
+							<input  v-model="paperStoreItem.Gram" placeholder="请输入克重" />
+							<!-- <text @click="setSearchDataListSource('machine')" class="cuIcon-rounddown text-green"></text> -->
+						</view>
+					</view>
+				</view>
+				<view class="cu-form-group border-top">
+					<view class="title">卷ㅤ号:</view>
+					<input v-model="paperStoreItem.Coil" @blur="findGoods" placeholder="请输入卷号" name="input" />
+					<button @click="turnOnScanCode" type="primary" size="mini">扫描</button>
+				</view>
+			</view>
+		</form>
+		<view style="height: 120px;"></view>
+		<!-- 数据查询列表 -->
+		<view  class="grid-warp" v-for="(item,index) in fromdata" :key='index'>
+			<view class="grid-title">
+				<view>卷号:{{item.CoilNo}}</view>
+				<view>仓位:{{item.StationName}}</view>
+			</view>
+			<view class="grid-body">
+				<view class="grid-flex padding-10">
+					<view>
+						<text>供应商：{{item.VendorName}}</text>
+					</view>
+					<view>
+						<text>重量：{{item.Ewt}}</text>
+					</view>
+				</view>
+				<view class="grid-flex padding-10">
+					<view>
+						<text>类ㅤ型：{{item.SPaperName}}</text>
+					</view>
+					<view>
+						<text>门幅：{{item.Width}}</text>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view style="height: 80px;"></view>
+		<!-- 底部按钮 -->
+		<view class="chucangbtm">
+			<view class="flex solid-bottom padding justify-around elBtn" ref="elBtn">
+				<view>	<button @click="resetFrom"  type="primary" size="mini" class="bg-grey radius">清除</button></view>
+				<view style="margin-top: 5px;"> <text>总卷数:{{numbertext}}</text>	</view>
+				<view>	<button @click="paprtIn"  type="primary" size="mini" class="bg-grey radius">搜索</button></view>
+			</view>
+		</view>
+		<!--  侧边搜索列表 -->
+		<searchForm @getSelectDataInfo="getSelectDataInfo" :dataSource="dataSource" ref='searchForm'></searchForm>
+		<!-- <view class="margin-text-center"><button @click="paperStoreSearch" type="primary" class="primary-btn">查ㅤ询</button></view> -->
+		<!-- <zTable :tableHeight="storeTableHeight" :showLoading="false" :emptyText="errorContent" :tableData="paperStoreTableData" :columns="paperStoreColumns"></zTable> -->
+	</view>
+</template>
+
+<script>
+import selectDropdown from '@/components/selectDropdown/selectDropdown.vue'
+import typeselect from './typeselect.vue'
+import zTable from '@/components/z-table/z-table.vue';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import request from '@/utils/request.js';
+import dateFormat from '@/utils/dateFormat.js';
+import warehouse from '@/mixins';
+import searchForm from '@/components/searchForm/searchDataList.vue.vue'
+export default {
+	name: 'paperOB', ///原纸出退仓
+	mixins: [warehouse],
+	components: { zTable, cuCustom, searchForm,  typeselect, selectDropdown },
+	data() {
+		return {
+			// otherHeight:0,//title高度
+			dataSource:[],//数据源
+			numbertext:0,//总卷数
+			scanType: 'orderNo', //scanType:指令 rollNo:卷号
+			TabCur: 0,
+			scrollLeft: 0,
+			dataTableList: [],
+			errorContent: '暂无数据', //'数据加载中...',
+			tableHeight: 500, //表格高度
+			paperStoreTableData: [],
+			operStatus: '',
+			paperOutBtnShow: false,
+			paperBackBtnShow: false,
+			findVendorList:[],//供应商列表
+			findPaperLimitList:[],//门幅列表
+			findSPaperTypeList:[],//类型列表
+			fromdata:[],//数据查询列表
+			paperOutFormInit: {
+				instruct: '', //指令
+				line: '', //线别
+				group: '', //班别
+				outUser: '', //发料
+				inUser: '', //领料,
+				coil: '', //卷号
+				paperType: '暂ㅤ无', //纸类
+				gram: '0', //克重
+				paperWidth: '暂ㅤ无', //纸度
+				ewt: '', //重量
+				desc: '' //备注
+			},
+			paperStoreItem: {
+				findVendor:'',//制造商
+				findVendorCode:'',
+				findPaperLimit:'',//门幅
+				findPaperLimitCode:'',
+				findSPaperType:'',//类型
+				findSPaperTypeCode:'',
+				Vend: '', //工单号
+				Type: '',
+				Station: '',
+				Width: '',
+				Gram: '',//克重
+				Coil: ''
+			},
+		};
+	},
+	computed: {
+		storeTableHeight() {
+			return this.screen.height / 2 + 25;
+		}
+	},
+	// #ifdef H5
+	mounted() {
+		// this.getfindPaperLimitList()//门幅列表
+		// this.getTableHeight()
+	},
+	// #endif
+	// #ifndef H5
+	onReady() {
+		
+		// this.getfindPaperLimitList()//门幅列表
+		// this.getTableHeight()
+	},
+	// #endif
+	methods: {
+		//计算设置表格高度
+		setTableHeight(needOtherHeight=false){
+				  if(!needOtherHeight){
+					  this.otherHeight = 0
+				  }
+				try {
+					//debugger
+				    const res = uni.getSystemInfoSync();
+				    // console.log('windowHeight:'+res.windowHeight);
+				     // console.log('CustomBar:'+this.CustomBar);
+				    // console.log('bodyContentHeight:'+this.otherHeight);
+					this.leftContentHeight =res.windowHeight -this.CustomBar - this.otherHeight -10
+					//console.log('tableHeight:'+this.leftContentHeight);
+					return this.leftContentHeight
+				} catch (e) {
+				    // error
+				}
+		},
+		//获取指定内容占用高度,计算剩余高度 单位:PX
+		getOtherContentHeight(className='bodyContentHeight'){
+		  return new Promise((resolve, reject) => {
+			   let eleHeight=0
+			   let _self =this
+			   let info = uni.createSelectorQuery().in(_self).select("."+className);
+			  info.boundingClientRect(function(data) { //data - 各种参数
+				 // console.log('other Height:'+data.height)  // 获取元素宽度
+			 　　   _self.otherHeight = data.height
+					eleHeight = data.height
+					resolve(data.height)
+			   }).exec(function (res) {
+			   })
+		  })
+		},
+		async getTableHeight(){
+		  let _self=this
+		  let tempHeight =  _self.setTableHeight()
+		  // console.log(tempHeight)
+		  let otherHeight= await _self.getOtherContentHeight("titlefrom") 
+		  // console.log(otherHeight)
+		  // let serchHeight= await _self.getOtherContentHeight("searchfrom")
+		  // console.log(serchHeight)
+		},
+		// 获取门幅列表
+		getfindPaperLimitList(){
+			let data = {
+				// Type:"0,2",
+				// Name:""
+			}
+			// request.post('/warehouse/warehouse/execute/findVendor',data)
+			this.gerRequstdata('appFindPaperLimit',data).then(res=>{
+				// console.log(res)
+				let resData=res.list.map(item=>{
+					let formatData = {
+						type:item.value,
+						ct_Desc:item.text
+					}
+					return formatData
+				})
+				this.findPaperLimitList = resData
+			})
+		},
+		gerRequstdata(data,param){
+			return request.post(`/warehouse/warehouse/execute/${data}`,param)
+		},
+		// 搜索
+		paprtIn(){
+			// debugger
+			if(this.paperStoreItem.findSPaperType != '' || this.paperStoreItem.Coil != ''||
+				this.paperStoreItem.findPaperLimitCode != ''|| this.paperStoreItem.Gram != '' || 
+				this.paperStoreItem.findVendor != ''){
+			}else{
+				this.toast.message('至少选择一个条件')
+				return
+			}
+			// debugger
+			this.fromdata = [];
+			this.numbertext = 0;
+			let data = {
+				Coil:this.paperStoreItem.Coil,	//--卷号
+				Vend:this.paperStoreItem.findVendor,	//--制造商
+				Type:this.paperStoreItem.findSPaperType,	//--类型
+				Width:this.paperStoreItem.findPaperLimitCode,	//--门幅
+				Gram:this.paperStoreItem.Gram,	//--克重
+			    Station:this.paperStoreItem.Vend	//--仓位   
+				// Coil:'2a090351910030',	//--卷号
+				// Vend:'YZ165',	//--制造商
+				// Type:'2a',	//--类型
+				// Width: '35',	//--门幅
+				// Gram:'90',	//--克重
+			}
+			this.toast.loading();
+			request.post('/warehouse/warehouse/execute/appSpSPaperStoreQueryForPDA',data)
+			.then(res=>{
+				console.log(res)
+				if(res.list.length >0 ){
+					this.toast.hide();
+					this.fromdata = res.list
+					this.numbertext = res.list.length	
+				}else{
+					this.toast.hide();
+					this.toast.message('暂无数据')
+					// uni.showToast({
+					//     title: '暂无数据',
+					//     duration: 2000,
+					// 	mask:true
+					// });
+
+				}
+				
+			}).catch(err=>{
+				this.toast.hide();
+				this.toast.message('数据加载失败')
+			})
+		},
+		// 清除
+		resetFrom(){
+			this.fromdata = [];
+			// this.paperStoreItem = {};
+			this.paperStoreItem.findVendor = '';
+			this.$refs.customerDrawer.$data.formItem.customers = '';
+			this.$refs.customerDrawer.$data.formItem.customersId = '';
+			this.$refs.findPaperLimit.$data.formItem.customers = '';
+			this.$refs.findPaperLimit.$data.formItem.customersId = '';
+			this.$refs.customertype.$data.formItem.customers = '';
+			this.$refs.customertype.$data.formItem.customersId = '';
+			this.paperStoreItem.findVendor = '';
+			this.paperStoreItem.findPaperLimit = '';
+			this.paperStoreItem.findSPaperType = '';
+			this.paperStoreItem.Gram = '';
+			this.paperStoreItem.Coil = '';
+			// this.paperStoreItem.Gram = '';
+			// this.paperStoreItem.Coil = '';
+			this.numbertext = 0;
+		},
+		//右侧弹框
+		setSearchDataListSource(type){
+			// debugger
+			this.currentSelect = type
+			this.$refs['searchForm'].isMultipel=false
+			this.$refs['searchForm'].isShowSearchList=true
+		   if(type==='findVendor'){//制造商
+				// debugger
+				 this.dataSource = this.findVendorList
+				 this.$refs['searchForm'].dataSourceList =this.findVendorList
+		   }else if(type === 'findPaperLimit'){//门幅
+			   this.dataSource = this.findPaperLimitList
+			   this.$refs['searchForm'].dataSourceList =this.findPaperLimitList
+		   }else {//类型
+			   this.dataSource = this.findSPaperTypeList
+			   this.$refs['searchForm'].dataSourceList =this.findSPaperTypeList
+		   }
+		},
+		// 选择  线别/班别/客户  数据回调事件
+		getSelectDataInfo(item){
+			// debugger
+			switch (this.currentSelect){
+				case 'findVendor':
+				this.paperStoreItem.findVendor=item.ct_Desc
+				this.paperStoreItem.findVendorCode=item.type
+					break;
+				case 'findPaperLimit':
+				this.paperStoreItem.findPaperLimit=item.ct_Desc
+				this.paperStoreItem.findPaperLimitCode=item.type
+					break;
+				case 'findSPaperType':
+				this.paperStoreItem.findSPaperType=item.ct_Desc
+				this.paperStoreItem.findSPaperTypeCode=item.type
+					break;	
+				default:
+					break;
+			}
+		},
+		//工单号失去焦点
+		findGoods(){
+			let data = {
+				Coil:this.paperStoreItem.Coil,	//--卷号
+				Vend:this.paperStoreItem.findVendorCode,	//--制造商
+				Type:this.paperStoreItem.findSPaperTypeCode,	//--类型
+				Width:this.paperStoreItem.findPaperLimitCode,	//--门幅
+				Gram:this.paperStoreItem.Gram,	//--克重
+			}
+			this.toast.loading()
+			request.post('/warehouse/warehouse/execute/appSpSPaperStoreQueryForPDA',data)
+			.then(res=>{
+				if(res.list && res.list.length > 0){
+					// console.log(res)
+					this.toast.hide();
+					this.fromdata = res.list
+					this.numbertext = res.list.length
+				}else{
+					this.toast.hide();
+					this.paperStoreItem.Coil = ''
+					this.toast.message('没有该订单对应的数据');
+				}
+			}).catch(err=>{
+				this.toast.hide();
+				this.errorContent = '暂无数据';
+				this.toast.message('获取数据失败:' + err);
+			})
+		},
+		//===打开扫描===
+		async turnOnScanCode(type) {
+			if(this.checkScan()){
+				this.toast.message('请在"e包装"公众号中下载APP后扫码!')
+				return
+			}
+			let scandata = await this.ScanModule(); 
+			if(scandata.resp_code==1000){
+				let a = scandata.resp_result.indexOf(',')
+				let b = 0
+				if(a<0){
+					b = scandata.resp_result
+				}else{
+					b = scandata.resp_result.substring(0,a)
+				}
+				this.paperStoreItem.Coil = b
+				this.findGoods();
+			}else{
+				this.toast.message('扫码失败请重试')
+			}
+		},
+		// turnOnScanCode(type) {
+		// 	this.scanType = type;
+		// 	let _self = this;
+		// 	// 调起条码扫描
+		// 	uni.scanCode({
+		// 		scanType: 'barCode',
+		// 		success: function(res) {
+		// 			// console.log('条码类型：' + res.scanType);
+		// 			let a = res.result.indexOf(',')
+		// 			let b = 0
+		// 			// console.log(a)
+		// 			if(a<0){
+		// 				b = res.result
+		// 			}else{
+		// 				b = res.result.substring(0,a)
+		// 			}
+		// 			_self.play_dede()
+		// 			_self.paperStoreItem.Coil = b
+		// 			_self.findGoods();
+		// 		}
+		// 	});
+		// },
+		//====解构扫描数据获取所需参数=====
+		getInstruct(value) {
+			if (value == '') {
+				if (this.scanType === 'orderNo') {
+					uni.showToast({
+						title: '请输入或扫描指令',
+						icon: 'none',
+						duration: 2000
+					});
+				} else if (this.scanType === 'rollNo') {
+					uni.showToast({
+						title: '请输入或扫描卷号',
+						icon: 'none',
+						duration: 2000
+					});
+				} else {
+					uni.showToast({
+						title: '请输入必要信息',
+						icon: 'none',
+						duration: 2000
+					});
+				}
+
+				return;
+			}
+			let instruct = value.split('+');
+			if (instruct.length < 5) {
+				uni.showToast({
+					title: '数据解析失败，参数个数不够',
+					icon: 'none',
+					duration: 2000
+				});
+				return;
+			}
+			let data = {
+				line: instruct[1],
+				group: instruct[2],
+				inUser: instruct[4],
+				outUser: instruct[3]
+			};
+			return data;
+		},
+		//===指令INPU焦点离开===回调事件 ===出仓
+		paperOutInstructBlur() {
+			this.scanType = 'orderNo';
+			//解构参数列表,获取所需参数
+			let data = this.getInstruct(this.paperOutFormItems.instruct);
+			if (data) {
+				Object.assign(this.paperOutFormItems, data);
+				this.paperOutFormItems.instruct = '';
+			}
+		},
+		//===指令INPU焦点离开===回调事件 ===退仓
+		paperBackInstructBlur() {
+			//解构参数列表,获取所需参数
+			let data = this.getInstruct(this.paperBackFormItems.instruct);
+			if (data) {
+				Object.assign(this.paperBackFormItems, data);
+				this.paperBackFormItems.instruct = '';
+			}
+		},
+		//===原纸出退仓数据请求===
+		paperOBRequest(data, text) {
+			return new Promise((resolve, reject) => {
+				this.toast.loading();
+				request
+					.post(data)
+					.then(res => {
+						this.toast.hide();
+						if (res.list.length > 0) {
+							if (res.list[0].ErrorStr && res.list[0].ErrorStr != '') {
+								this.toast.message(res.list[0].ErrorStr);
+								return;
+							}
+							this.toast.message(text + '成功');
+							resolve(res);
+							return;
+						}
+						this.toast.message(text + '失败');
+					})
+					.catch(err => {
+						this.toast.hide();
+						this.errorContent = '暂无数据';
+						this.toast.message('获取数据失败:' + err);
+						reject();
+					});
+			});
+		},
+		//===出仓===
+		paperOut() {
+			if (this.paperOutFormItems.coil == '') {
+				this.toast.message('请输入或扫描卷号');
+				return;
+			}
+			let data = {
+				Line: this.paperOutFormItems.line,
+				Group: this.paperOutFormItems.group,
+				Oper: 'admin',
+				Flag: 'out',
+				Coil: this.paperOutFormItems.coil,
+				OutUseID: this.paperOutFormItems.outUser,
+				InUseID: this.paperOutFormItems.inUser,
+				Wt: this.paperOutFormItems.ewt,
+				OperDate: dateFormat('yyyy-MM-dd hh:mm:ss')
+			};
+			this.paperOBRequest(data, '出仓').then(res => {
+				this.paperOutFormItems = JSON.parse(JSON.stringify(this.paperOutFormInit));
+				this.paperOutBtnShow = false;
+			});
+		},
+		//====退仓====
+		paperBack() {
+			if (this.paperBackFormItems.coil == '') {
+				this.toast.message('请输入或扫描卷号');
+				return;
+			}
+			let data = {
+				Line: this.paperBackFormItems.line,
+				Group: this.paperBackFormItems.group,
+				Oper: 'admin',
+				Flag: 'back',
+				Coil: this.paperBackFormItems.coil,
+				OutUseID: this.paperBackFormItems.outUser,
+				InUseID: this.paperBackFormItems.inUser,
+				Wt: this.paperBackFormItems.ewt,
+				OperDate_IN_date: dateFormat('yyyy-MM-dd hh:mm:ss'),
+				ErrorStr_OUT_varchar: ''
+			};
+			this.paperOBRequest(data, '退仓').then(res => {
+				this.paperBackFormItems = JSON.parse(JSON.stringify(this.paperOutFormInit));
+				this.paperBackBtnShow = false;
+			});
+		},
+		//====库存查询======
+		paperStoreSearch() {
+			if (this.paperStoreItem.Type == '') {
+				this.toast.message('请输入纸类');
+				return;
+			}
+			this.errorContent = '数据加载中...';
+			this.toast.loading();
+			request
+				.post('/warehouse/warehouse/execute/spSPaperStoreQueryForPDA', this.paperStoreItem)
+				.then(res => {
+					this.toast.hide();
+					res = res.list;
+					this.paperStoreTableData = res;
+					this.errorContent = '暂无数据';
+				})
+				.catch(err => {
+					this.toast.hide();
+					this.errorContent = '暂无数据';
+					this.toast.message('获取数据失败:' + err);
+				});
+		}
+	}
+};
+</script>
+
+<style scoped>
+.xunhoutop{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.chucangbtm{
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+}
+.margin-text-center {
+	text-align: center;
+	margin: 20rpx;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+</style>

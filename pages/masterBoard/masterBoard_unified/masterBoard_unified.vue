@@ -1,0 +1,179 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="false">
+				<block slot="content">全厂综合看版</block>
+		</cu-custom>
+		<!-- =====纸板===== -->
+		<view>
+			<view v-for="(items,index) in fromDataList" :key='index'>
+					<view class="grid-warp grid-warpBold">
+						<view class="grid-title grid-title-color">
+							{{items[0].value1}}
+						</view>
+						<view class="grid-body" style="text-align: right;">
+							<view v-for="(item,i) in items" :key='i'>
+								<uni-grid :column="3" :square="false" :highlight="false" :showBorder="false">
+									<uni-grid-item>
+										<view class="monthDay-mini-panel">
+											<view>
+												<text class="text">{{item.value2}}</text>
+											</view>
+										</view>
+									</uni-grid-item>
+									<uni-grid-item>
+										<view class="monthDay-mini-panel textright" >
+											<view>
+												<text class="text">{{item.value3}}</text>
+											</view>
+										</view>
+									</uni-grid-item>
+									<uni-grid-item>
+										<view class="monthDay-mini-panel textright" >
+											<view> 
+												<text class="text">{{item.value4}}</text>
+											</view>
+										</view>
+									</uni-grid-item>
+								</uni-grid>
+							</view>
+						</view>
+					</view>
+			</view>
+		</view>
+			
+		<view class="window-bottom"></view>
+	</view>
+</template>
+
+<script>
+import baseMixin from '@/mixins';
+import cuCustom from '../../../ui/colorui/components/cu-custom.vue' 
+const defaultformItem={
+	PaperCO_DAmt:null,//    --纸板订单 订单金额(当天)
+	PaperCO_MAmt:null,//    --纸板订单 订单金额(本月)
+	PaperDe_DAmt :null,//  --纸板订单 送货金额(当天)
+	PaperDe_MAmt:null,//   --纸板订单 送货金额(本月)
+	Dcar_number:null,//   --纸板订单 送货车数(当天)
+	Mcar_number:null,//   --纸板订单 送货车数(本月)
+	PaperIn_DArea:null,//  --纸板订单 生产面积(当天)
+	PaperIn_MArea:null,// --纸板订单 生产面积(本月)
+	PaperIn_DZArea:null,//  --纸板订单 折面积(当天)
+	PaperIn_MZArea:null,// --纸板订单 折面积(本月)
+	SPaperIn_DWt:null,//  --原纸入库 重量(当天)
+	SPaperIn_MWt:null,//  --原纸入库 重量(本月)
+	SPaperIn_DTaxAmt:null,// --原纸入库 含税金额(当天)
+	SPaperIn_MTaxAmt:null,// --原纸入库 含税金额(本月)
+	SPaperIn_DNoTaxAmt:null,// --原纸入库 不含税金额(当天)
+	SPaperIn_MNoTaxAmt:null,// --原纸入库 不含税金额(本月)
+	SPaperOut_DWt:null,//  --原纸出库 重量(当天)
+	SPaperOut_MWt:null,//  --原纸出库 重量(本月)
+	SPaperOut_DTaxAmt:null,// --原纸出库 含税金额(当天)
+	SPaperOut_MTaxAmt:null,// --原纸出库 含税金额(本月)
+	SPaperOut_DNoTaxAmt:null,// --原纸出库 不含税金额(当天)
+	SPaperOut_MNoTaxAmt:null,// --原纸出库 不含税金额(本月)
+	Gather_DInAmt:null,// --财务收款  本币金额(当天)
+	Gather_MInAmt:null,// --财务收款  本币金额(本月)
+	Gather_DAccInAmt:null,// --财务收款  入账金额(当天)
+	Gather_MAccInAmt:null,// --财务收款  入账金额(本月)
+	BoxCO_DAmt:null,//   --纸箱订单 金额(当天)
+	BoxCO_MAmt:null,//    --纸箱订单 金额(本月)
+	BoxDe_DAmt:null,//   --纸箱订单 送货金额(当天)
+	BoxDe_MAmt:null,//   --纸箱订单 送货金额(本月)
+	BoxIn_DArea:null,//  --纸箱订单 生产面积(当天)
+	BoxIn_MArea:null,// --纸箱订单 生产面积(本月)
+	BoxIn_DZArea:null,//  --纸箱订单 折面积(当天)
+	BoxIn_MZArea:null,// --纸箱订单 折面积(本月	    
+}
+export default {
+	components: {cuCustom },
+	mixins: [baseMixin],
+	data() {
+		return {
+			formItem:Object.assign({},defaultformItem),
+			fromDataList:{},
+		};
+	},
+	// #ifdef H5
+	// #endif
+	// #ifndef H5
+	// #endif
+	// created() {
+	//  this.loadBoardDataBy()
+	// },
+	
+	// onShow() {
+	// 	debugger
+	// },
+	// onReady() {
+	//  this.loadBoardDataBy()
+	// },
+    filters:{
+			moneyFormatData(item) {
+				if(!!item && Number(item)>0){
+						return Number((item).toFixed(2))
+						//return Number((item).toFixed(2)).toLocaleString()
+					}else{
+						return '0.00'
+					}
+				}
+	        },
+	methods: {
+		 // 格式化千分符,内置方法 toLocaleString 导致个别安卓微信不支持
+	   addThousandthSign(numStr)  {
+		    if(!!numStr){
+				let regForm = /(\d{1,3})(?=(\d{3})+(?:$|\.))/g;
+				return numStr.toString().replace(regForm,"$1,");
+			}else{
+				return '0.00'
+			}   
+		},
+		// 加载控制面板数据
+	   loadBoardDataBy(){
+		  let url =`/warehouse/warehouse/executeMany/appSfGetAllNumeric`
+		  let params ={}
+		  let _self = this
+		  this.getOrPostDataBy(url,params).then(res=>{
+			  if(res && res.list && res.list.length>0){
+				  _self.fromDataList = res.list
+			  }
+		  })
+	   }
+	}
+};
+</script>
+
+<style>
+	.textright{
+		margin-right: 50rpx;
+	}
+	.window-bottom{
+		height: 100rpx;
+	}
+	.grid-title-color{
+		color: #007AFF;
+	}
+	.grid-warpBold{
+		/* font-weight: bold; */
+	}
+	.price-mini-panel{
+		margin-bottom: 30rpx;
+	}
+	.monthDay-mini-panel{
+		margin-bottom: 10rpx;
+	}
+	.special-mini-panel{
+		margin-bottom: 5rpx;
+	}
+	.grid-title{
+		display: flex;
+		justify-content: space-between;
+	}
+	.text-price{
+		color:#0081ff;
+		font-size: 40rpx;
+	}
+	.text-area{
+		color:#0081ff;
+		font-size: 40rpx;
+	}
+</style>

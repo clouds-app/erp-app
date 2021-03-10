@@ -1,0 +1,214 @@
+<template>
+	<view>
+		<view class="cu-modal" :class="modalName=='DialogModal2'?'show':''">
+			<view class="cu-dialog" style="width: 60%; margin-top: 5%;">
+				<view class="cu-bar bg-white justify-end">
+					<view class="content">修改配纸</view>
+					<view class="action" @tap="cancel()">
+						<text class="cuIcon-close text-red"></text>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='CustomBarHeight' 
+							ref="papeDrawer1"
+							url="appGetNewPaper"
+							title="层1"
+							placeholdertext=""
+							v-model='updateModalData.ps_PZ1'
+							:params='selectparms'
+							:Reload='true'
+						></selectDropdown>
+					</view>
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='CustomBarHeight' 
+							ref="papeDrawer2"
+							url="appGetNewPaper"
+							title="层2"
+							placeholdertext=""
+							v-model='updateModalData.ps_PZ2'
+							:params='selectparms'
+							:Reload='true'
+						></selectDropdown>
+					</view>
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='CustomBarHeight' 
+							ref="papeDrawer3"
+							url="appGetNewPaper"
+							title="层3"
+							placeholdertext=""
+							v-model='updateModalData.ps_PZ3'
+							:params='selectparms'
+							:Reload='true'
+						></selectDropdown>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='CustomBarHeight' 
+							ref="papeDrawer4"
+							url="appGetNewPaper"
+							title="层4"
+							placeholdertext=""
+							v-model='updateModalData.ps_PZ4'
+							:params='selectparms'
+							:Reload='true'
+						></selectDropdown>
+					</view>
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='CustomBarHeight' 
+							ref="papeDrawer5"
+							url="appGetNewPaper"
+							title="层5"
+							placeholdertext=""
+							v-model='updateModalData.ps_PZ5'
+							:params='selectparms'
+							:Reload='true'
+						></selectDropdown>
+					</view>
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='CustomBarHeight' 
+							ref="papeDrawer6"
+							url="appGetNewPaper"
+							title="层6"
+							placeholdertext=""
+							v-model='updateModalData.ps_PZ6'
+							:params='selectparms'
+							:Reload='true'
+						></selectDropdown>
+					</view>
+				</view>
+				<view class="flex border-top">
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='CustomBarHeight' 
+							ref="papeDrawer7"
+							url="appGetNewPaper"
+							title="层7"
+							placeholdertext=""
+							v-model='updateModalData.ps_PZ7'
+							:params='selectparms'
+							:Reload='true'
+						></selectDropdown>
+					</view>
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='CustomBarHeight' 
+							ref="papeDrawer8"
+							url="appGetNewPaper"
+							title="层8"
+							placeholdertext=""
+							v-model='updateModalData.ps_PZ8'
+							:params='selectparms'
+							:Reload='true'
+						></selectDropdown>
+					</view>
+					<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='CustomBarHeight' 
+							ref="papeDrawer9"
+							url="appGetNewPaper"
+							title="层9"
+							placeholdertext=""
+							v-model='updateModalData.ps_PZ9'
+							:params='selectparms'
+							:Reload='true'
+						></selectDropdown>
+					</view>
+				</view>
+				<view class="cu-bar bg-white">
+					<view class="action margin-0 flex-sub  solid-left" @tap="cancel()">取消</view>
+					<view class="action margin-0 flex-sub text-green solid-left" @tap="updatarequest">确定</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import warehouse from '@/mixins';
+	import request from '@/utils/request.js';
+	export default {
+		mixins:[warehouse],
+		data() {
+			return {
+				updateModalData:{}
+			}
+		},
+		props:{
+			modalName:{
+				type:String,
+				default:'',
+			},
+			modaldata:{
+				type:Object,
+				// default:{},
+			},
+			selectparms:{
+				type:Object,
+				// default:{},
+			}
+		},
+		watch:{
+			modalName(n,o){
+				if(!n){return}
+				this.datawriteBack(this.modaldata)
+				this.updateModalData = JSON.parse(JSON.stringify(this.modaldata))
+			}
+		},
+		// onLaunch() {
+		// 	this.getsleteFromData
+		// },
+		methods: {
+			// 获取一次弹框数据
+			getsleteFromData(){
+				this.toast.loading()
+				let _self = this
+				request.post('/warehouse/warehouse/execute/appGetNewPaper',this.selectparms).then(res=>{
+					_self.$refs.papeDrawer1.outsideDataWriteback(res.list)
+					_self.$refs.papeDrawer2.outsideDataWriteback(res.list)
+					_self.$refs.papeDrawer3.outsideDataWriteback(res.list)
+					_self.$refs.papeDrawer4.outsideDataWriteback(res.list)
+					_self.$refs.papeDrawer5.outsideDataWriteback(res.list)
+					_self.$refs.papeDrawer6.outsideDataWriteback(res.list)
+					_self.$refs.papeDrawer7.outsideDataWriteback(res.list)
+					_self.$refs.papeDrawer8.outsideDataWriteback(res.list)
+					_self.$refs.papeDrawer9.outsideDataWriteback(res.list)
+					this.toast.hide()
+				}).catch(err=>{
+					this.toast.message(err)
+				})
+			},
+			// 取消回调
+			cancel(){
+				this.$emit('cancel')
+			},
+			// 弹框数据回写
+			datawriteBack(fromdata){
+				let data = JSON.parse(JSON.stringify(fromdata))
+				this.$refs.papeDrawer1.$data.formItem.customers = data.ps_PZ1
+				this.$refs.papeDrawer2.$data.formItem.customers = data.ps_PZ2
+				this.$refs.papeDrawer3.$data.formItem.customers = data.ps_PZ3
+				this.$refs.papeDrawer4.$data.formItem.customers = data.ps_PZ4
+				this.$refs.papeDrawer5.$data.formItem.customers = data.ps_PZ5
+				this.$refs.papeDrawer6.$data.formItem.customers = data.ps_PZ6
+				this.$refs.papeDrawer7.$data.formItem.customers = data.ps_PZ7
+				this.$refs.papeDrawer8.$data.formItem.customers = data.ps_PZ8
+				this.$refs.papeDrawer9.$data.formItem.customers = data.ps_PZ9
+			},
+			updatarequest(){
+				this.$emit('updataData',this.updateModalData)
+			}
+		}
+	}
+</script>
+
+<style>
+
+</style>

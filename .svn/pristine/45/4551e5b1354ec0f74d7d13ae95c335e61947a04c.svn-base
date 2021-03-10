@@ -1,0 +1,342 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="true" class="titlefrom">
+			<block slot="content">纸箱成品寻货</block>
+		</cu-custom>
+		<form class="xunhoutop">
+			<view  class="cu-form-group border-top">
+				<view style="margin-left: -15px;">
+					<!-- <customerSelect ref="customerDrawer" v-model="formItem.customer"></customerSelect> -->
+					<productSelect
+						:otherHeight='CustomBarHeight' 
+						ref="customerDrawer" 
+						v-model="formItem.customerId"
+						url="appGetCustomer"
+						title="客ㅤ户"
+						placeholdertext="ㅤ请选择客户"
+						@onChange='onChange'
+					></productSelect>
+				</view>
+				<view>
+					<button  @click="findGoods('button')" type="primary" size="mini">查询</button>
+				</view>
+			</view>
+			<!-- 产品控件 -->
+			<productSelect 
+				ref="productDrawer" 
+				:otherHeight='CustomBarHeight' 
+				v-model="formItem.productId" 
+				url="appGetBoxProductinfoSelect"
+				title="产ㅤ品"
+				placeholdertext="ㅤ请选择产品"
+				@onChange='onChange'
+			></productSelect>
+
+			<view class="cu-form-group border-top">
+				<view class="title">工单号:</view>
+				<input v-model="boxSeek.hp_bi_WorkNo" @blur="findGoods('WorkNo')" placeholder="请输入工单号" />
+				<button @click="turnOnScanCode('WorkNo')" type="primary" size="mini">扫描</button>
+			</view>
+		</form>
+		<!-- 数据列表 -->
+		<view style="height: 120px;"></view>
+			<view  class="grid-warp" v-for="(item,index) in fromdata" :key='index'>
+				<view class="grid-title">
+					单号:{{item.WorkNo}}
+				</view>
+				<view class="grid-body">
+					<view class="grid-flex padding-10" style="">
+						<view style="width: 60%;">
+							<text class="hideName">客户:{{item.CustName}}</text>
+						</view>
+						<view>
+							<text class="hideName">仓位:{{item.StationName}}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view style="width: 100%;">
+							<text class="hideName" >产品名称:{{item.ProdName}}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>产品编号:{{item.ProdNo}}</text>
+						</view>
+						<view>
+							<text>入库:{{item.InStoreQty}}</text>
+						</view>
+					</view>
+					<view class="grid-flex padding-10">
+						<view>
+							<text>库存:{{item.StoreQty}}</text>
+						</view>
+						<view>
+							<text>未送:{{item.NoDelQty}}</text>
+						</view>
+					</view>
+				</view>
+			</view>
+		<view style="height: 50px;"></view>
+		<!-- 底部操作框 -->
+		<view class="xunhoubtm elBtn">
+			<view>
+				<text>记录数：{{recordsNum}}</text>
+			</view>
+			<view>
+				<button class="bank-rest" @tap="restFrom" type="primary" size="mini">清除</button>
+			</view>
+		</view>
+		</view>
+		<!-- <searchForm @getSelectDataInfo="getSelectDataInfo" :dataSource="dataSource" ref='searchForm'></searchForm> -->
+	</view>
+</template>
+
+<script>
+//纸箱出入库
+import productSelect from '@/components/selectDropdown/selectDropdown.vue'
+import customerSelect from '../paperIn/customers.vue'
+import uniPopup from '@/components/uni-popup/uni-popup.vue';
+import zTable from '@/components/z-table/z-table.vue';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import request from '@/utils/request.js';
+import dateFormat from '@/utils/dateFormat.js';
+import warehouse from '@/mixins';
+import searchForm from '@/components/searchForm/searchDataList.vue.vue'
+const defaultformItem={
+						customer:'',//客户
+						customerId:'',//客户id
+						product:'',//产品
+						productId:'',//产品id
+					}
+export default {
+	name: 'boxIn', //纸箱出入库
+	components: { zTable, uniPopup, cuCustom, searchForm, customerSelect, productSelect },
+	mixins: [warehouse],
+	data() {
+		return {
+			paper:{
+				pageOver:false,
+				pageSize:50,
+				pageNum:1,
+			},//分页查询条件
+			isMultipel:false,// 是否多选
+			searchKeyword:'',//抽屉搜索关键词
+			modalName:'',//抽屉是否显示
+			modalArry:[],//抽屉弹框数据
+			recordsNum:0,//底部记录数
+			fromdata:[],
+			licensePlateList:[],// 客户 列表
+			productList:[],//产品列表
+			formItem:Object.assign({},defaultformItem),
+			currentSelected: '-1',
+			TabCur: 2,
+			scanType: '', //当前扫描类型
+			scrollLeft: 0,
+			dataTableList: [],
+			currentSelect:'',//记录点击的列表
+			errorContent: '暂无数据', //'数据加载中...',
+			tableHeight: 400, //表格高度
+			boxSeek:{
+				hp_bi_WorkNo:'',//工单号
+			}
+		};
+	},
+	// #ifdef H5
+	mounted() {
+		// this.getTableHeight()
+	},
+
+	// #endif
+	// #ifndef H5
+	onReady() {
+		// this.getTableHeight()
+	},
+	// #endif
+	methods: {
+		// 选择客户回调事件
+		onChange(){
+			this.paper.pageNum = 1
+			this.fromdata = [];
+			this.recordsNum = 0;
+		},
+		// 清除按钮
+		restFrom(){
+			this.formItem.customerId = '';
+			this.formItem.productId = '';
+			this.formItem = defaultformItem;
+			this.boxSeek.hp_bi_WorkNo = '';
+			this.recordsNum = 0;
+			this.fromdata = [];
+			this.$refs.customerDrawer.$data.formItem.customers = '';
+			this.$refs.customerDrawer.$data.formItem.customersId = '';
+			this.$refs.productDrawer.$data.formItem.customers = '';
+			this.$refs.productDrawer.$data.formItem.customersId = '';
+			
+		},
+		//===打开扫描===
+		async turnOnScanCode(type) {
+			if(this.checkScan()){
+				this.toast.message('请在"e包装"公众号中下载APP后扫码!')
+				return
+			}
+			this.scanType = type;
+			let scandata = await this.ScanModule(); 
+			if(scandata.resp_code==1000){
+				let a = scandata.resp_result.indexOf(',')
+				let b = 0
+				if(a<0){
+					b = scandata.resp_result
+				}else{
+					b = scandata.resp_result.substring(0,a)
+				}
+				this.boxSeek.hp_bi_WorkNo = b;
+				this.findGoods(type);
+			}else{
+				this.toast.message('扫码失败请重试')
+			}
+		},
+		// turnOnScanCode(type) {
+		// 	if(window !== undefined){
+		// 		this.toast.message('请在"e包装"公众号中下载APP后扫码!')
+		// 		return
+		// 	}
+		// 	this.scanType = type;
+		// 	let _self = this;
+		// 	// 调起条码扫描
+		// 	uni.scanCode({
+		// 		scanType: 'barCode',
+		// 		success: function(res) {
+		// 			let a = res.result.indexOf(',')
+		// 			let b = 0
+		// 			if(a<0){
+		// 				b = res.result
+		// 			}else{
+		// 				b = res.result.substring(0,a)
+		// 			}
+		// 			_self.play_dede()
+		// 			switch (_self.TabCur) {
+		// 				case 0: //成品入库
+		// 					//工单号
+		// 					_self.boxIn.formItem.bi_WorkNo = b;
+		// 					_self.boxInGetOrderInfo(); //工单号验证查询
+		// 					break;
+		// 				case 1: //成品出库
+		// 					_self.boxOut.formItem.bi_OrderNo = b;
+		// 					break;
+		// 				case 2: //成品寻货
+		// 					_self.boxSeek.hp_bi_WorkNo = b;
+		// 					_self.findGoods(); //工单号验证查询
+		// 					break;
+
+		// 				default:
+		// 					break;
+		// 			}
+		// 		}
+		// 	});
+		// },
+		findGoods(type) {
+			if(type == 'button'|| type == 'WorkNo'){
+				this.fromdata = []
+				this.paper.pageNum = 1
+				this.recordsNum = 0
+			}
+			// this.fromdata = []
+			this.recordsNum = 0
+			this.toast.loading()
+			let data = {
+				CustID: this.formItem.customerId, //this.instruct,//????
+				ProdNo: this.formItem.productId,
+				WorkNo: this.boxSeek.hp_bi_WorkNo,
+				pageNum:this.paper.pageNum,
+				pageSize:this.paper.pageSize
+			};
+			this.getfromdata(data)
+		},
+		getfromdata(data){
+			request.post(`/warehouse/warehouse/execute/appSpGetBoxProductStore`,data)
+				.then(res => {
+					if (res.list.length > 0) {
+						if(res.list.length < this.paper.pageSize && this.fromdata.length < this.paper.pageSize){
+							this.fromdata = res.list
+							this.pageOver = true
+						}else{
+							this.pageOver = false
+							this.fromdata = this.fromdata.concat(res.list)
+						}
+						this.recordsNum = this.fromdata.length
+						this.toast.hide();
+					}else{
+						this.pageOver = true
+						this.recordsNum = this.fromdata.length
+						this.toast.message('暂无数据');
+					}
+				})
+				.catch(err => {
+					this.fromdata = [] 
+					this.paper.pageNum = 1
+					this.recordsNum = this.fromdata.length
+					this.toast.message('数据加载失败');
+				});
+		}
+	},
+	onReachBottom(){
+		if(this.pageOver){
+			return
+		}
+		this.paper.pageNum++
+		this.findGoods()
+	}
+};
+</script>
+
+<style scoped>
+.hideName{
+	/* overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis */
+	display:block;
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis
+}
+.margin-text-center {
+	text-align: center;
+	margin: 20rpx;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+.xunhoubtm {
+	display: flex;
+	justify-content:space-between;
+	position: fixed;
+	background-color: #FFFFFF;
+	bottom: 0px;
+	width: 100%;
+	
+}
+.xunhoubtm >view:first-child{
+	display: flex;
+	/* color: red; */
+	align-items:center;
+	margin: 5px;
+	
+}
+.xunhoubtm >view:last-child{
+	margin: 5px;
+}
+.xunhoutop{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.search{
+	/* display: flex; */
+	position: fixed;
+	width: 65%;
+	z-index: 2000000;
+}
+</style>

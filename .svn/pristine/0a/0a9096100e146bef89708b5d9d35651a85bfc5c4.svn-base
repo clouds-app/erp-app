@@ -1,0 +1,443 @@
+<template>
+	<view>
+		<cu-custom class="titlefrom" bgColor="bg-gradual-blue" :isBack="true"><block slot="content">纸箱成品入库</block></cu-custom>
+		<!-- <view class="flex border-top"> -->
+			<!-- <view class="flex-sub" > -->
+				<selectDropdown
+					@onChange="onChangeInToCache"
+					:componentConfig="{tokenKey:'wp.classDrawer'}"
+					:defaultValue = 'boxIn.formItem.bi_Group'
+					:otherHeight='CustomBarHeight' 
+					ref="classDrawer"
+					url="appFindClassBan"
+					title="班ㅤ别"
+					placeholdertext="ㅤ请选择班别"
+					v-model='boxIn.formItem.bi_GroupCode'
+					:params='params'
+				></selectDropdown>
+				<selectDropdown
+					@onChange="onChangeInToCache"
+					:componentConfig="{tokenKey:'wp.stationDrawer'}"
+					:defaultValue = 'boxIn.formItem.bi_station'
+					:otherHeight='CustomBarHeight' 
+					ref="stationDrawer"
+					url="appFindSearchStation"
+					title="仓ㅤ位"
+					placeholdertext="ㅤ请选择仓位"
+					v-model='boxIn.formItem.bi_stationCode'
+					:params='stationparams'
+				></selectDropdown>
+		<view class="cu-form-group border-top">
+			<view class="title">日ㅤ期:</view>
+			<input v-model="boxIn.formItem.bi_date" disabled=""/>
+		</view>
+		<view class="cu-form-group border-top">
+			<view class="title">工单号:</view>
+			<input v-model="boxIn.formItem.bi_WorkNo" @blur="boxInGetOrderInfo" placeholder="请输入或扫描工单号" />
+			<button @click="turnOnScanCode('workNo')" type="primary" size="mini">扫描</button>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">已入库:</view>
+					<input v-model="boxIn.formItem.InStoreQty" disabled/>
+				</view>
+			</view>
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title" style="color: red;">入库数:</view>
+					<input @blur='checkFdNum' v-model="boxIn.formItem.InQty" placeholder="请输入入库数" />
+				</view>
+			</view>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">客ㅤ户:</view>
+					<input v-model="boxIn.formItem.CustName" disabled/>
+				</view>
+			</view>
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">订单数:</view>
+					<input v-model="boxIn.formItem.OrderQty" disabled/>
+				</view>
+			</view>
+		</view>
+		<view class="cu-form-group border-top">
+			<view class="title">产ㅤ品:</view>
+			<input v-model="boxIn.formItem.ProdName" disabled/>
+		</view>
+		<view class="cu-form-group border-top">
+			<view class="title">料ㅤ号:</view>
+			<input v-model="boxIn.formItem.BatchNo" disabled/>
+		</view>
+		<view class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">盒ㅤ式:</view>
+					<input v-model="boxIn.formItem.BoxID" :disabled="true" />
+				</view>
+			</view>
+			<view class="flex-sub">
+				<view class="cu-form-group">
+					<view class="title">纸ㅤ质:</view>
+					<input v-model="boxIn.formItem.ArtID" :disabled="true" />
+				</view>
+			</view>
+		</view>
+		<view class="cu-form-group border-top">
+			<view class="title">规ㅤ格:</view>
+			<input v-model="boxIn.formItem.BoxSize" disabled/>
+		</view>
+		<view class="cu-form-group border-top">
+			<view class="title">备ㅤ注:</view>
+			<input v-model="boxIn.formItem.Remark" disabled />
+		</view>
+		<!--  侧边搜索列表 -->
+		<searchForm @getSelectDataInfo="getSelectDataInfo" :dataSource="dataSource" ref='searchForm'></searchForm>
+		<!-- 底部按钮 -->
+		<!-- <view class="margin-text-center"><button @click="boxInAspSaveBoxIn" type="primary" class="primary-btn">入库</button></view> -->
+		<view class="flex solid-bottom padding justify-around chucangbtm">
+			<button @click="resetFrom"  type="primary" size="mini" class="bg-grey radius">清除</button>
+			<button :disabled="boxIn.dataIsLoadding" @click="boxInAspSaveBoxIn"  type="primary" size="mini" class="bg-grey radius">保存</button>
+		</view>
+	</view>
+</template>
+
+<script>
+//纸箱出入库
+import selectDropdown from '@/components/selectDropdown/selectDropdown.vue'
+import uniPopup from '@/components/uni-popup/uni-popup.vue';
+import zTable from '@/components/z-table/z-table.vue';
+import cuCustom from '@/ui/colorui/components/cu-custom.vue';
+import request from '@/utils/request.js';
+import dateFormat from '@/utils/dateFormat.js';
+import warehouse from '@/mixins';
+import searchForm from '@/components/searchForm/searchDataList.vue.vue'
+export default {
+	name: 'boxIn', //纸箱出入库
+	components: { zTable, uniPopup, cuCustom, searchForm, selectDropdown},
+	mixins: [warehouse],
+	data() {
+		return {
+			stationparams:{type:4,modelCode:'box_in'},//仓位查询传参
+			params:{type:1,procType:'',modelCode:'box_in'},//班别查询传参
+			dataSource:[],//数据源
+			modalName: null,
+			currentSelected: '-1',
+			TabCur: 0,
+			scanType: '', //当前扫描类型
+			scrollLeft: 0,
+			dataTableList: [],
+			deepList:[],//班别数据列表
+			workHouseList:[],//仓位数据列表
+			errorContent: '暂无数据', //'数据加载中...',
+			tableHeight: 400, //表格高度
+			boxIn: {
+				formItem: {
+					//成品入库
+					dataIsLoadding:false,//保存禁用
+					bi_WorkNo: '', //工单号
+					bi_Group: '', //班ㅤ别
+					bi_GroupCode: '', //班别编号
+					bi_station:'',//仓位
+					bi_stationCode:'',//仓位编号
+					InStoreQty:'',// 已入库数
+					InQty:'',//入库数
+					OrderQty:'',// 订单数量
+					CustID:'',// 客户编号
+					CustName:'',// 客户名称
+					ProdNo:'',// 产品编号
+					ProdName:'',// 产品名称
+					BatchNo:'',// 料号
+					BoxID:'',// 生产|盒式
+					ArtID:'',// 生产|纸质
+					BoxSize:'',// 规格(宽*长)
+					Remark:'',// 生产备注
+					bi_date:new Date().toISOString().slice(0, 10),//日期
+				},
+			},
+		};
+	},
+	mounted() {
+		this.$nextTick(()=>{
+			this.setDefaultValue()
+		})
+	},
+
+	onReady() {
+		// this.getTableHeight()//班别列表
+		// this.getworkHouseList()//仓位数据列表
+	},
+	methods: {
+		// 获取上传的值
+		setDefaultValue(){
+			// 班别
+			let classDrawerItem = this.cache.get('wp.classDrawer')
+			if(classDrawerItem){
+			   let itemKey = Object.keys(classDrawerItem)
+			   this.boxIn.formItem.bi_Group = classDrawerItem[itemKey[0]]
+			   this.boxIn.formItem.bi_GroupCode = classDrawerItem[itemKey[1]]
+			}
+			// 仓位
+			let stationDrawer = this.cache.get('wp.stationDrawer')
+			if(stationDrawer){
+			   let itemKey = Object.keys(stationDrawer)
+			   this.boxIn.formItem.bi_station = stationDrawer[itemKey[0]]
+			   this.boxIn.formItem.bi_stationCode = stationDrawer[itemKey[1]]
+			}
+		},
+		//右侧弹框
+		setSearchDataListSource(type){
+			// debugger
+			this.currentSelect = type
+			this.$refs['searchForm'].isMultipel=false
+			this.$refs['searchForm'].isShowSearchList=true
+		   if(type==='deep'){//班别
+				// debugger
+				 this.dataSource = this.deepList
+				 this.$refs['searchForm'].dataSourceList =this.deepList
+		   }else {//仓位
+			   this.dataSource = this.workHouseList
+			   this.$refs['searchForm'].dataSourceList =this.workHouseList
+		   }
+		},
+		// 选择  线别/班别/客户  数据回调事件
+		getSelectDataInfo(item){
+			// debugger
+			switch (this.currentSelect){
+				case 'deep':
+				this.boxIn.formItem.bi_Group =item.ct_Desc
+				this.boxIn.formItem.bi_GroupCode=item.type
+					break;
+				case 'workHouse':
+				this.boxIn.formItem.bi_station=item.ct_Desc
+				this.boxIn.formItem.bi_stationCode=item.type
+					break;
+				default:
+					break;
+			}
+		},
+		// 入库数检验
+		checkFdNum(){
+			let InQty = Number(this.boxIn.formItem.InQty) //入库数
+			let InStoreQty = Number(this.boxIn.formItem.InStoreQty) //已入库
+			let OrderQty = Number(this.boxIn.formItem.OrderQty) //订单数
+			// let Qty
+			if(	InQty>(OrderQty-InStoreQty)){
+				uni.showModal({
+				    title: '提示',
+				    content: '入库数不能大于未入库数,是否继续',
+				    success: (res)=> {
+						if(res.cancel){
+							this.boxIn.formItem.InQty = ''
+						}
+				    }
+				});
+				// this.toast.message('入库数大于订单数，是否继续')
+			}
+		},
+		//清除按钮
+		resetFrom(){
+			// this.boxIn.formItem = JSON.parse(JSON.stringify(this.boxIn.formItemInit))
+			this.boxIn.formItem.bi_WorkNo = '';
+			this.boxIn.formItem.InStoreQty = '';
+			this.boxIn.formItem.InQty = '';
+			this.boxIn.formItem.OrderQty = '';
+			this.boxIn.formItem.CustID = '';
+			this.boxIn.formItem.CustName = '';
+			this.boxIn.formItem.ProdName = '';
+			this.boxIn.formItem.ProdNo = '';
+			this.boxIn.formItem.BatchNo = '';
+			this.boxIn.formItem.BoxID = '';
+			this.boxIn.formItem.ArtID = '';
+			this.boxIn.formItem.BoxSize = '';
+			this.boxIn.formItem.Remark = '';
+		},
+		//成品入库===工单号===验证是否存在
+		boxInGetOrderInfo() {
+			if (this.boxIn.formItem.bi_GroupCode == '') {
+				this.toast.message('请先选择班别');
+				return;
+			}
+			if (this.boxIn.formItem.bi_stationCode == '') {
+				this.toast.message('请先选择仓位');
+				return;
+			}
+			if (this.boxIn.formItem.bi_WorkNo == '') {
+				this.toast.message('请输入或扫描工单号');
+				return;
+			}
+			this.toast.loading();
+			let data = {
+				WorkNo: this.boxIn.formItem.bi_WorkNo,
+				Flag: 0
+			};
+			this.boxIn.dataIsLoadding = true;
+			// '/warehouse/warehouse/execute/appSpBoxLiBOutByCarList'
+			request.post('/warehouse/warehouse/execute/appBoxScanOrder',data)
+				.then(res => {
+					// debugger
+					if (res.list && res.list.length > 0) {
+						Object.assign(this.boxIn.formItem, res.list[0]);
+						this.boxIn.dataIsLoadding = false;
+						this.toast.hide();
+						return;
+					} else {
+						this.boxIn.dataIsLoadding = false;
+						this.boxIn.formItem.bi_WorkNo = '';
+						this.toast.hide();
+						this.toast.message('没有该工单对应的数据');
+					}
+				})
+				.catch(err => {
+					this.resetFrom()
+					this.boxIn.dataIsLoadding = false;
+					this.toast.hide();
+					this.errorContent = '暂无数据';
+					this.toast.message('获取数据失败:' + err);
+				});
+		},
+		//成品===确认===入库
+		boxInAspSaveBoxIn() {
+			this.boxIn.dataIsLoadding = true;
+			if (this.boxIn.formItem.bi_GroupCode == '') {
+				this.toast.message('请输入班别');
+				return;
+			}
+			if (this.boxIn.formItem.bi_stationCode == '') {
+				this.toast.message('请输入仓位');
+				return;
+			}
+			if (this.boxIn.formItem.bi_WorkNo == '') {
+				this.toast.message('请输入或扫描工单号');
+				return;
+			}
+			if (this.boxIn.formItem.InQty == '') {
+				this.toast.message('请输入库数');
+				return;
+			}
+			let user = this.cache.get(this.appConst.CLIENT_USER_CACHE_NAME)
+			let data = {
+				Group:this.boxIn.formItem.bi_GroupCode,//班别
+				Station:this.boxIn.formItem.bi_stationCode,//仓位
+				WorkNo:this.boxIn.formItem.bi_WorkNo,//工单号
+				UserID:user.erpUserCode,//操作用户
+				InQty:this.boxIn.formItem.InQty,//--入库数量
+			};
+			this.toast.loading();
+			// this.getWarehouseDataProvider('aspSaveBoxIn', data)
+			request.post(`/warehouse/warehouse/execute/appAspSaveBoxIn`,data)
+				.then(res => {
+					this.toast.hide();
+					if (res.list.length > 0) {
+						// debugger
+						if (res.list[0].ErrorStr && res.list[0].ErrorStr != '') {
+							this.toast.message(res.list[0].ErrorStr);
+							this.resetFrom()
+							this.boxIn.dataIsLoadding = false;
+							return;
+						} else {
+							this.toast.message('入库成功');
+							this.resetFrom()
+							this.boxIn.dataIsLoadding = false;
+						}
+						//重置数据
+						// this.boxIn.formItem = JSON.parse(JSON.stringify(this.boxIn.formItemInit));
+						return;
+					} else {
+						this.toast.message('入库失败');
+						this.boxIn.dataIsLoadding = false;
+					}
+				})
+				.catch(err => {
+					//this.errorContent = '暂无数据';
+					this.toast.hide();
+					this.toast.message('入库失败' + err);
+					this.boxIn.dataIsLoadding = false;
+				});
+		},
+		//===打开扫描===
+		async turnOnScanCode(type) {
+				if(this.checkScan()){
+					this.toast.message('请在"e包装"公众号中下载APP后扫码!')
+					return
+				}
+				let scandata = await this.ScanModule(); 
+				if(scandata.resp_code==1000){
+					let a = scandata.resp_result.indexOf(',')
+					let b = 0
+					if(a<0){
+						b = scandata.resp_result
+					}else{
+						b = scandata.resp_result.substring(0,a)
+					}
+					this.boxIn.formItem.bi_WorkNo = b;
+					this.boxInGetOrderInfo();
+				}else{
+					this.toast.message('扫码失败请重试')
+				}
+			},
+		// turnOnScanCode(type) {
+		// 	if(window !== undefined){
+		// 		this.toast.message('请在"e包装"公众号中下载APP后扫码!')
+		// 		return
+		// 	}
+		// 	this.scanType = type;
+		// 	let _self = this;
+		// 	// 调起条码扫描
+		// 	uni.scanCode({
+		// 		scanType: 'barCode',
+		// 		success: function(res) {
+		// 			let a = res.result.indexOf(',')
+		// 			let b = 0
+		// 			if(a<0){
+		// 				b = res.result
+		// 			}else{
+		// 				b = res.result.substring(0,a)
+		// 			}
+		// 			_self.play_dede()
+		// 			switch (_self.TabCur) {
+		// 				case 0: //成品入库
+		// 					//工单号
+		// 					_self.boxIn.formItem.bi_WorkNo = b;
+		// 					_self.boxInGetOrderInfo(); //工单号验证查询
+		// 					break;
+		// 				case 1: //成品出库
+		// 					_self.boxOut.formItem.bi_OrderNo = b;
+		// 					break;
+		// 				case 2: //半成品入库
+		// 					_self.boxInc.formItem.hp_bi_WorkNo = b;
+		// 					_self.boxIncGetOrderInfo(); //工单号验证查询
+		// 					break;
+
+		// 				default:
+		// 					break;
+		// 			}
+		// 		}
+		// 	});
+		// }
+	}
+};
+</script>
+
+<style scoped>
+.chucangbtm{
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+	z-index: 2;
+}
+.margin-text-center {
+	text-align: center;
+	margin: 20rpx;
+}
+.border-top {
+	border-top: 1px solid #eee;
+}
+.cu-form-group .title {
+	min-width: calc(4em + 15px);
+}
+</style>

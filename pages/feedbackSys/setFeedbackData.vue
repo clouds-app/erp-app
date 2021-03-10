@@ -106,8 +106,7 @@
 			</view>
 			<view class="flex">
 				<view class="flex-sub padding-xl">
-					
-					<button :loading="isSubmitting" @click="playMusicDind()"  type="primary" class="primary-btn">提ㅤ交</button>
+					<button :loading="isSubmitting" @click="preSubmitData()"  type="primary" class="primary-btn">提ㅤ交</button>
 				</view>
 			</view>
 		</form>
@@ -201,23 +200,7 @@ export default {
 			FeedbackHistoryInfo:{}
 		};
 	},
-	methods: {
-		playMusicDind(){
-			const innerAudioContext = uni.createInnerAudioContext();
-			debugger
-			innerAudioContext.autoplay = true;
-			innerAudioContext.src = 'https://vkceyugu.cdn.bspapp.com/VKCEYUGU-uni-cloud-test01/ab2ee7a0-f700-11ea-b997-9918a5dda011.mp3';
-			//innerAudioContext.src = 'https://img-cdn-qiniu.dcloud.net.cn/uniapp/audio/music.mp3';
-			//innerAudioContext.src = '../../static/wxbb.mp3';
-			innerAudioContext.onPlay(() => {
-			  console.log('开始播放123');
-			});
-			innerAudioContext.onError((res) => {
-				debugger
-				 console.log('err11111');
-			});
-		}
-	}
+	methods: {}
 };
 </script>
 
