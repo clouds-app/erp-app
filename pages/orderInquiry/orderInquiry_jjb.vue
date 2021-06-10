@@ -1,0 +1,489 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="true">
+				<block slot="content">预下单查询</block>
+		</cu-custom>
+		
+		<form class="xunhoutop">
+			<view class="flex border-top">
+				<view class="flex-sub">
+						<selectDropdown
+							:otherHeight='CustomBarHeight' 
+							ref="lineDrawer"
+							url="order/customerPaperArt"
+							title="纸ㅤ质"
+							placeholdertext="请选择纸质"
+							v-model='paperInFormItems.customerArt'
+						></selectDropdown>
+				</view>
+				<view class="flex-sub">
+					<view class="cu-form-group" >
+						<view class="title" >纸ㅤ宽:</view>
+						<input type="number" v-model="paperInFormItems.paperWidth" placeholder="请输入纸宽"/>
+					</view>
+				</view>
+			</view>
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title" >数ㅤ量:</view>
+						<input type="number" v-model="paperInFormItems.qty" placeholder="请输入数量"/>
+					</view>
+				</view>
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title" >纸ㅤ长:</view>
+						<input type="number" v-model="paperInFormItems.paperLength" placeholder="请输入纸长"/>
+					</view>
+				</view>
+			</view>
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">日期范围:</view>
+						<picker mode="date" :value="paperInFormItems.startDate" start="2010-09-01" :end="defaultEndDate" @change="startDateChange">
+							<view class="picker">
+								{{paperInFormItems.startDate}}
+							</view>
+						</picker>
+						<text class="margin-left">至</text>
+						<picker mode="date" :value="paperInFormItems.endDate" start="2010-09-01" :end="defaultEndDate" @change="endDateChange">
+							<view class="picker">
+								{{paperInFormItems.endDate}}
+							</view>
+						</picker>
+			       </view>
+				</view>
+			</view>
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<button @click="resetFrom"  type="primary" size="mini" class="bg-grey radius">清除</button>
+					</view>
+				</view>
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<button @click="submitData"  type="primary" size="mini" class="bg-grey radius">查询</button>
+					</view>
+				</view>
+			</view>
+		</form>
+		
+		<view :style="{'height':topheight + 'px'}"></view>
+		<!-- 查询数据 -->
+		<view class="border-bottom grid-warp" v-for="(item,index) in orderList">
+			<view class="grid-title">
+				<view>订单日期:{{item.co_Date}}</view>
+				<!--  -->
+				<view  :class="[item.co_Status=='N'?'bg-gray':'bg-red','radius','cu-tag']">{{item.co_Status=='N'?'未录入':'已录入'}}</view>
+			</view>
+			<view class="grid-body">
+				<view class="grid-flex padding-10">
+					<view>
+						<text>纸质:{{item.co_ArtID}}</text>
+					</view>
+					<view>
+						<text>楞别:{{item.co_ArtLB}}</text>
+					</view>
+				</view>
+				<view class="grid-flex padding-10">
+					<view>
+						<text>纸长:{{item.co_LengthUnit}}</text>
+					</view>
+					<view>
+						<text>纸宽:{{item.co_WidthUnit}}</text>
+					</view>
+				</view>
+				<view class="grid-flex padding-10">
+					<view>
+						<text>数量:{{item.co_BoxQty}}</text>
+					</view>
+					<view>
+						<text></text>
+					</view>
+				</view>
+				<view class="grid-flex padding-10">
+					<view>
+						<view v-show="item.statue=='N'?true:false" @click.stop="butclick(0,index)" class=" cu-tag round light line-gray">取消订单</view>
+					</view>
+					<view>
+						<view v-show="item.statue=='N'?true:false"  @click.stop="butclick(1,index)" class=" cu-tag round light line-green">订单详情</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view :style="{'height':40 + 'rpx'}"></view>
+		
+		
+		<!-- 取消订单弹框 -->
+		<view class="cu-modal" :class="modalName=='DialogModal2'?'show':''">
+			<view class="cu-dialog">
+				<view class="cu-bar bg-white justify-end">
+					<view class="content">取消订单</view>
+					<view class="action" @tap="hideModal">
+						<text class="cuIcon-close text-red"></text>
+					</view>
+				</view>
+				<view class="grid-body">
+					<view style="height: 10px;"></view>
+					<view>确定取消订单吗？如果订单已录入会取消失败!</view>
+					<view style="height: 10px;"></view>
+				</view>
+					<view class="cu-bar bg-white">
+						<view class="action margin-0 flex-sub  solid-left" @tap="hideModal">取消</view>
+						<view class="action margin-0 flex-sub text-green solid-left" @tap="confirmFrom">确定</view>
+					</view>
+				</view>
+		</view>
+		
+		<!-- 详情弹出层 -->
+		<view class="cu-modal" :class="modalName=='DialogModal1'?'show':''">
+			<view class="cu-dialog">
+				<view class="cu-bar bg-white justify-end">
+					<view class="content">订单详情</view>
+					<view class="action" @tap="hideModal">
+						<text class="cuIcon-close text-red"></text>
+					</view>
+				</view>
+				<view class="grid-body">
+					<view class="flex border-top">
+						<view class="flex-sub">
+							<view class="cu-form-group">
+								<view class="title">纸ㅤ质:</view>
+								<input  v-model="hideModalList.customerArt" disabled/>
+							</view>
+						</view>
+						<view class="flex-sub">
+							<view class="cu-form-group">
+								<view class="title">楞ㅤ别:</view>
+								<input  v-model="hideModalList.artLB" disabled/>
+							</view>
+						</view>
+					</view>
+					<view class="flex border-top">
+						<view class="flex-sub">
+							<view class="cu-form-group">
+								<view class="title">纸ㅤ长:</view>
+								<input type="number" v-model="hideModalList.paperLength" disabled/>
+							</view>
+						</view>
+						<view class="flex-sub">
+							<view class="cu-form-group">
+								<view class="title">纸ㅤ宽:</view>
+								<input type="number" v-model="hideModalList.paperWidth" disabled/>
+							</view>
+						</view>
+					</view>
+					<view class="flex border-top">
+						<view class="flex-sub">
+							<view class="cu-form-group">
+								<view class="title">箱ㅤ高:</view>
+								<input type="number" v-model="hideModalList.boxHeight" disabled/>
+							</view>
+						</view>
+						<view class="flex-sub">
+							<view class="cu-form-group">
+								<view class="title">数ㅤ量:</view>
+								<input type="number" v-model="hideModalList.qty" disabled/>
+							</view>
+						</view>
+					</view>
+					<view class="flex border-top">
+						<view class="cu-form-group">
+							<view class="title">压线类型:</view>
+							<input  v-model="hideModalList.lineType" disabled/>
+						</view>
+					</view>
+					<view class="flex border-top">
+						<view class="cu-form-group">
+							<view class="title">交货日期:</view>
+							<input v-model="hideModalList.dueDate" disabled/>
+						</view>
+					</view>
+					<view class="flex border-top">
+						<view class="cu-form-group">
+							<view class="title">压ㅤㅤ线:</view>
+							<input  v-model="hideModalList.yxStr" disabled/>
+						</view>
+					</view>
+					<view class="flex border-top">
+						<view class="cu-form-group">
+							<view class="title">送货备注:</view>
+							<input  v-model="hideModalList.remark" disabled/>
+						</view>
+					</view>
+					<view class="flex border-top">
+						<view class="cu-form-group">
+							<view class="title">生产备注:</view>
+							<input  v-model="hideModalList.produceRemark" disabled/>
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		
+	</view>
+</template>
+
+<script>
+import cuCustom from '../../ui/colorui/components/cu-custom.vue' 
+import warehouse from '@/mixins';
+import request from '@/utils/request.js';
+import dayjs from 'dayjs'
+	export default {
+		components:{cuCustom},
+		mixins:[warehouse],
+		data() {
+			return {
+				page:{ //分页查询数据
+					pageNumber:1,
+					pageSize:20,
+					whether:true
+				},
+				buttonindex:0,//记录按钮索引
+				hideModalList:{},//查看详情数据
+				modalName:'',//去掉弹框是否显示字段
+				bottomheight:'',//底部菜单高度
+				topheight:78,//头部菜单高度
+				defaultEndDate:dayjs().format('YYYY-MM-DD'),
+				orderList:[],//订单列表
+				paperInFormItems:{
+					BoxName:'',//盒式
+					customerArt: "",	//--纸质
+					paperLength: "",//--纸长
+					paperWidth: "",	//--纸宽
+					qty: ""	,
+					startDate: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+					endDate: dayjs().format('YYYY-MM-DD'),
+				}
+			}
+		},
+		onReady(){
+			this.gettophight('xunhoutop')
+			this.getorderList()
+		},
+		// 页面触底事件
+		onReachBottom(){
+			this.getmoreorderList()
+		},
+		methods: {
+			// 开始时间选择 回调
+			startDateChange(e) {
+				this.paperInFormItems.startDate = e.detail.value
+			},
+			// 结束时间选择 回调
+			endDateChange(e) {
+				this.paperInFormItems.endDate = e.detail.value
+			},
+			// 获取全部订单数据
+			getorderList(){
+				let parms = {
+					pageNumber: 1, //--页码
+					pageSize: 20, //--页大小
+					userId:this.userInfo.erpUserCode,
+					artId: this.paperInFormItems.customerArt,	//--纸质
+					artLb:'',//楞别
+					boxId:'',//盒式编号
+					boxLength: this.paperInFormItems.paperLength,//--纸长
+					boxWidth:  this.paperInFormItems.paperWidth,	//--纸宽
+					boxQty: this.paperInFormItems.qty			,//--数量(片)
+					startDate:this.paperInFormItems.startDate ,//开始时间
+					endDate:this.paperInFormItems.endDate,//结束时间
+				}
+				let _self = this
+				this.toast.loading()
+				this.requestData(parms).then(res=>{
+					if(res.list.length<20){
+						this.page.pageNumber = 1
+						this.page.whether = false
+					}else{
+						this.page.pageNumber++
+					}
+					this.toast.hide()
+					this.orderList = res.list
+				}).catch(err=>{
+					this.toast.hide()
+					_self.toast.message("执行失败")
+				})
+			},
+			requestData(data){
+				return request.post('/warehouse/warehouse/execute/appGetAppPlaceOrderList',data)
+			},
+			// 分页查询
+			getmoreorderList(){
+				if(!this.page.whether){
+					return
+				}
+				let parms = {
+					// pageNumber: this.page.pageNumber, //--页码
+					// pageSize: this.page.pageSize, //--页大小
+					// artId: "",	//--纸质
+					// boxLength: "",//--纸长
+					// boxWidth: "",	//--纸宽
+					// boxQty: ""			,//--数量(片)
+					// startDate:this.paperInFormItems.startDate ,//开始时间
+					// endDate:this.paperInFormItems.endDate,//结束时间
+					// userId:this.userInfo.erpUserCode,
+					pageNumber: this.page.pageNumber, //--页码
+					pageSize: this.page.pageSize, //--页大小
+					userId:this.userInfo.erpUserCode,
+					artId: this.paperInFormItems.customerArt,	//--纸质
+					artLb:'',//楞别
+					boxId:'',//盒式编号
+					boxLength: this.paperInFormItems.paperLength,//--纸长
+					boxWidth:  this.paperInFormItems.paperWidth,	//--纸宽
+					boxQty: this.paperInFormItems.qty			,//--数量(片)
+					startDate:this.paperInFormItems.startDate ,//开始时间
+					endDate:this.paperInFormItems.endDate,//结束时间
+				}
+				this.requestData(parms).then(res=>{
+					if(res.list.length<20){
+						this.page.pageNumber = 1
+						this.page.whether = false
+					}else{
+						this.page.pageNumber++
+					}
+					this.toast.hide()
+					this.orderList = this.orderList.concat(res.list)
+				}).catch(err=>{
+					this.toast.hide()
+					this.toast.message(err)
+				})
+			},
+			// 查看数据详情
+			seeDetails(index){
+				this.modalName = 'DialogModal1'
+				this.hideModalList = this.orderList[index]
+			},
+			// 清除事件
+			resetFrom(){
+				this.orderList = []
+				this.$refs.lineDrawer.$data.formItem.customers 
+				this.$refs.lineDrawer.$data.formItem.customersId 
+				this.$refs.BoxDrawer.$data.formItem.customers 
+				this.$refs.BoxDrawer.$data.formItem.customersId 
+				this.page.pageNumber = 1
+				this.paperInFormItems.customerArt = ''
+				this.paperInFormItems.paperLength = ''
+				this.paperInFormItems.paperWidth = ''
+				this.paperInFormItems.qty = ''
+				this.page.whether = true
+			},
+			// 查询事件
+			submitData(){
+				this.orderList = []
+				this.page.pageNumber = 1
+				this.page.whether = true
+				let parms = {
+					// pageNumber: this.page.pageNumber, //--页码
+					// pageSize: this.page.pageSize, //--页大小
+					// customerArt: this.paperInFormItems.customerArt,	//--纸质
+					// paperLength: this.paperInFormItems.paperLength,//--纸长
+					// paperWidth:  this.paperInFormItems.paperWidth,	//--纸宽
+					// qty: this.paperInFormItems.qty			,//--数量(片)
+					// startDate:this.paperInFormItems.startDate ,//开始时间
+					// endDate:this.paperInFormItems.endDate,//结束时间
+					// UserID:this.userInfo.erpUserCode,
+					pageNumber: this.page.pageNumber, //--页码
+					pageSize: this.page.pageSize, //--页大小
+					userId:this.userInfo.erpUserCode,
+					artId: this.paperInFormItems.customerArt,	//--纸质
+					artLb:'',//楞别
+					boxId:'',//盒式编号
+					boxLength: this.paperInFormItems.paperLength,//--纸长
+					boxWidth:  this.paperInFormItems.paperWidth,	//--纸宽
+					boxQty: this.paperInFormItems.qty			,//--数量(片)
+					startDate:this.paperInFormItems.startDate ,//开始时间
+					endDate:this.paperInFormItems.endDate,//结束时间
+					
+				}
+				this.toast.loading()
+				this.requestData(parms).then(res=>{
+					if(res.list.length!==0){
+						if(res.list.length<20){
+							this.page.pageNumber = 1
+							this.page.whether = false
+						}else{
+							this.page.pageNumber++
+						}
+					}else{
+						this.toast.message('暂无数据')
+					}
+					this.toast.hide()
+					this.orderList = res.list
+				}).catch(err=>{
+					this.toast.hide()
+					this.toast.message('执行失败')
+				})
+			},
+			// 弹出层取消事件
+			hideModal(){
+				this.modalName = ''
+			},
+			butclick(type,index){
+				this.buttonindex = index
+				switch (type){
+					case 0://取消订单
+						this.modalName = 'DialogModal2'
+						break;
+					case 1://订单详情 
+						this.modifyOrder(1)
+						break;
+					default://再次下单
+						console.log(2)
+						this.againOrder()
+						break;
+				}
+			},
+			// 再次下单
+			againOrder(){
+				this.modifyOrder()
+			},
+			// 订单详情
+			modifyOrder(type){
+				let data = this.orderList[this.buttonindex]
+				this.cache.put(String(this.buttonindex),data)
+				// navigateTo  保留此页面
+				uni.navigateTo({
+				    url: `../placeanOrder/placeanOrder_wzfx?id=${this.buttonindex}&type=${type}`
+				});
+			},
+			// 取消订单确认事件
+			confirmFrom(){
+				this.modalName = ''
+				let data = this.orderList[this.buttonindex].id
+				this.toast.loading()
+				request.post('/order/deletePaperOrder',{id:data}).then(res=>{
+					this.toast.hide()
+					this.toast.message('取消成功')
+					this.getorderList()
+				}).catch(err=>{
+					this.toast.hide()
+					this.toast.message(err)
+				})
+			},
+			gettophight(className){
+				this.getOtherContentHeight(className).then(res=>{
+					this.topheight = res
+				}).catch(err=>{
+					this.toast.message(err)
+				})
+			}
+		}
+	}
+</script>
+
+<style scoped>
+.xunhoutop{
+	position: fixed;
+	width: 100%;
+	z-index: 10;
+}
+.chucangbtm{
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	background-color: #FFFFFF;
+	z-index: 2;
+}
+</style>

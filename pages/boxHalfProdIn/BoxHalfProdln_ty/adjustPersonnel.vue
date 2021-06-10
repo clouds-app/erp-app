@@ -122,7 +122,7 @@ import uniList from '@/components/uni-list/uni-list.vue';
 import uniListItem from '@/components/uni-list-item/uni-list-item.vue';
 import uniSearchBar from '@/components/uni-search-bar/uni-search-bar.vue';
 	export default{
-		components:{vTable,cuCustom,request,uniDrawer,uniList,uniListItem,uniSearchBar},
+		components:{vTable,cuCustom,uniDrawer,uniList,uniListItem,uniSearchBar},
 		data() {
 			return {
 				uptatefrom:{w_Name:'',w_ID:'',money:'',tt_quotient:''},

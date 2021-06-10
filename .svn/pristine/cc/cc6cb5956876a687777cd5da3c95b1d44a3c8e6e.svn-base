@@ -1,0 +1,350 @@
+<template>
+	<view>
+		<cu-custom bgColor="bg-gradual-blue" :isBack="true">
+			<block slot="content">订单状态查询</block>
+		</cu-custom>
+		<form class="xunhoutop">
+			<view class="flex border-top topstate">
+				<view class="cu-form-group border-top pickertop">
+					<picker @change="PickerChange" :value="formItem.index" :range="picker">
+						<view class="picker toppicker">
+							状态:{{formItem.index>-1?picker[formItem.index]:'请选择状态'}}
+						</view>
+					</picker>
+				</view>
+				<view class="cu-form-group topbuttom">
+					<button :disabled="isLoaddingData" :style="{color: formItem.type=='week'?'red':''}"
+						class="cu-btn  line-blue" @click="searchDataBy('week')">本周</button>
+					<button :disabled="isLoaddingData" :style="{color: formItem.type=='month'?'red':''}"
+						class="cu-btn  line-blue" @click="searchDataBy('month')">本月</button>
+					<button :disabled="isLoaddingData" @click="restfrom()" class="cu-btn  line-blue"
+						size="mini">清空</button>
+					<button :disabled="isLoaddingData" class="cu-btn bg-blue" @click="searchDataBy('date')">查询</button>
+				</view>
+				<!-- <view class="flex-sub">
+					
+				</view> -->
+			</view>
+
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">日期范围:</view>
+						<picker mode="date" :value="formItem.startDate" start="2000-09-01" :end="defaultEndDate"
+							@change="startDateChange">
+							<view class="picker">
+								{{formItem.startDate}}
+							</view>
+						</picker>
+						<text class="margin-left">至</text>
+						<picker mode="date" :value="formItem.endDate" start="2000-09-01" :end="defaultEndDate"
+							@change="endDateChange">
+							<view class="picker">
+								{{formItem.endDate}}
+							</view>
+						</picker>
+					</view>
+					<view class="flex-sub">
+						<selectDropdown :otherHeight='CustomBarHeight' ref="customerDrawer" url="appGetCustomerList"
+							title="客ㅤ户" placeholdertext="请选择客户" v-model='selectData'
+							:params="{modelCode:'paper_order_status',UserCode:userInfo.erpUserCode}"></selectDropdown>
+
+					</view>
+				</view>
+			</view>
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">纸质:</view>
+						<input v-model="formItem.paperArt" placeholder="请输入纸质" />
+					</view>
+				</view>
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">纸长:</view>
+						<input type="number" @blur='checkFdNum' v-model="formItem.paperLength" placeholder="请输入纸长" />
+					</view>
+				</view>
+			</view>
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">纸宽:</view>
+						<input v-model="formItem.paperWidth" placeholder="请输入纸宽" />
+					</view>
+				</view>
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">数量:</view>
+						<input type="number" @blur='checkFdNum' v-model="formItem.qty" placeholder="请输入数量" />
+					</view>
+				</view>
+			</view>
+			<view class="flex border-top">
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">纸箱长宽高:</view>
+						<input type="number" v-model="formItem.BoxSizeL" placeholder="请输箱长" />
+						<view class="title">*</view>
+						<input type="number" v-model="formItem.BoxSizeW" placeholder="请输箱宽" />
+						<view class="title">*</view>
+						<input type="number" v-model="formItem.BoxSizeH" placeholder="请输箱高" />
+					</view>
+				</view>
+			</view>
+		</form>
+		<view :style="{'height':topheight + 'px'}"></view>
+		<!-- 查询数据 -->
+		<view class="border-bottom grid-warp" v-for="(item,index) in orderList" @click="seeDetails(index)">
+			<view class="grid-title">
+				<view>{{item.ct_Desc}}</view>
+				<!--  -->
+				<view
+					:class="[(item.orderStatus=='已完成'||item.orderStatus=='已排程'||item.orderStatus=='已送货')?'bg-red':'bg-gray','radius','cu-tag']">
+					{{item.orderStatus}}</view>
+			</view>
+			<view class="grid-body">
+				<view class="grid-flex padding-10">
+					<view>
+						<text>订单号:{{item.co_No}}</text>
+					</view>
+					<view>
+						<text>纸箱规格:{{item.boxSpec}}</text>
+					</view>
+				</view>
+				<view class="grid-flex padding-10">
+					<view>
+						<text>纸质:{{item.co_ArtId}}</text>
+					</view>
+					<view>
+						<text>规格:{{item.Spec}}</text>
+					</view>
+				</view>
+				<view class="grid-flex padding-10">
+					<view>
+						<text>数量:{{item.co_Qty}}</text>
+					</view>
+					<view>
+						<text>PO:{{item.co_CustPo}}</text>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view style="height: 20rpx;"></view>
+
+		<!-- 详情弹出层 -->
+		<view class="cu-modal" :class="modalName=='DialogModal1'?'show':''">
+			<view class="cu-dialog">
+				<view class="cu-bar bg-white justify-end">
+					<view class="content">订单详情</view>
+					<view class="action" @tap="hideModal">
+						<text class="cuIcon-close text-red"></text>
+					</view>
+				</view>
+				<view class="grid-body" v-for="(item,index) in hideModalList" :key='index'>
+					<view class="flex border-top">
+						<view class="cu-form-group">
+							<view class="title">{{item.ftype}}</view>
+						</view>
+					</view>
+					<view class="flex border-top">
+						<view class="cu-form-group">
+							<view class="title">日期：{{item.co_Date}}</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import selectDropdown from '@/components/selectDropdown/selectDropdown.vue'
+	import cuCustom from '@/ui/colorui/components/cu-custom.vue'
+	import vTable from "@/components/table.vue"
+	import baseMixin from '@/mixins';
+	import dayjs from 'dayjs'
+	import request from '@/utils/request.js';
+	const defaultformItem = {
+		startDate: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+		endDate: dayjs().format('YYYY-MM-DD'),
+		searchMode: 0,
+		type: '',
+		index: 0, //状态索引
+		paperArt: '', //纸质
+		paperLength: '', //纸长
+		paperWidth: '', //纸宽
+		qty: '', //数量
+		BoxSizeL: '', // 纸箱长
+		BoxSizeW: '', // 纸箱宽
+		BoxSizeH: '', // 纸箱高
+	}
+	export default {
+		components: {
+			cuCustom,
+			vTable,
+			selectDropdown
+		},
+		mixins: [baseMixin],
+		data() {
+			return {
+				selectData: '', // 客户弹框对应字段
+				hideModalList: [], //查看详情字段
+				modalName: '', //详情弹框框
+				topheight: 78, //头部菜单高度
+				picker: ['全部', '已完成', '未排程', '已排程', '已入库', '已送货'],
+				formItem: Object.assign({}, defaultformItem),
+				defaultEndDate: dayjs().format('YYYY-MM-DD'),
+				orderList: [],
+				page: { //分页查询参数
+					pageNumber: 1, //分页页码
+					LoadorNot: true, //是否可以分页
+				}
+			}
+		},
+		onReachBottom() {
+			if (this.page.LoadorNot) {
+				this.page.pageNumber++
+				this.getorderList()
+			}
+		},
+		onReady() {
+			this.gettophight('xunhoutop')
+
+		},
+		methods: {
+			hideModal() {
+				this.modalName = ''
+			},
+			// 查看数据详情
+			seeDetails(index) {
+				let data = this.orderList[index].co_No
+				this.toast.loading()
+				request.post(`/report/sysOrderDetail?sysOrderId=${data}`).then(res => {
+					this.toast.hide()
+					this.hideModalList = res
+					this.modalName = 'DialogModal1'
+				}).catch(err => {
+					this.toast.hide()
+					this.toast.message(err)
+				})
+			},
+			// 清空事件
+			restfrom() {
+				this.formItem = Object.assign({}, defaultformItem),
+					this.orderList = []
+				this.page.pageNumber = 1
+				this.page.LoadorNot = true
+			},
+			// 状态选择
+			PickerChange(e) {
+				this.formItem.index = e.detail.value
+				this.orderList = []
+				this.getorderList()
+			},
+			// 搜索数据 通过条件
+			searchDataBy(type) {
+				// // 重置 搜索模式
+				let time = new Date();
+				let d = time.getDate() - 1;
+				let nowDayOfWeek = !!new Date().getDay() ? new Date().getDay() - 1 : 0; //今天本周的第几天
+				switch (type) {
+					// 本周dayjs()
+					case 'week':
+						this.formItem.type = 'week'
+						this.formItem.startDate = dayjs().subtract(nowDayOfWeek, 'day').format('YYYY-MM-DD')
+						this.formItem.endDate = dayjs().format('YYYY-MM-DD')
+						break;
+						// 本月
+					case 'month':
+						this.formItem.type = 'month'
+						this.formItem.startDate = dayjs().subtract(d, 'day').format('YYYY-MM-DD')
+						this.formItem.endDate = dayjs().format('YYYY-MM-DD')
+						break;
+					default:
+						// 按日期搜索+其它条件
+						this.formItem.type = ''
+						break;
+				}
+				this.orderList = []
+				this.getorderList()
+			},
+			// 获取数据列表
+			getorderList() {
+				let user = this.cache.get(this.appConst.CLIENT_USER_CACHE_NAME)
+				let data = {
+					pageNum: this.page.pageNumber,
+					pageSize: 20,
+					userType: user.userType,
+					// pageNumber: this.page.pageNumber,
+					startDate: this.formItem.startDate, //--开始时间
+					endDate: this.formItem.endDate, // --结束时间
+					customerId: this.$refs.customerDrawer.formItem.customers.split('_')[0], //--客户编号
+					salesmenId: "", //--业务员编号
+					po: "", // --客户PO号
+					spec: "", // --规格
+					paperArt: this.formItem.paperArt, //--纸质
+					paperLength: this.formItem.paperLength, //--纸长
+					paperWidth: this.formItem.paperWidth, //--纸宽
+					orderStatus: this.formItem.index, //--0未完成(全部),1已完成，2未排程，3已排程，4已入库，5已送货
+					baseCode: this.userInfo.erpUserCode,
+					BoxSizeL: this.formItem.BoxSizeL, // 纸箱长
+					BoxSizeW: this.formItem.BoxSizeW, // 纸箱宽
+					BoxSizeH: this.formItem.BoxSizeH, // 纸箱高
+					qty: this.formItem.qty, //--数量(片)
+				}
+				this.toast.loading()
+				request.post('/warehouse/warehouse/execute/appSpPhoneInfoCO', data).then(res => {
+					if (res.list.length < 20) {
+						this.page.pageNumber = 1
+						this.page.LoadorNot = false
+					}
+					this.toast.hide()
+					this.orderList = this.orderList.concat(res.list)
+				}).catch(err => {
+					this.toast.hide()
+					this.toast.message(err)
+				})
+			},
+			// 结束时间回调
+			endDateChange(e) {
+				this.formItem.endDate = e.detail.value
+			},
+			// 起始时间回调
+			startDateChange(e) {
+				this.formItem.startDate = e.detail.value
+			},
+			// 过去顶部列表高度
+			gettophight(className) {
+				this.getOtherContentHeight(className).then(res => {
+					this.topheight = res
+				})
+			}
+		}
+	}
+</script>
+
+<style>
+	.xunhoutop {
+		position: fixed;
+		width: 100%;
+		z-index: 10;
+	}
+
+	.border-top {
+		justify-content: space-between
+	}
+
+	.topstate {
+		/* padding-right: 17rpx !important; */
+		background: #FFFFFF !important;
+
+	}
+
+	.pickertop {
+		padding-right: 0px;
+	}
+	.input1{
+		width: 100rpx;
+	}
+</style>

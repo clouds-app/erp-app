@@ -1,0 +1,580 @@
+<template>
+	<view>	
+		<view  class="cu-form-group border-top">
+			<view  class="title" :style="[{color:titleColor}]" :class="[titleColor=='red'?'fontweight':'']">{{title}}:</view>
+			<input @click="showModal" disabled v-model="formItem.customers"  :placeholder="placeholdertext" name="input"></input>
+			<text @click="showModal" :class="[!!!formItem.customers ? 'text-green' : 'text-gray']"  class='cuIcon-rounddown'></text>
+		</view>
+		
+		<view v-if="modalName=='DrawerModalL'" >
+			<!-- 搜索框 -->
+			<view :style="[{top:otherHeight + 'px',width:searchWidth+'px' , left:0+'px'}]" class="cu-bar bg-white searchfrom" >
+				<view class="search-form round">
+					<text class="cuIcon-search"></text>
+					<input v-model="searchKeyword" type="text" placeholder="数据列表" confirm-type="search" @input="debounceTime(filterDataSource,$event,800)"></input>
+				</view>
+			</view>
+			<!-- 抽屉  -->
+			<view  style="z-index:103" class="cu-modal drawer-modal justify-start" :class="modalName=='DrawerModalL'?'show':''" @tap="hideModal" >
+				<scroll-view  scroll-y="true" @scrolltolower="activityScroll"  class="cu-dialog basis-lg scroll" @tap.stop=""  style="overflow: scroll;" @tap="hideModal" :style="[{top:searchHeight+otherHeight + 'px',height:leftContentHeight+'px' }]">
+					<view class="cu-list menu text-left">
+						<view class="cu-item arrow" v-for="(item,index) in modalArry" :key="index" @click.stop="modalclicl(index)">
+							<view class="content" v-if="!multipleChoice">
+								<view @click.stop="modalclicl(index)">{{item.ct_Desc}}</view>
+							</view>
+							<!-- 多选 -->
+							<block v-if="multipleChoice">
+								<checkbox-group class="block" @change="CheckboxChange(item)">
+									<view class="cu-form-group" @click="checkIsSelected(item)">
+										<view class="content">{{item.ct_Desc}}</view>
+										<checkbox class="checkboxitem" :class="checkIsSelected(item)?'checked':''" :checked="checkIsSelected(item)" :value="item.checkboxtype"></checkbox>
+									</view>
+								</checkbox-group>
+							</block>
+						</view>
+					</view>
+					<text style="color: rgb(163,163,163); text-align: center;">---我是有底线的---</text>
+					<view  class="cu-item" >
+						<!-- 占位符 不可以删除 -->
+						<view class="cu-bar bg-white"><strong></strong>
+							<view class="search-form round">
+							</view>
+							<view class="action">
+							</view>
+						</view>
+						<!-- 占位符 不可以删除 -->
+						<!-- <view style="height: 20PX;"></view> -->
+					</view>
+				</scroll-view>
+			</view>
+				<view :class="modalName=='DrawerModalL'?'show':''"  @click.stop="submitMultiple()" v-if="multipleChoice" class="cu-bar footbutton input" :style="[{width:searchWidth+'px',bottom:0+'px'}]">
+					<view class="action">
+					</view>
+					<view class="action">
+					</view>
+					<button @click.stop="submitMultiple()" class="cu-btn bg-green shadow">确定</button>
+				</view>
+		</view>
+	</view>
+</template>
+
+<script>
+// import debounce from '@/utils/debounce.js'
+import request from './request.js';
+	const defaultformItem={
+							customers:'',//产品
+							customersId:'',//产品id
+						}
+	export default {
+		data() {
+			return {
+				timer:'',//防抖函数定时器
+				buttonHeight:0,//多选按钮高度
+				InputBottom: 0,
+				seletedItemList:[],//多选储存的值
+				productList:[],//储存第一次查询数据
+				modalName:null,
+				searchWidth:0,
+				leftContentHeight:0,//数据库高度
+				searchHeight:0,//搜索框高度
+				searchKeyword:'',//抽屉搜索关键词
+				modalArry:[],//抽屉弹框数据
+				formItem:Object.assign({},defaultformItem),
+				pageNum:1,//页码
+				pageSize:100,//页大小
+				isFilterDataByPage:false,//false:条件查询数据,true:翻页查询 
+			};
+		},
+		watch:{
+			defaultValue: {
+			  handler(newValue, oldValue) {
+				if(!!newValue){
+					this.initDefaultValue(newValue)	
+				}
+			  },
+			  deep: true
+			},
+			
+		},
+		props:{
+			// 当只有一条数据时，是否拿查询的第一条数据做为默认值
+			allSetonlyOne:{
+				type:Boolean,
+				default:true
+			},
+			// 是否拿查询的第一条数据做为默认值
+			setonlyOne:{
+				type:Boolean,
+				default:false
+			},
+			// 外部手动传递默认值
+			defaultValue:{
+				type:String,
+				default:''
+			},
+			// 控件额外配置
+			componentConfig:{
+				type:Object,
+				default() {
+				      return {}
+				   }
+			},
+			//title头部高度
+			otherHeight: {
+				type:Number,
+				default:40,
+			},
+			//名称
+			title: {
+				type:String,
+				default:''
+			},
+			//请求路径
+			url:{
+				type:String,
+				default:''
+			},
+			//输入框背景字体
+			placeholdertext:{
+				type:String,
+				default:''
+			},
+			//数据查询传参
+			params:{
+				type:Object,
+				default() {
+				      return {}
+				 }
+			},
+			//选择时是否重新过滤数据
+			Reload:{
+				type:Boolean,
+				default:false
+			},
+			//多选
+			multipleChoice:{
+				type:Boolean,
+				defaulet:false
+			},
+			// title 颜色
+			titleColor:{
+				type:String,
+				defaulet:'black'
+			},
+			// 禁用下拉控件
+			disabled:{
+				type:Boolean,
+				defaulet:false
+			},
+			isShowToast:{
+				type:Boolean,
+				defaulet:true
+			},
+		},
+		mounted() {
+			this.loadproductList();
+		},
+		
+		onReady() {
+			this.loadproductList();
+		},
+		methods: {
+			// 新增重复查询时清空所有数据 2020.08.26 SuperQiang
+			clearFromData(){
+				this.formItem.customers = '',
+				this.formItem.customersId = '',
+				this.productList = [],
+				this.modalArry = [],
+				this.seletedItemList = [],
+				this.pageNum = 1
+				this.isFilterDataByPage = false
+			},
+			//活动区域的滚动事件
+			activityScroll(){
+				console.log(222);
+				if(this.isFilterDataByPage){
+					this.pageNum = 1
+					return
+				}
+				if(this.modalArry.length < 100){
+					this.toast.message('没有更多数据了')
+					this.isFilterDataByPage = true
+					this.pageNum = 1
+					return;
+				}
+				this.toast.loading()
+				this.pageNum ++
+				this.getpagingdata()//分页查询
+				// setTimeout(()=>{
+					// this.toast.hide();
+				// },2000)
+				// console.log('我还有数据')
+				return;
+				// this.modalArry = this.modalArry.concat(this.modalArry)
+			},
+			//分页查询获取数据
+			getpagingdata(data){
+				let params = {
+					// ...this.params,
+					// pageNum:this.pageNum,
+					// pageSize:this.pageSize
+				}
+				request.post(`/common/sys/popup/${this.url}/queryWx?page=${this.pageNum}`,params).then(res=>{
+					if(res.list.length == 0){
+						this.toast.hide()
+						this.isFilterDataByPage = true
+						this.pageNum = 1
+						this.toast.message('没有数据了')
+						return;
+					}
+					if(res.list.length < 100){
+						// this.toast.message('已加载全部数据')
+						this.isFilterDataByPage = true
+						this.pageNum = 1
+					}
+					let resData=res.list.map(item=>{
+						let formatData = {
+							type:item.value,
+							ct_Desc:item.text,
+							wplAssNum:item.wplAssNum,//计件系数
+							wpl_WorkPrice:item.wpl_WorkPrice,//工价
+							wpl_WorkPriceUnit:item.wpl_WorkPriceUnit,//计件方式单位t
+							wpl_WorkPriceUnitName:item.wpl_WorkPriceUnitName,//计价单位显示
+						}
+						return formatData
+					})
+					// this.productList = resData // 客户
+					this.modalArry = this.modalArry.concat(resData)
+					this.toast.hide()
+					//this.$emit('getdataArray',resData,data)
+					return resData
+				}).catch(err => {
+					this.toast.hide()
+					this.toast.message('数据加载失败');
+				});
+			},
+			// //计算确认按钮高度
+			// setbuttonHeight(needOtherHeight=false){
+			// 	if(!needOtherHeight){
+			// 	  // this.otherHeight = 0
+			// 	}
+			// 	try {
+			// 		const res = uni.getSystemInfoSync();
+			// 		this.buttonHeight =res.windowHeight -this.otherHeight-0
+			// 		console.log(this.buttonHeight)
+			// 		return this.buttonHeight
+			// 	} catch (e) {
+			// 		// error
+			// 	}
+			// },
+			// 合并多选值
+			formatMultipleVal(type){
+				let multipleValList=''
+				let tempVal=this.seletedItemList.map(item=>{
+					 if(multipleValList==''){
+						 if(type=='desc'){
+							  multipleValList=item.value
+						 }else{
+							 multipleValList=item.type
+						 }
+					 }else{
+						 if(type=='desc'){
+						 	 multipleValList+=';'+item.value
+						 }else{
+							  multipleValList+=';'+item.type
+						 }
+					 }
+				})
+				return multipleValList
+			},
+			//多选确认
+			submitMultiple(){
+				let strname = this.formatMultipleVal('desc');
+				let strval = this.formatMultipleVal('type');
+				this.modalName = null
+				this.formItem.customers = strname
+				this.$emit('getcheckboxval',strval)
+			},
+			// 校验是否已经选中了
+			checkIsSelected(val){
+				let isExistIndex = this.seletedItemList.findIndex((item)=>item.type == val.type);
+				if(isExistIndex !=-1){
+					
+					return true
+				}else{
+					return false
+				}
+			},
+			// 多选 触发事件
+			CheckboxChange(e) {
+				let isExistIndex = this.seletedItemList.findIndex((item)=>item.type == e.type);
+				if(isExistIndex !=-1){
+					this.seletedItemList.splice(isExistIndex,1)
+					return
+				}
+				this.seletedItemList.push({type: e.type,value:e.ct_Desc})
+			},
+			// 加载列表
+			loadproductList(){
+				if(this.Reload){
+					return;
+				}
+				this.getdataArray();
+			},
+			// 判断是否只有一条数据
+			setonlydata(data){
+				if(data.length == 1||this.setonlyOne){
+					this.formItem.customers=data[0].ct_Desc
+					this.formItem.customersId=data[0].type
+					this.$emit('input',data[0].type)
+					this.$emit('closeMain',data[0])
+					this.$emit('onChange',this.formItem,this.componentConfig)
+					return
+				}
+				return
+			},
+			// 设置默认是
+			initDefaultValue(item){
+			 this.formItem.customers = item
+			},
+			//获取数据列表
+			getdataArray(data){
+				let params
+				this.productList =[]
+				if(data !== undefined){
+					params = data
+				}else{
+					params = this.params
+				}
+				this.toast.loading();
+				request.post(`/common/sys/popup/${this.url}/queryWx?page=${this.pageNum}`,params).then(res=>{
+					if(res.list.length == 0){
+						this.toast.hide()
+						if(this.isShowToast === true){
+							this.toast.message('暂无数据')
+						}
+						return;
+					}
+					if(res.list.length < 100){
+						this.isFilterDataByPage = true
+					}
+					let resData=res.list.map(item=>{
+						let formatData = {
+							type:item.value,
+							ct_Desc:item.text,
+							iisExistsPro:item.iisExistsPro,
+							iisExistsVc:item.iisExistsVc,
+							preDesUser:item.preDesUser,
+						}
+						return formatData
+					})
+					this.productList = resData // 客户
+					if(!!this.allSetonlyOne){
+						this.setonlydata(this.productList)
+					}
+					this.toast.hide()
+					//this.$emit('getdataArray',resData,data)
+					return resData
+				}).catch(err => {
+					this.toast.hide()
+				});
+			},
+			// 新增外部查询列表数据回填 2020.08.25 superQiang
+			outsideDataWriteback(data){
+				let resData=data.map(item=>{
+					let formatData = {
+						type:item.value,
+						ct_Desc:item.text,
+					}
+					return formatData
+				})
+				this.productList = resData // 客户
+			},
+			modalclicl(index){
+				if(this.multipleChoice == true){
+					return
+				}
+				if(!!!this.modalArry.length){
+					this.modalArry = this.productList
+				}
+				let e = this.modalArry
+				this.formItem.customers=this.modalArry[index].ct_Desc
+				this.formItem.customersId=this.modalArry[index].type
+				// 选择不同的值 触发 onChange 返回选择的对象 Add by Andy 20200210
+				this.$emit('onChange',this.formItem,this.componentConfig) 
+				this.$emit('input',this.formItem.customersId)
+				this.$emit('closeMain',this.modalArry[index])
+				this.modalName = null
+				this.pageNum = 1
+				this.isFilterDataByPage = false
+			},
+			hideModal(e) {
+				if(this.multipleChoice == true){
+					return
+				}
+				this.modalName = null
+				this.pageNum = 1
+				this.isFilterDataByPage = false
+			},
+			// 自定义防抖方法
+			debounceTime(fn,data,time){
+				if(!!this.timer){
+					clearTimeout(this.timer)
+				}
+				this.timer = setTimeout(()=>{
+					fn.apply(data);
+				},time)
+			},
+			//抽屉搜索事件
+			filterDataSource(value){
+				let data;
+				// str.replace(/\s*/g,"")
+				// let str = value.detail.value.toUpperCase()
+				let str = this.searchKeyword.toUpperCase()
+				if(this.params == undefined){
+					data = {
+						text$like:str.replace(/\s*/g,"")
+					}
+				}else{
+					this.params.text$like = str.replace(/\s*/g,"")
+					data = this.params
+				}
+				this.toast.loading();
+				request.post(`/common/sys/popup/${this.url}/queryWx?page=${this.pageNum}`,data).then(res=>{
+					// console.log(res)
+					let resData=res.list.map(item=>{
+						let formatData = {
+							type:item.value,
+							ct_Desc:item.text,
+							wplAssNum:item.wplAssNum,//计件系数
+							// wplWorkPrice:item.wplWorkPrice,//工价
+							// wplWorkPriceUnit:item.wplWorkPriceUnit,//计件方式单位t
+							// wplWorkPriceUnitName:item.wplWorkPriceUnitName,//计价单位显示
+							wpl_WorkPrice:item.wpl_WorkPrice,//工价
+							wpl_WorkPriceUnit:item.wpl_WorkPriceUnit,//计件方式单位t
+							wpl_WorkPriceUnitName:item.wpl_WorkPriceUnitName,//计价单位显示
+						}
+						return formatData
+					})
+					this.modalArry = resData
+					this.toast.hide();
+				}).catch(err=>{
+					this.toast.hide();
+					this.toast.message('数据加载失败')
+				})
+			},
+			showModal(e) {
+				if(!!this.disabled){
+					return
+				}
+				if(this.productList.length == 0){
+					this.toast.message('暂无数据')
+					return
+				}
+				if(this.multipleChoice == true){
+					// this.setbuttonHeight()
+					this.cleraChoiceData()
+				}
+				this.modelVal = e
+				this.searchKeyword = ''
+				this.modalName = 'DrawerModalL'
+				this.modalArry = this.productList
+				this.$emit('judge')
+				if(this.modalName == 'DrawerModalL'){
+					setTimeout(()=>{
+						this.getTableHeight()
+					},500)
+				}
+			},
+			// 多选时打开弹框清空选择缓存
+			cleraChoiceData(){
+				// debugger
+				// productList
+				this.seletedItemList = []
+				// this.seletedItemList.filter(item=>{
+				// 	debugger
+				// })
+			},
+			//计算设置表格高度
+			setTableHeight(needOtherHeight=false){
+					  if(!needOtherHeight){
+						  this.availHeight = 0
+					  }
+					try {
+						//debugger
+					    const res = uni.getSystemInfoSync();
+					    // console.log('windowHeight:'+res.windowHeight);
+					     // console.log('CustomBar:'+this.CustomBar);
+					    // console.log('bodyContentHeight:'+this.otherHeight);
+						this.leftContentHeight =res.windowHeight - this.searchHeight -10
+						//console.log('tableHeight:'+this.leftContentHeight);
+						return this.leftContentHeight
+					} catch (e) {
+					    // error
+					}
+			},  
+			//获取指定内容占用高度,计算剩余高度 单位:PX
+			getOtherContentHeight(className='bodyContentHeight'){
+				// debugger
+			  return new Promise((resolve, reject) => {
+				   let eleHeight=0
+				   let _self =this
+				   let info = uni.createSelectorQuery().in(_self).select("."+className);
+				  info.boundingClientRect(function(data) { //data - 各种参数
+				  // debugger
+				 　　   _self.searchHeight = data.height
+						eleHeight = data.height
+						resolve(data.height)
+				   }).exec(function (res) {
+				   })
+			  })
+			},
+			async getTableHeight(){
+			  let _self=this
+			  let searchHeight= await _self.getOtherContentHeight("searchfrom")+this.otherHeight
+			  // console.log(searchHeight)
+			  let tempHeight =  _self.setTableHeight()
+			  // console.log(tempHeight)
+			  this.searchWidth = 0
+			  this.searchWidth= await _self.getOtherContentwidth("arrow")
+			  // let serchHeight= await _self.getOtherContentHeight("searchfrom")
+			  // console.log(serchHeight)
+			},
+			//获取指定属性宽度
+			getOtherContentwidth(className='bodyContentWidth'){
+						  return new Promise((resolve, reject) => {
+							   let eleWidth=0
+							   let _self =this
+							   let info = uni.createSelectorQuery().in(_self).select("."+className);
+							  info.boundingClientRect(function(data) { //data - 各种参数
+							 　　   _self.searchWidth = data.width 
+									eleWidth = data.width 
+									resolve(data.width )
+							   }).exec(function (res) {
+							   })
+						  })
+						},
+		}
+	}
+</script>
+
+<style scoped>
+.searchfrom{
+	/* display: flex; */
+	position: fixed;
+	width: 60%;
+	z-index: 104;
+}
+.checkboxitem {
+	position: absolute;
+	right: 10px;
+}
+.footbutton{
+	position: absolute;
+	left: 0px;
+	z-index: 103;
+}
+.fontweight{
+		font-weight: bold;
+}
+</style>
