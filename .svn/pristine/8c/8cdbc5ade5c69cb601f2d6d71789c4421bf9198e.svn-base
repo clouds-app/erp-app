@@ -1,6 +1,6 @@
 <template>
 	<view>
-		<cu-custom class="titlefrom" bgColor="bg-gradual-blue" :isBack="true"><block slot="content">工序扫描入库</block></cu-custom>
+		<cu-custom class="titlefrom" bgColor="bg-gradual-blue" :isBack="true"><block slot="content">工序扫描入库通用版</block></cu-custom>
 		<view>
 			<view>
 				<view class="border-bottom">
@@ -25,11 +25,27 @@
 							:defaultValue = 'formItem.ProdutName'
 							:otherHeight='CustomBarHeight' 
 							ref="ProdutDrawer"
-							url="appFindWorkProcList"
-							title="生产工序"
-							placeholdertext="请选择生产工序"
+							url="appFindWorkProcListMain"
+							title="工序大类"
+							placeholdertext="请选择工序大类"
 							v-model='formItem.ProdutId'
 							@closeMain='closeMain'
+							:params="{modelCode:'workProc_in',pageSize:100,pageNum:1}"
+						></selectDropdown>
+						<selectDropdown
+							@onChange="onChangeInToCache"
+							:componentConfig="{tokenKey:'wp.wplDrawer'}"
+							:defaultValue = 'formItem.wpl'
+							:otherHeight='CustomBarHeight' 
+							ref="wplDrawer"
+							url="appFindWorkProcList"
+							title="计价工序"
+							placeholdertext="请选择计价工序"
+							v-model='formItem.wplId'
+							:Reload='true'
+							:params='machineparams'
+							@judge="judge"
+							@closeMain='changewpl'
 						></selectDropdown>
 						<selectDropdown
 							@onChange="onChangeInToCache"
@@ -41,26 +57,8 @@
 							title="机ㅤㅤ台"
 							placeholdertext="请选择机台"
 							v-model='formItem.machineId'
-							:params='machineparams'
 							:Reload='true'
-							@judge="judge"
 						></selectDropdown>
-						<selectDropdown
-							@onChange="onChangeInToCache"
-							:componentConfig="{tokenKey:'wp.wplDrawer'}"
-							:defaultValue = 'formItem.wpl'
-							:otherHeight='CustomBarHeight' 
-							ref="wplDrawer"
-							url="appFindWorkProcPriceItem"
-							title="计价工序"
-							placeholdertext="请选择计价工序"
-							v-model='formItem.wplId'
-							:Reload='true'
-							:params='machineparams'
-							@judge="judge"
-							@closeMain='changewpl'
-						></selectDropdown>
-
 						<view class="flex border-top">
 							<view class="flex-sub">
 								<view class="cu-form-group">
@@ -149,7 +147,7 @@
 				<view class="flex border-top">
 					<view class="flex-sub">
 						<view class="cu-form-group">
-							<text class="title">名ㅤ称：{{item.bi_ProdName}}</text>
+							<text class="title">名称：{{item.bi_ProdName}}</text>
 						</view>
 					</view>
 				</view>
@@ -185,6 +183,28 @@
 						>
 						<!--单选 :height="200"	@on-selection-change='onClick' -->
 					</v-table>
+				</view>
+			</view>
+		</view>
+		<!-- 详情弹出层 -->
+		<view class="cu-modal" :class="modalName=='DialogModal1'?'show':''" @bindtap="hideModal">
+			<view class="cu-dialog">
+				<view class="cu-bar bg-white justify-end">
+					<view class="content">提示</view>
+					<view class="action" @tap="hideModal">
+						<text class="cuIcon-close text-red"></text>
+					</view>
+				</view>
+				<view class="flex-sub">
+					<view class="cu-form-group">
+						<view class="title">检测到入库数大于剩余工单数，确定要继续入库吗？</view>
+					</view>
+				</view>
+				<view class="flex-sub">
+					<view class="cu-form-group" style="padding-top: 60rpx; padding-bottom: 40rpx;">
+						<button @click="cancel" type="primary" size="mini" class="bg-grey radius">取消</button>
+						<button @click="confirm" type="primary" size="mini" class="bg-grey radius">确定</button>
+					</view>
 				</view>
 			</view>
 		</view>
@@ -231,6 +251,7 @@ export default {
 	mixins: [baseMixin],
 	data() {
 		return {
+			modalName:'',
 			machineparams:{},//机台过滤参数
 			params:{
 				type:"1",
@@ -281,7 +302,6 @@ export default {
 			],
 			formItem:Object.assign({},defaultformItem),
 			fromdata:[],//工单扫描信息
-			// monnyList:[],//存储 wpl_WorkPrice:"工价"和 wpl_WorkPriceUnit:"工价单位"
 			boxHalfProdIn: {
 				wpl_WorkPriceUnitName:'',//工价单位
 				wplAssNum:1,//计件系数
@@ -298,11 +318,6 @@ export default {
 				Qty: '', //工单数
 				Remark: '' //备注
 			},
-			baseData: {
-				wplList: [], //工序列表
-				machineList: [], //机台列表
-				teamList: [] //班别列表
-			},
 		};
 	},
 	computed: {
@@ -312,9 +327,6 @@ export default {
 		}
 	},
 	watch:{
-		// 'boxHalfProdIn.YxStr'(n,o){
-		// 	this.getmonny()
-		// },
 		// 计件系数 设置缓存
 		'boxHalfProdIn.wplAssNum'(n,o){
 			this.cache.put('wp.wplAssNum',n)
@@ -365,11 +377,10 @@ export default {
 	onReady() {
 		// debugger
 	},
-	// onPullDownRefresh(){
-	// 	debugger
-	// 	console.log('到底了')
-	// },
 	methods: {
+		hideModal() {
+			this.modalName = ''
+		},
 		// 自定义某行样式
 		rowClassNameFn(row, index) {
 			if (Number(index) % 2 == 0) {
@@ -389,7 +400,7 @@ export default {
 				   this.getWorkList()
 			   }
 		   }
-		   // 生产工序
+		   // 工序大类
 		   let ProdutDrawer = this.cache.get('wp.ProdutDrawer')
 		   if(ProdutDrawer){
 			   let itemKey = Object.keys(ProdutDrawer)
@@ -445,27 +456,31 @@ export default {
 			this.boxHalfProdIn.wpl_WorkPrice = data.wpl_WorkPrice//工价
 			this.boxHalfProdIn.wpl_WorkPriceUnit = data.wpl_WorkPriceUnit//工价单位
 			this.boxHalfProdIn.wpl_WorkPriceUnitName = data.wpl_WorkPriceUnitName//工价单位显示
+			this.boxHalfProdIn.wplAssNum = data.wplAssNum//计件系数
+			this.$refs.machineDrawer.getdataArray({wplID:data.type})
 		},
-		//选择机台校验
+		//选择计价工序校验
 		judge(){
 			if(this.formItem.ProdutId){
 				return true
 			}
 			this.$refs.machineDrawer.$data.modalName = null
 			this.$refs.wplDrawer.$data.modalName = null
-			this.toast.message('请选择工序')
+			this.toast.message('请选择工序大类')
 			return false
 		},	
-		//生产工序回调事件
+		//工序大类回调事件
 		closeMain(data){
 			this.machineparams = {
 				wplID:data.type,
-				modelCode:'workProc_in'
+				modelCode:'workProc_in',
+				pageSize:100,
+				pageNum:1
 			}
-			this.boxHalfProdIn.wplAssNum = data.wplAssNum//计件系数
-		   this.$refs.machineDrawer.getdataArray(this.machineparams)
+			// this.boxHalfProdIn.wplAssNum = data.wplAssNum//计件系数
+		   // this.$refs.machineDrawer.getdataArray(this.machineparams)
+			this.closerest()
 		   this.$refs.wplDrawer.getdataArray(this.machineparams)
-			// this.closerest()
 			// this.getwplArray()
 		},
 		// 重选计价工序清除事件
@@ -473,17 +488,16 @@ export default {
 			this.boxHalfProdIn.hp_bi_WorkNo = ''
 			this.getmonny()
 		},
-		// 重选生产工序清除事件
+		// 重选工序大类清除事件
 		closerest(){
-			this.boxHalfProdIn.wpl_WorkPriceUnitName = '';
-			this.$refs.machineDrawer.$data.formItem.customers = ''
-			this.$refs.machineDrawer.$data.formItem.customersId = ''
-			this.$refs.wplDrawer.$data.formItem.customers = ''
-			this.$refs.wplDrawer.$data.formItem.customersId = ''
+			this.boxHalfProdIn.wpl_WorkPriceUnitName = '';//工价
+			this.$refs.machineDrawer.clearFromData()//清空机台
+			this.$refs.wplDrawer.clearFromData()//清空计价工序
 			this.formItem.machineId = ''
-			this.formItem.wplId = ''
+			// this.formItem.wplId = ''
 			this.boxHalfProdIn.wpl_WorkPrice = ''
 			this.boxHalfProdIn.monny = 0
+			this.fromdata = [],//工单扫描信息
 			this.getSubMonny()
 		},
 		//获取计价工序
@@ -537,6 +551,7 @@ export default {
 		},
 		// 提交检验 
 		checkSubmitData(){
+			console.log(this.fromdata);
 			if(this.formItem.teamId == ''){
 				this.toast.message('请选择班别')
 				return false
@@ -565,7 +580,58 @@ export default {
 				this.toast.message('请扫描工单号')
 				return false
 			}
+			if(+this.boxHalfProdIn.YxStr > this.fromdata[0].bp_ProQty - this.fromdata[0].bw_certifiedQty){
+				this.modalName = 'DialogModal1'
+				return false
+			}
 			return true
+		},
+		// 点击确定回调
+		confirm(){
+			this.modalName = ''
+			this.toast.loading();
+			let user = this.cache.get(this.appConst.CLIENT_USER_CACHE_NAME)
+			let data = {
+				hp_bi_WorkNo:this.boxHalfProdIn.hp_bi_WorkNo,
+				hp_wpl_Id:this.formItem.wplId,//计价工序
+				hp_mo_ID:this.formItem.machineId,//机台编号
+				hp_tt_Code:this.formItem.teamId,//班别编号
+				Qty:this.boxHalfProdIn.YxStr,//入库输
+				userName:user.erpUserCode,//用户
+				jpWorkPrcNo:'',
+				workPay:this.boxHalfProdIn.monny,//工资
+				uncertifiedQty:this.boxHalfProdIn.defectsNum,//不良数
+				// prodQty:this.fromdata[0].workproc,//本工序数
+				priorcertifiedQty:this.fromdata[0].bp_ProQty ,//上工序数量
+				wplAssNum:this.boxHalfProdIn.wplAssNum,//计件系数
+			}
+			let list = this.paperOutTableDataItems
+			request.post('/hpws/saveWorkHpws',{data,list}).then(res=>{
+				// console.log(res)
+				if(res.list[0].ErrorStr == "1"){
+					this.restFrom()
+					this.disable = true
+					this.toast.hide();
+					this.toast.message('入库成功')
+					// console.log(111)
+				}else{
+					this.restFrom()
+					this.disable = true
+					this.toast.hide();
+					this.toast.message('入库失败');
+					// console.log(222)
+				}
+			}).catch(err => {
+					this.restFrom()
+					this.disable = true
+					this.toast.hide();
+					this.toast.message('入库失败');
+					// console.log(333)
+			});
+		},
+		// 点击取消回调
+		cancel(){
+			this.modalName = ''
 		},
 		// 提交数据
 		SubmitData(){
@@ -577,12 +643,12 @@ export default {
 			let user = this.cache.get(this.appConst.CLIENT_USER_CACHE_NAME)
 			let data = {
 				hp_bi_WorkNo:this.boxHalfProdIn.hp_bi_WorkNo,
-				hp_wpl_Id:this.formItem.ProdutId,//生产工序编号
+				hp_wpl_Id:this.formItem.wplId,//计价工序
 				hp_mo_ID:this.formItem.machineId,//机台编号
 				hp_tt_Code:this.formItem.teamId,//班别编号
 				Qty:this.boxHalfProdIn.YxStr,//入库输
 				userName:user.erpUserCode,//用户
-				jpWorkPrcNo:this.formItem.wplId,//计价工序
+				jpWorkPrcNo:'',
 				workPay:this.boxHalfProdIn.monny,//工资
 				uncertifiedQty:this.boxHalfProdIn.defectsNum,//不良数
 				// prodQty:this.fromdata[0].workproc,//本工序数
@@ -665,39 +731,6 @@ export default {
 				this.getSubMonny();
 			})
 		},
-		// 工序
-		getWorkProcList(){
-			if(this.formItem.machineId == ''){
-				this.toast.message('请先选择机台')
-				return;
-			}
-			let data = {
-				wpId:this.formItem.machineId,
-				modelCode:'workProc_in'
-			}
-			request.post(`/scan/getWorkProcList?wpId=${this.formItem.machineId}`).then(res=>{
-				// console.log(res)
-				// this.baseData.monnyList = res
-				let resData=res.map(item=>{
-					let formatData = {
-						type:item.wpl_Id,
-						ct_Desc:item.wpl_Name,
-						wpl_WorkPrice:item.wpl_WorkPrice,//工价
-						wpl_WorkPriceUnit:item.wpl_WorkPriceUnit,//工价单位
-						wplID:item.wplID,//生产工序标号
-						wplAssNum:item.wplAssNum,//计价系数
-					}
-					return formatData
-				})
-				if(this.baseData.wplList.length != 0){
-					if(this.baseData.wplList[0].type != resData[0].type){
-						this.baseData.wplList = resData // 客户 
-					}
-				}else{
-					this.baseData.wplList = resData // 客户
-				}
-			})
-		},
 		//打开扫描
 		async turnOnScanCode(type) {
 			if(this.checkScan()){
@@ -729,7 +762,7 @@ export default {
 		// 	uni.scanCode({
 		// 		scanType: 'barCode',
 		// 		success: function(res) {
-		// 			_self.play_dede('../../static/wxbb.mp3')
+		// 			_self.play_dede()
 		// 			let a = res.result.indexOf(',')
 		// 			let b = 0
 		// 			// console.log(a)
@@ -754,10 +787,6 @@ export default {
 		// },
 		//工单号失去焦点
 		findGoods(){
-			if(this.formItem.ProdutId == ''){
-				this.toast.message('请选择生产工序')
-				return
-			}
 			if(this.formItem.wplId == ''){
 				this.toast.message('请选择计价工序')
 				return
@@ -765,9 +794,9 @@ export default {
 			let data = {
 				bi_WorkNo:this.boxHalfProdIn.hp_bi_WorkNo,//工单号
 				Flag:0,
-				ProcID:this.formItem.wplId,//计价工序
+				ProcID:'',//计价工序
 				bc_No:'',//订单号
-				workProcNo:this.formItem.ProdutId,//生产工序
+				workProcNo:this.formItem.wplId,//计价工序
 			}
 			this.getWorkorderdata(data)
 		},
@@ -775,14 +804,9 @@ export default {
 		getWorkorderdata(data){
 			this.toast.loading();
 			request.post('/warehouse/warehouse/execute/appBoxScanOrderWorkProc',data).then(res=>{
-				// console.log(res)
 				if(res.list[0]){
 					if(res.list[0].res === 1 ){
-						if(res.list[0].bw_AssNum !== undefined){
-							this.boxHalfProdIn.wplAssNum = res.list[0].bw_AssNum
-						}
 						this.fromdata = res.list
-						// debugger
 						let bp_ProQty = Number(res.list[0].bp_ProQty)
 						let bw_certifiedQty = Number(res.list[0].bw_certifiedQty)
 						if(bp_ProQty-bw_certifiedQty > 0){
@@ -824,14 +848,14 @@ export default {
 				return
 			}
 			let data = {
-				wpl_Id:this.formItem.ProdutId, //--工序编号 
+				wpl_Id:this.formItem.wplId,//计价工序
 				WorkNo:this.boxHalfProdIn.hp_bi_WorkNo, //--工单号 
 				WorkQty:this.boxHalfProdIn.YxStr, //--生产数量 
 				WorkPrice:this.boxHalfProdIn.wpl_WorkPrice,// --工价 
 				SArea:this.fromdata[0].bp_SArea, //--单面积 
 				AssNum:this.boxHalfProdIn.wplAssNum,//--计价系数 
 				ParamNum:"0", //--工序参量（没有的话，默认0） 
-				AProID:this.formItem.wplId, //--计价工序 
+				AProID:this.formItem.wplId
 			}
 			this.toast.loading();
 			request.post('/warehouse/warehouse/execute/appSfGetWorkPay',data).then(res=>{
@@ -856,7 +880,7 @@ export default {
 				return
 			}
 			let YxStr =Number(this.boxHalfProdIn.YxStr)
-			let bp_SArea =Number(this.fromdata[0].bp_SArea) //
+			let bp_SArea =Number(this.fromdata[0].bp_SArea) //单面积
 			this.boxHalfProdIn.area =JSON.parse((YxStr*bp_SArea).toFixed(2)) 
 		},
 		// 入库数变化
@@ -868,15 +892,6 @@ export default {
 			}
 			let bp_ProQty = Number(this.fromdata[0].bp_ProQty)
 			let bw_certifiedQty = this.fromdata[0].bw_certifiedQty
-			// fix 禁用此功能 edit by Andy 20200610
-			// if(this.boxHalfProdIn.YxStr > (bp_ProQty-bw_certifiedQty)){
-			// 	if(this.boxHalfProdIn.YxStr == 0){
-			// 		return
-			// 	}
-			// 	this.toast.message('入库数不能大于未入库数')
-			// 	this.boxHalfProdIn.YxStr = 0
-			// 	return;
-			// }
 			if(this.boxHalfProdIn.YxStr == ''){
 				this.boxHalfProdIn.YxStr = 0
 			}

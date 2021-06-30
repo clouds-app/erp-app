@@ -105,12 +105,12 @@
 									<input type="number" v-model="boxHalfProdIn.defectsNum" placeholder="请输入不良数"/>
 								</view>
 							</view>
-							<view class="flex-sub">
+<!-- 							<view class="flex-sub">
 								<view class="cu-form-group">
 									<view class="title">工ㅤ资:</view>
 									<input :disabled="true" v-model="boxHalfProdIn.monny"/>{{mainmonny}}
 								</view>
-							</view>
+							</view> -->
 						</view>
 					</view>
 				</view>
@@ -253,31 +253,31 @@ export default {
 				{
 					key: 'w_ID',
 					title: '编号',
-					$width: 180,
+					$width: 250,
 					titleAlign: 'center',
 					columnAlign: 'center'
 				},
 				{
 					key: 'w_Name',
 					title: '姓名',
-					$width: 180,
+					$width: 200,
 					titleAlign: 'center',
 					columnAlign: 'center'
 				},
 				{
 					key: 'tt_quotient',
 					title: '工分',
-					$width: 158,
+					$width: 200,
 					titleAlign: 'center',
 					columnAlign: 'right'
 				},
-				{
-					key: 'money',
-					title: '人员工资',
-					$width: 158,
-					titleAlign: 'center',
-					columnAlign: 'right'
-				},
+				// {
+				// 	key: 'money',
+				// 	title: '人员工资',
+				// 	$width: 158,
+				// 	titleAlign: 'center',
+				// 	columnAlign: 'right'
+				// },
 			],
 			formItem:Object.assign({},defaultformItem),
 			fromdata:[],//工单扫描信息
@@ -627,7 +627,7 @@ export default {
 			}
 			this.getpaperOutTableDataItems()
 			uni.navigateTo({
-				url: `adjustPersonnel?team=${this.formItem.team}&teamId=`+this. formItem.teamId
+				url: `adjustPersonnel_fyd?team=${this.formItem.team}&teamId=`+this. formItem.teamId
 			})
 		},
 		//清除

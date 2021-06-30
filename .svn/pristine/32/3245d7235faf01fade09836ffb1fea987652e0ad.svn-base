@@ -35,18 +35,7 @@ export default {
 	},
 	props: {
 		listLoadUrl: String,
-		search:{
-			type:Boolean,
-			default:false
-		}
-	},
-	watch:{
-		search(n,o){
-			if(n){
-				this.approvalList=[]
-				this.approvalListProvider()
-			}
-		}
+		data:Object
 	},
 	methods: {
 		backPageEvent() {
@@ -55,20 +44,24 @@ export default {
 		},
 		//请求待审批数据列表
 		approvalListProvider() {
-			if (this.page.pageOver) {
-				return;
-			}
+			// if(this.page.pageOver ){
+			// 	return
+			// }
+			let _url = `${this.listLoadUrl}`
 			this.toast.loading()
-			request.post(this.listLoadUrl, this.page).then(res => {
+			request.post(_url, this.data).then(res => {
 				this.approvalList = [...this.approvalList, ...res.records];
-				this.page.pageOver = !(this.page.pageNumber < res.pages);
-				if (!this.page.pageOver) {
-					this.page.pageNumber = res.current + 1;
-				}
-				this.page.pages = res.pages;
+				this.page.pageOver = (this.data.pageNumber > res.pages);
 				this.toast.hide()
+				console.log(res.records.length);
+				if(res.records.length < 20){
+					this.toast.message('暂无更多数据')
+				}
 				
-			});
+			}).catch(err => {
+					this.toast.hide()
+					this.toast.message(err)
+				})
 		},
 		deleteApproval(index){
 			this.approvalList.splice(index,1)

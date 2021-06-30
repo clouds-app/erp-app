@@ -1,23 +1,22 @@
 <template>
 	<view>
 		<cu-custom bgColor="bg-gradual-blue" :isBack="true">
-				<block slot="content">纸板订单汇总表</block>
+				<block slot="content">原纸进出汇总</block>
 		</cu-custom>
 		<view class="bodyContentHeight">
 			<view class="flex border-top">
 				<view class="flex-sub">
 					<view class="cu-form-group">
 					<button :disabled="isLoaddingData" :style="{color: formItem.type=='week'?'red':''}" class="cu-btn  line-blue" @click="searchDataBy('week')" >本周</button>
-					<button :disabled="isLoaddingData" :style="{color: formItem.type=='month'?'red':''}" class="cu-btn  line-blue" @click="searchDataBy('month')" >本月</button>
-					<button :disabled="isLoaddingData" @click="restfrom()"  class="cu-btn  line-blue" size="mini">清空</button>
-					<button :disabled="isLoaddingData" class="cu-btn bg-blue"  @click="searchDataBy('date')">查询</button>
-			   </view>
+					
+						<button :disabled="isLoaddingData" :style="{color: formItem.type=='month'?'red':''}" class="cu-btn  line-blue" @click="searchDataBy('month')" >本月</button>
+				   </view>
 				</view>
-				<!-- <view class="flex-sub">
+				<view class="flex-sub">
 					<view class="cu-form-group">
 				<button :disabled="isLoaddingData" @click="searchDataBy('date')"  type="primary" size="mini">查询</button>
 				   </view>
-				</view> -->
+				</view>
 			</view>
 			<view class="flex border-top">
 				<view class="flex-sub">
@@ -39,39 +38,11 @@
 			</view>
 			<view class="flex border-top">
 				<view class="flex-sub">
-					<selectDropdown
-						:otherHeight='CustomBarHeight' 
-						ref="customerDrawer"
-						url="appGetCustomer"
-						title="客ㅤ户"
-						placeholdertext="请选择客户"
-						v-model='formItem.guestId'
-						:params="{modelCode:'paper_order_sum'}"
-					></selectDropdown>
-				
-				</view>
-				<view class="flex-sub">
-					<selectDropdown
-						:otherHeight='CustomBarHeight'
-						ref="userDrawer"
-						url="appFindUser"
-						title="业务员"
-						placeholdertext="请选择业务员"
-						v-model='formItem.businessId'
-						:params="{modelCode:'paper_order_sum'}"
-					></selectDropdown>
-				
-				</view>
-			</view>
-			<view class="flex border-top">
-				<view class="flex-sub">
 					<view class="cu-form-group">
 						<view class="fixed-left">
-							<button :disabled="isLoaddingData" :style="{color: formItem.searchMode=='0'?'red':''}" class="cu-btn round line-cyan" @click="searchModeClick('0')" >客户</button>
-							<button  :disabled="isLoaddingData" :style="{color: formItem.searchMode=='1'?'red':''}" class=" margin-left-custom cu-btn round line-brown" @click="searchModeClick('1')" >业务</button>
-							<button :disabled="isLoaddingData" :style="{color: formItem.searchMode=='2'?'red':''}" class=" margin-left-custom cu-btn round line-blue" @click="searchModeClick('2')" >地区</button>
-							<button  :disabled="isLoaddingData" :style="{color: formItem.searchMode=='3'?'red':''}" class=" margin-left-custom cu-btn round line-green" @click="searchModeClick('3')" >材质</button>
-								<button :disabled="isLoaddingData" :style="{color: formItem.searchMode=='4'?'red':''}" class=" margin-left-custom cu-btn round line-black" @click="searchModeClick('4')" >层数/楞别</button>
+							<button :disabled="isLoaddingData" :style="{color: formItem.searchMode=='1'?'red':''}" class=" margin-left-custom cu-btn round line-brown" @click="searchModeClick('1')" >供应商</button>
+							<button :disabled="isLoaddingData" :style="{color: formItem.searchMode=='0'?'red':''}" class="margin-left-custom cu-btn round line-cyan" @click="searchModeClick('0')" >类型</button>
+							<!-- <button :style="{color: formItem.searchMode=='2'?'red':''}" class=" margin-left-custom cu-btn round line-blue" @click="searchModeClick('2')" >地区</button> -->
 						</view>
 				   </view>
 				
@@ -85,8 +56,8 @@
 				:columns="dataColumns" 
 				:list="dataTableList" 
 				selection="single"
-				:td-width="186"
-				:height="tableHeight-35"
+				:td-width="157"
+				:height="tableHeight-40"
 				>
 			</v-table>
 		</view>
@@ -94,15 +65,21 @@
 			<view class="flex-sub">
 				<view class="cu-form-group">
 				<uni-load-more :contentText="contentText" v-if="!hiddenLoadMore" @clickLoadMore="clickLoadMore" :status="more"></uni-load-more>
-				<view class="title"><text class="text-bold">本页合计:</text>{{sumMoney}}</view>
+				<!-- <view  :class="!hiddenLoadMore?'bottomMerge':'flex'"> -->
+				<view  class="bottomMerge">
+					<view class="title"><text class="text-bold">本页入库合计:</text>{{sumMoney}}</view>
+					<view class="title"><text class="text-bold" >本页出仓合计:</text>{{outsumMoney}}</view>
+				</view>
 				 </view>
 			</view>
-			<!-- <view class="flex-sub">
-				<view class="cu-form-group">
-				
-			  </view>
-			</view> -->
 		</view>
+		<!-- <view style="height: 0rpx;" class="flex border-top">
+			<view class="flex-sub">
+				<view class="cu-form-group">
+				<view class="title"><text class="text-bold">出仓合并:</text>{{sumMoney}}</view>
+				 </view>
+			</view>
+		</view> -->
 	</view>
 </template>
 
@@ -134,11 +111,12 @@ export default {
 	data() {
 		return {
 			contentText:{
-				contentdown: '点击显示更多',
+				contentdown: '点击加载',
 				contentrefresh: '正在加载...',
 				contentnomore: '没有更多数据了'
 			},
 			sumMoney:0,
+			outsumMoney:0,//出仓合并
 			isFilterDataByPage:false,// false:条件查询数据,true:翻页查询 
 			hiddenLoadMore:true, // 是否显示加载更多
 			more:moreStatus.more,// 是否还有更多的数据 more loading noMore）
@@ -149,9 +127,11 @@ export default {
 			dataTableList:[],
 			dataColumns:[],
 			dataColumnsCopy:[
-				{ key: 'Serial', title: '序号',$width: 80, },
-				{ key: 'BMoney', title: '金额', $width: 240, titleAlign: 'center', columnAlign: 'right' },
-				{ key: 'AmtB', title: '金额%', $width: 184, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'Serial', title: '序号',$width: 80,},
+				{ key: 'InWt', title: '入重量(T)', $width: 150, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'NoTaxInAmt', title: '入库金额', $width: 200, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'OutWt', title: '耗用重量(T)', $width: 150, titleAlign: 'center', columnAlign: 'right' },
+				{ key: 'NoTaxOutAmt', title: '耗用金额', $width: 200	, titleAlign: 'center', columnAlign: 'right' },
 			]
 		};
 	},
@@ -161,7 +141,7 @@ export default {
 	// #ifdef H5
 	mounted() {
 	  this.avgWidth = this.getTableAvgWidth(this.dataColumns);
-	  this.searchModeClick('0',false)
+	  this.searchModeClick('1',false)
 	  this.calTableHeight()
 	 
 	},
@@ -169,21 +149,11 @@ export default {
 	// #ifndef H5
 	onReady() {
 		 this.avgWidth = this.getTableAvgWidth(this.dataColumns);
-		  this.searchModeClick('0',false)
+		  this.searchModeClick('1',false)
 		  this.calTableHeight()
 	},
 	// #endif
 	methods: {
-		// 清空事件
-		restfrom(){
-			this.$refs.customerDrawer.$data.formItem.customers = ''
-			this.$refs.customerDrawer.$data.formItem.customersId = ''
-			this.$refs.userDrawer.$data.formItem.customers = ''
-			this.$refs.userDrawer.$data.formItem.customersId = ''
-			this.dataTableList = []
-			this.formItem.guestId = ''
-			this.formItem.businessId = ''
-		},
 		// 自定义某行样式
 		rowClassNameFn(row, index) {
 			if (Number(index) % 2 == 0) {
@@ -194,27 +164,17 @@ export default {
 		// 查询模式选择
 		searchModeClick(type,loadDataNow=true){
 			this.sumMoney = 0
+			this.outsumMoney = 0
 			this.formItem.searchMode= type
 			this.dataColumns = [...this.dataColumnsCopy]
 			let item =null
 			switch (type){
-				case '0':
-				   item = { key: 'ct_Desc', title: '客户', $width: 240, titleAlign: 'center', columnAlign: 'center' }
-					break;
 				case '1':
-				 item = { key: 'w_Name', title: '业务员', $width: 240, titleAlign: 'center', columnAlign: 'center' }
-						break;
-				case '2':
-				 item = { key: 'zone_name', title: '地区', $width: 240, titleAlign: 'center', columnAlign: 'center' }
-						break;
-				case '4':
-				   item = { key: 'co_ArtLB', title: '楞别', $width: 120, titleAlign: 'center', columnAlign: 'center' }
-				 this.dataColumns.splice(1,0,item)
-				   item = { key: 'co_ArtCS', title: '层数', $width: 120, titleAlign: 'center', columnAlign: 'center' }
-						break;					
+				   item = { key: 'CustOrVend', title: '供应商', $width: 140, titleAlign: 'center', columnAlign: 'center' }
+					break;
 				default:
-				    // 3
-					 item ={ key: 'co_ArtId', title: '材质', $width: 240, titleAlign: 'center', columnAlign: 'center' }
+				    // 2
+					item = { key: 'UserType', title: '类型', $width: 140, titleAlign: 'center', columnAlign: 'center' }
 					break;
 			}
 			this.dataColumns.splice(1,0,item)
@@ -275,27 +235,26 @@ export default {
 				this.pageSetting.current = 1 // 重置当前页码
 			}
 			this.sumMoney =0
-			let url = '/warehouse/warehouse/execute/aspPaperCOAnalyzerAPP_new'
+			this.outsumMoney = 0
+			let url = '/warehouse/warehouse/execute/spSPaperProdAccAnalyzer'
 			let params = {
-			   sFrom:this.formItem.startDate,  // -起始日期
-			   sTo:this.formItem.endDate,       // -终止日期
-			   mode:this.formItem.searchMode,     // -0客户1业务员2地区3材质4层数/楞别
-			   cList:this.formItem.guestId,       // -客户
-			   ct_SalerId:this.formItem.businessId,   // --业务员
+			   SDate:this.formItem.startDate,  // -起始日期
+			   EDate:this.formItem.endDate,       // -终止日期
+			   Mode:this.formItem.searchMode,     // 0:类型1:供应商
+			   FunctionType:'SPaper',//原纸
+			   DateRange:'0',//0:不统计；1:日期本周；2:日期本月
+			   // cList:this.formItem.guestId,       // -客户
+			   // ct_SalerId:this.formItem.businessId,   // --业务员
 			   UserID:this.userInfo.erpUserCode,    // -当前用户
 			   pageSize:this.pageSetting.pageSize, //--页大小【不清楚就，默认传0】
 			   pageNum:this.pageSetting.current, //--页码【不清楚就，默认传0】
 			}
 			this.getOrPostDataBy(url,params).then(res=>{
-				// debugger
-				if(res&& res.list.length>=0){
+				if(res&& res.list.length>0){
 					this.doSomeLogicWhenDataNotNull(res)
-					if(res&& res.list.length==0){
-						this.toast.message('已查询到当前所有数据...')
-					}
 				}else{
-					this.hiddenLoadMore = true
 					this.more = moreStatus.noMore
+					this.hiddenLoadMore = true
 					if(!this.isFilterDataByPage){
 							this.toast.message('暂无数据...')
 					}else{
@@ -314,7 +273,8 @@ export default {
 				// 自定义序号
 				item.Serial= index +1 + preIndex
 				// 复制金额字段,防止格式化后无法计算,计算汇总金额
-				item.BMoneyCopy= item.BMoney
+				item.BMoneyCopy= item.NoTaxInAmt
+				item.outBMoneyCopy = item.NoTaxOutAmt
 				return item
 			})
 			// 千分符数据格式化,保留小数等
@@ -329,7 +289,11 @@ export default {
 			let totalMoney = tempDataList.reduce((initMoney,nextItem)=>{
 				return initMoney= initMoney + Number(nextItem.BMoneyCopy) 
 			},0)
-			this.sumMoney =this.addThousandthSign(Number((totalMoney).toFixed(2))) 
+			let outtotalMoney = tempDataList.reduce((outinitMoney,nextItem)=>{
+				return outinitMoney= outinitMoney + Number(nextItem.outBMoneyCopy) 
+			},0)
+			this.sumMoney =this.addThousandthSign((totalMoney.toFixed(2))) 
+			this.outsumMoney =this.addThousandthSign((outtotalMoney.toFixed(2))) 
 			this.dataTableList = tempDataList
 		},
 		// 格式化指定字段
@@ -337,11 +301,17 @@ export default {
 			if(dataList && Array.isArray(dataList) && dataList.length>0)
 			{
 				dataList = dataList.map(item=>{
-					if(!!item.BMoney){
-						item.BMoney =this.addThousandthSign(Number((item.BMoney).toFixed(2))) 
+					if(!!item.NoTaxInAmt){
+						item.NoTaxInAmt =this.addThousandthSign((item.NoTaxInAmt.toFixed(2))) 
 					}
-					if(!!item.AmtB){
-						item.AmtB =this.addThousandthSign(Number(item.AmtB).toFixed(2)) 
+					if(!!item.NoTaxOutAmt){
+						item.NoTaxOutAmt =this.addThousandthSign((item.NoTaxOutAmt.toFixed(2))) 
+					}
+					if(!!item.InWt){
+						item.InWt =this.addThousandthSign(item.InWt.toFixed(2)) 
+					}
+					if(!!item.OutWt){
+						item.OutWt =this.addThousandthSign(item.OutWt.toFixed(2)) 
 					}
 					// if(!!item.profit_GX){
 					// 	item.profit_GX = Number(item.profit_GX).toFixed(1)
@@ -386,5 +356,8 @@ export default {
 	}
 	.border-top{
 		  border-top: 1px solid #eee;
+	}
+	.bottomMerge text{
+		font-size: 20rpx;
 	}
 </style>
