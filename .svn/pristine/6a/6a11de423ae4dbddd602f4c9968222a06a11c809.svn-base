@@ -41,10 +41,11 @@
 					<view class="title paddingnone">料号:</view>
 					<input v-model="FormItems.BatchNo" class="borderbottom"/>
 				</view>
-			</view><view  class="dataClass">
+			</view>
+			<view  class="dataClass">
 				<view class="cu-form-group paddingRigntnone">
-					<view class="title paddingnone">工单号:</view>
-					<input v-model="FormItems.WorkNo" class="borderbottom"/>
+<!-- 					<view class="title paddingnone">工单号:</view>
+					<input v-model="FormItems.WorkNo" class="borderbottom"/> -->
 				</view>
 			</view>
 		</view>
@@ -80,39 +81,40 @@ import request from '@/utils/request.js';
 import vTable from "@/components/table.vue";
 const detailedColumn = [
 	{ key: 'rownumber', title: '序号',$width: 75,columnAlign: 'center'},
+	{ key: 'CustID', title: '客户编号', $width: 165, titleAlign: 'left', columnAlign: 'left'},
 	{ key: 'CustName', title: '客户名称', $width: 165, titleAlign: 'left', columnAlign: 'left'},
-	{ key: 'WorkNo', title: '工单号', $width: 165, titleAlign: 'left', columnAlign: 'left'},
-	{ key: 'DueDate', title: '交期', $width: 120, titleAlign: 'right', columnAlign: 'right'},
 	{ key: 'bpNo', title: '产品编号', $width: 140, titleAlign: 'left', columnAlign: 'left'},
 	{ key: 'bpName', title: '产品名称', $width: 340, titleAlign: 'left', columnAlign: 'left'},
-	{ key: 'CoQty', title: '订单数', $width: 100, titleAlign: 'right', columnAlign: 'right'},
-	{ key: 'StoreQty', title: '库存数', $width: 100, titleAlign: 'right', columnAlign: 'right'},
-	{ key: 'NoDelQty', title: '未送数', $width: 100, titleAlign: 'right', columnAlign: 'right'},
-	{ key: 'Cube', title: '体积', $width: 100, titleAlign: 'right', columnAlign: 'right'},
-	{ key: 'Area', title: '面积', $width: 150, titleAlign: 'right', columnAlign: 'right'},
-	{ key: 'InDate', title: '入库日期', $width: 130, titleAlign: 'right', columnAlign: 'right'},
-	{ key: 'PBoxName', title: '箱型', $width: 200, titleAlign: 'left', columnAlign: 'left'},
-	{ key: 'Spec', title: '纸箱信息', $width: 300, titleAlign: 'left', columnAlign: 'left'},
+	{ key: 'StoreQty', title: '库存数', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Area', title: '总面积', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Cube', title: '总体积', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Weight', title: '总重量', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'PBoxName', title: '盒式名称', $width: 165, titleAlign: 'left', columnAlign: 'left'},
+	{ key: 'Art', title: '纸质', $width: 100, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Spec', title: '规格', $width: 220, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'CustProdNo', title: '客户产品编号', $width: 165, titleAlign: 'left', columnAlign: 'left'},
+	{ key: 'CustProdName', title: '客户产品名称', $width: 165, titleAlign: 'left', columnAlign: 'left'},
+	{ key: 'BatchNo', title: '料号', $width: 120, titleAlign: 'left', columnAlign: 'left'},
 ];
 const gatherColumn = [
 	{ key: 'rownumber', title: '序号',$width: 75,columnAlign: 'center'},
-	{ key: 'CustName', title: '客户名称', $width: 300, titleAlign: 'center', columnAlign: 'center'},
-	{ key: 'WorkQty', title: '工单数', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'CustID', title: '客户编号', $width: 165, titleAlign: 'left', columnAlign: 'left'},
+	{ key: 'CustName', title: '客户名称', $width: 300, titleAlign: 'left', columnAlign: 'left'},
 	{ key: 'StoreQty', title: '库存数', $width: 200, titleAlign: 'right', columnAlign: 'right'},
-	{ key: 'NoDelQty', title: '未送数', $width: 280, titleAlign: 'right', columnAlign: 'right'},
-	{ key: 'Cube', title: '体积', $width: 280, titleAlign: 'right', columnAlign: 'right'},
-	{ key: 'Area', title: '面积', $width: 280, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Area', title: '总面积', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Cube', title: '总体积', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Weight', title: '总重量', $width: 200, titleAlign: 'right', columnAlign: 'right'},
 ];
 const gatproductColumn = [
 	{ key: 'rownumber', title: '序号',$width: 75,columnAlign: 'center'},
-	{ key: 'bpName', title: '产品名称', $width: 300, titleAlign: 'center', columnAlign: 'center'},
-	{ key: 'WorkQty', title: '工单数', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'bpNo', title: '产品编号', $width: 165, titleAlign: 'left', columnAlign: 'left'},
+	{ key: 'bpName', title: '产品名称', $width: 300, titleAlign: 'left', columnAlign: 'left'},
 	{ key: 'StoreQty', title: '库存数', $width: 200, titleAlign: 'right', columnAlign: 'right'},
-	{ key: 'NoDelQty', title: '未送数', $width: 280, titleAlign: 'right', columnAlign: 'right'},
-	{ key: 'Cube', title: '体积', $width: 280, titleAlign: 'right', columnAlign: 'right'},
-	{ key: 'Area', title: '面积', $width: 280, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Area', title: '总面积', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Cube', title: '总体积', $width: 200, titleAlign: 'right', columnAlign: 'right'},
+	{ key: 'Weight', title: '总重量', $width: 200, titleAlign: 'right', columnAlign: 'right'},
 ];
-const default_totalList = {CustName:'合计',CoQty:0,StoreQty:0,NoDelQty:0,Cube:0,Area:0,bMoney:0,bpName:'合计'}//Table合计数据
+const default_totalList = {rownumber:'合计',CoQty:0,StoreQty:0,NoDelQty:0,Cube:0,Area:0,bMoney:0,Weight:0,}//Table合计数据
 	export default {
 		components:{cuCustom,vTable,selectDropdown},
 		mixins:[warehouse],
@@ -200,19 +202,19 @@ const default_totalList = {CustName:'合计',CoQty:0,StoreQty:0,NoDelQty:0,Cube:
 			sjfyData(Data){
 				if(Data.list[0].bMoney !== undefined && this.FormItems.Mode === 0){
 					if (this.flag0){
-					detailedColumn.splice(8,0,{ key: 'bMoney', title: '本币金额', $width: 200, titleAlign: 'right', columnAlign: 'right'})
+					detailedColumn.splice(9,0,{ key: 'bMoney', title: '本币金额', $width: 200, titleAlign: 'right', columnAlign: 'right'})
 					this.flag0 = false
 					}
 				}
 				if(Data.list[0].bMoney !== undefined && this.FormItems.Mode === 1){
 					if (this.flag1){
-					gatherColumn.splice(4,0,{ key: 'bMoney', title: '本币金额', $width: 200, titleAlign: 'right', columnAlign: 'right'})
+					gatherColumn.splice(7,0,{ key: 'bMoney', title: '本币金额', $width: 200, titleAlign: 'right', columnAlign: 'right'})
 					this.flag1 = false
 					}
 				}
 				if(Data.list[0].bMoney !== undefined && this.FormItems.Mode === 3){
 					if (this.flag2){
-					gatproductColumn.splice(4,0,{ key: 'bMoney', title: '本币金额', $width: 200, titleAlign: 'right', columnAlign: 'right'})
+					gatproductColumn.splice(7,0,{ key: 'bMoney', title: '本币金额', $width: 200, titleAlign: 'right', columnAlign: 'right'})
 					this.flag2 = false
 					}
 				}
@@ -274,6 +276,7 @@ const default_totalList = {CustName:'合计',CoQty:0,StoreQty:0,NoDelQty:0,Cube:
 					_self.totalList.NoDelQty+=item.NoDelQty
 					_self.totalList.Cube+=item.Cube
 					_self.totalList.Area+=item.Area
+					_self.totalList.Weight+=item.Weight
 					// 沙井飞耀个性化数据合计
 					if(data[0].bMoney !== undefined){
 						_self.totalList.bMoney = +_self.totalList.bMoney + item.bMoney
@@ -281,6 +284,7 @@ const default_totalList = {CustName:'合计',CoQty:0,StoreQty:0,NoDelQty:0,Cube:
 				})
 				this.totalList.Cube=Number(this.totalList.Cube.toFixed(2))
 				this.totalList.Area=Number(this.totalList.Area.toFixed(2))
+				this.totalList.Weight=Number(this.totalList.Weight.toFixed(2))
 				return (data.push(this.totalList),data)
 			},
 			// 设置表格使用剩余高度
